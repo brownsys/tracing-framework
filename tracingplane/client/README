@@ -1,0 +1,1 @@
+Tracing library implementation with two components: an API for metadata propagation, and a baggage API with protobuf-based implementation.

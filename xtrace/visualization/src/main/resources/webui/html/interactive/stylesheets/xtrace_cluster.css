@@ -1,0 +1,53 @@
+.node {
+    fill: #FFF2CC;
+    stroke: #A16D00;
+    stroke-width: 1px;
+}
+
+.node.selected {
+    stroke: #0F4BFF;
+    fill: #B3ECFF;
+	stroke-width: 1px;
+}
+
+.edge {
+	width: 1;
+	stroke: #BBB;
+	opacity: 0.3;
+}
+
+.edge.selected {
+	opacity: 1;
+	width: 2;
+	stroke: #999;
+}
+
+.edgelabel {
+	opacity: 0;
+}
+
+.edgelabel.visible {
+	opacity: 1;
+}
+
+.xtrace-tooltip {
+    text-align: left;
+}
+
+.xtrace-tooltip .key {
+    display: inline-block;
+    float: left;
+    width: 90px;
+    font-weight: bold;  
+}
+
+.xtrace-tooltip .value {
+    display: inline-block;
+    float: left;
+    word-wrap: break-word;
+    max-width: 410px;
+}
+
+.xtrace-tooltip .clear {
+    clear: both;
+}

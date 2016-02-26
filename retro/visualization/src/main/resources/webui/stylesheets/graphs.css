@@ -1,0 +1,36 @@
+body {
+	font: 10px sans-serif;
+	overflow: hidden;
+}
+
+.axis path,.axis line {
+	fill: none;
+	stroke: #000;
+	shape-rendering: crispEdges;
+}
+
+.series {
+	fill: none;
+	stroke-width: 1.5px;
+}
+
+.tenantlabel {
+	font-size: 7pt;
+	font-weight: bold;
+}
+
+.y.axis text.title {
+	font-size: 7pt;
+}
+
+.resourceviz > .title {
+	font-size: 10pt;
+	font-weight: bold;
+}
+
+svg.graphs {
+	box-sizing: border-box;
+	border: 1px solid black;
+  -moz-box-sizing:border-box;
+  -webkit-box-sizing:border-box;
+}

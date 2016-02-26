@@ -1,0 +1,37 @@
+package pubsub;
+
+option java_package = "edu.brown.cs.systems.xtrace";
+option java_outer_classname = "Reporting";
+
+// The report specification for X-Trace version 4.
+message XTraceReportv4 {
+
+	// X-Trace related fields
+	optional sfixed64 task_id = 1;			// ID of the execution this report belongs to
+	optional sfixed64 event_id = 2;			// ID of this report
+	repeated sfixed64 parent_event_id = 3;	// ID of causally-preceding reports
+	
+	// Timestamp fields
+	optional int64 timestamp = 4;			// Epoch time in milliseconds
+	optional int64 hrt = 5; 				// Process-dependent high-resolution timer in nanoseconds
+	optional int64 cycles = 6; 				// Thread-dependent CPU cycle timer
+	
+	// Report source fields
+	optional string host = 7; 				// Hostname
+	optional int32 process_id = 8; 			// Numeric process ID
+	optional string process_name = 9; 		// Process name
+	optional int32 thread_id = 10; 			// Numeric thread ID
+	optional string threadName = 11; 		// Thread name
+	optional string agent = 12; 			// An arbitrary string, usually a java class, where this report was generated
+	optional string source = 13; 			// The source code location where this report was generated
+	
+	// Messages
+	optional string label = 14; 			// String text message
+	repeated string key = 15; 				// keys for custom fields; only add a key if you will also add a value
+	repeated string value = 16; 			// keys for custom values; only add a value if you also added a key
+	repeated string tags = 17; 				// Database tags
+	
+	// X-Trace Tenant field
+	optional int32 tenantClass = 18;		// Tenant ID
+	
+}

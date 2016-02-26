@@ -1,0 +1,127 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>edu.brown.cs.systems</groupId>
+    <artifactId>retro-throttling</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Retro - Throttling Points</name>
+
+    <parent>
+        <groupId>edu.brown.cs.systems</groupId>
+        <artifactId>retro-project</artifactId>
+        <version>4.0</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>pubsub</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>retro-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>tracingplane-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>tracingplane-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>retro-aggregation</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-sources</id>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <tasks>
+                                <mkdir dir="target/generated-sources" />
+                                <exec executable="protoc">
+                                    <arg
+                                        value="--java_out=target/generated-sources" />
+                                    <arg
+                                        value="src/main/protobuf/ThrottlingMessages.proto" />
+                                    <arg
+                                        value="src/main/protobuf/SchedulerMessages.proto" />
+                                </exec>
+                            </tasks>
+                            <sourceRoot>target/generated-sources</sourceRoot>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.7</version>
+                <configuration>
+                    <programs>
+                        <program>
+                            <mainClass>edu.brown.cs.systems.pubsub.Server</mainClass>
+                            <name>pubsub-server</name>
+                        </program>
+                        <program>
+                            <mainClass>edu.brown.cs.systems.resourcethrottling.cli.ThrottlingServerCLI</mainClass>
+                            <name>server-cli</name>
+                        </program>
+                        <program>
+                            <mainClass>edu.brown.cs.systems.resourcethrottling.cli.ThrottlingClientCLI</mainClass>
+                            <name>client-cli</name>
+                        </program>
+                        <program>
+                            <mainClass>edu.brown.cs.systems.resourcethrottling.cli.UtilCommand</mainClass>
+                            <name>clear-all-throttlingpoints</name>
+                            <commandLineArguments>
+                                <commandLineArgument>CLEARALL</commandLineArgument>
+                            </commandLineArguments>
+                        </program>
+                    </programs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>include-protobuf-source</id>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,13 @@
+## Render a list of tasks, in $tasks, as JSON (specifically, as an array).
+[
+#foreach ($task in $tasks)
+  {
+    "taskId": "$task.taskId", 
+    "title": "$task.title", 
+    "firstSeen": "$JSON_DATE_FORMAT.format($task.firstSeen)",
+    "lastUpdated": "$JSON_DATE_FORMAT.format($task.lastUpdated)",
+    "numReports": "$task.numReports",
+    "tags": [#foreach ($tag in $task.tags)"$tag", #end]
+  },
+#end
+]

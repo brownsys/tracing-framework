@@ -1,0 +1,53 @@
+package pubsub;
+
+option java_package = "edu.brown.cs.systems.retro.aggregation";
+option java_outer_classname = "Resource";
+
+enum Operation {
+  READ = 1; 				// disk, network, hdfs, locks - also used as default operation for resources with no notion of an operation
+  WRITE = 2; 				// disk, network, hdfs, locks
+  OPEN = 3; 				// disk
+  CLOSE = 4;				// disk, network
+  FLUSH = 5;				// disk, network
+  SYNC = 6;					// disk
+  
+  CONNECT = 7;				// network
+  
+  FOREGROUND = 8;			// CPU usage from tenant from actual processing
+  BACKGROUND = 9;			// CPU usage while consuming some other resource (eg. disk)
+  
+  DELETE = 10;				// hdfs
+  RENAME = 11;				// hdfs
+  LIST_LOCATED_FILES = 12;	// hdfs
+  LIST_FILES = 13;			// hdfs
+  MKDIR = 14;				// hdfs
+  CREATE_SYMLINK = 15;		// hdfs
+  
+  REPLICATION = 30;			// hdfs background task, block replication
+  HEARTBEAT = 31;			// hdfs background task, DN<->NN heartbeat
+  INVALIDATE = 33;			// hdfs background task, DN invalidate a block
+  FINALIZE = 34;			// hdfs background task, DN finalize a block
+  RECOVER = 35;				// hdfs background task, DN recover a block
+  
+  METADATA = 36;			// disk metadata operation eg. exists(), delete()
+  
+  SEEK = 37;					// disk seek meta-operation
+}
+
+enum Type {
+	DISK = 0;
+	NETWORK = 1;			
+	LOCKING = 2;
+	THREAD = 3;
+	CPU = 4;
+	HDFSREQUEST = 5;		// deprecated; use CLIENT
+	QUEUE = 6;
+	DISKCACHE = 7;
+	UPLINK = 8;				// deprecated; use NETWORK type and specify uplink as resource id
+	DOWNLINK = 9;			// deprecated; use NETWORK type and specify downlink as resource id
+	HDFSBACKGROUND = 10;	// deprecated; use CLIENT
+	THROTTLINGPOINT = 11;	// a throttling point
+	CLIENT = 12;			// a generic client request
+	BATCH = 13;
+	SCHEDULER = 14;
+}

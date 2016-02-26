@@ -1,0 +1,377 @@
+<%
+#TODO:
+# 1) add lines to top of reduce task duration graphs to show the 3 phases
+#   a) requires me to add a subclass of HadoopTask to hadoop_reports.rb
+#      will have members for the copy and sort phase complete timestamps
+# 2) copy phase laggard graph, for each map, mean time of reducer read size and reducer read time
+# 3) new task duration graph, sorted by task start time
+#
+default_report_age = -2
+report_link_bar_radius = 3
+
+script_start_time = Time.new
+log = Logger.new(STDERR)
+log.datetime_format = "%Y-%m-%d %H:%M:%S"
+jobid = cgi['jobid']
+jobid = "" unless jobid =~ /[a-z0-9_]*/ # Don't allow weird characters
+if jobid != ""
+  title = "Utilization for #{jobid}"
+else
+  title = "Please select a job"
+end
+report_age = cgi["age"].to_i < 0 ? cgi["age"].to_i : default_report_age
+%>
+<html>
+<head>
+  <title><%=title%></title>
+  <link rel="stylesheet" href="hadoop-analysis.css" />
+</head>
+<body>
+
+<h1><%=title%></h1>
+
+<%
+if jobid != ""
+  io = open(PROGRESS_LOG_DIR + "/" + jobid)
+  reportTexts = io.read.split(/\n\n/)
+  io.close
+  if reportTexts.empty?
+    %>No progress reports have yet been written.<%
+  else
+    if report_age < (0-reportTexts.length) then
+      %>Warning: report age specified (<%=report_age%>) is older than oldest report (-<%=reportTexts.length%>), using default (<%=default_report_age%>)<%
+      report_age = default_report_age
+    end
+    json_report = JSON.parse(reportTexts[report_age]) # Look only at the 2nd to last report
+    report = HadoopReport.new(json_report)
+    log.info "loaded a new HadoopReport with #{report.length} tasks"
+    log.info report.to_s
+    log.info report.tasks.select{|x| x.is_success}.length.to_s + " successful tasks"
+    
+    %><h2>Report Information (viewing report #<%=report_age%> of -<%=reportTexts.length%>)</h2><%
+    oldest = 0-reportTexts.length+1
+    rad = report_link_bar_radius 
+    diam = rad*2
+    l = [oldest,report_age-rad].max
+    r = [-1,report_age+rad].min
+   if l != oldest then %><a href="hadoop-tasks.rb?jobid=<%=jobid%>&age=<%=oldest%>">&lt;Oldest</a> <% end
+   if l != oldest then %><a href="hadoop-tasks.rb?jobid=<%=jobid%>&age=<%=[oldest,report_age-diam].max%>">&lt;Previous</a> <%end
+    (l..r).each do |x|
+      %>
+      <% if x == report_age then %>
+        <span style="font-size:1.2em; font-weight:bold">
+      <%end %>
+      <a href="hadoop-tasks.rb?jobid=<%=jobid%>&age=<%=x%>"><%=x%></a>
+      <% if x == report_age then %> </span> <% end 
+    end
+    if r != -1 then %><a href="hadoop-tasks.rb?jobid=<%=jobid%>&age=<%=[-1,report_age+diam].min%>">Next&gt;</a> <% end
+    if r != -1 then %><a href="hadoop-tasks.rb?jobid=<%=jobid%>&age=<%=-1%>">Newest&gt;</a> <% end
+    %><br/><br/><table><%
+    %><tr><td>Duration:</td><td><%=report.duration.round%>s</td></tr><%
+    %><tr><td>Hosts:</td><td><%=report.tasks.map{|x| x.tracker}.uniq.length%></td></tr><%
+    %></table><br/>
+    
+    <h2>Task Information</h2>
+    <%=
+    
+    make_stats_table = lambda do |rows|
+      headers = %w{Tasks Count Mean(s) Med(s) Dev(s) Min(s) Max(s) 95%(s) Sum(s) Useful(s) Useless(s)}
+      values = []
+      rows.each do |t|
+        row = []
+        row << t[0]
+        row << t[1].length
+        if t[2].values.length > 0 
+          [lambda{|x|x.mean},lambda{|x|x.med},lambda{|x|x.std},lambda{|x|x.min},
+          lambda{|x|x.max},lambda{|x|x.percentile(95)}].each do |y|
+            row << y.call(t[2]).round
+          end
+
+          row << t[2].sum.round.to_s + " (#{percentify(t[2].sum/report.task_stats.sum)})"
+          useful = t[1].select{|x|x.spec_state == :good or 
+                               x.spec_state == :suspect_good or 
+                               x.spec_state == :spec_good
+                           }.map{
+                             |x|x.duration
+                           }.inject(0) {
+                             |sum,x| sum + x
+                           }.round
+          row << useful.to_s + " (#{percentify(useful/t[2].sum)})"
+
+          useless = t[1].select{|x|x.spec_state == :suspect_killed or 
+                                   x.spec_state == :spec_killed
+                               }.map{
+                                 |x|x.duration
+                               }.inject(0) {|sum,x| sum + x}.round
+          row << useless.to_s + " (#{percentify(useless/t[2].sum)})"
+        else
+          (headers.length-2).times{row << "N/A"}
+        end
+        values << row
+        row = nil
+      end
+      html_table headers, values, :width => "800px"
+    end
+    
+    #output a pretty table of stats
+    tasks_rows = []
+    tasks_rows << ["All Tasks:",report.tasks, report.task_stats]
+    #tasks_rows << ["Good Tasks:",report.tasks(:good), report.task_stats(:good)]
+    make_stats_table.call(tasks_rows)
+    %><br/><%=
+    maps_rows = []
+    maps_rows << ["Maps:",report.maps,report.map_stats]
+    maps_rows << ["Good Maps:",report.maps(:good), report.map_stats(:good)]
+    maps_rows << ["Suspect-Finished Maps:",report.maps(:suspect_good), report.map_stats(:suspect_good)]
+    maps_rows << ["Suspect-Killed Maps:",report.maps(:suspect_killed), report.map_stats(:suspect_killed)]
+    maps_rows << ["Speculative-Finished Maps:",report.maps(:spec_good), report.map_stats(:spec_good)]
+    maps_rows << ["Speculative-Killed Maps:",report.maps(:spec_killed), report.map_stats(:spec_killed)]
+    make_stats_table.call(maps_rows)
+    %><br/><%= 
+    reduces_rows = []
+    reduces_rows << ["Reduces:",report.reduces, report.reduce_stats]
+    reduces_rows << ["Good Reduces:",report.reduces(:good), report.reduce_stats(:good)]
+    reduces_rows << ["Suspect-Finished Reduces:",report.reduces(:suspect_good), report.reduce_stats(:suspect_good)]
+    reduces_rows << ["Suspect-Killed Reduces:",report.reduces(:suspect_killed), report.reduce_stats(:suspect_killed)]
+    reduces_rows << ["Speculative-Finished Reduces:",report.reduces(:spec_good), report.reduce_stats(:spec_good)]
+    reduces_rows << ["Speculative-Killed Reduces:",report.reduces(:spec_killed), report.reduce_stats(:spec_killed)]
+    make_stats_table.call(reduces_rows)
+    
+
+    %>
+    <%
+    ################################################################
+    ## GRAPHS
+    ## 
+    ## first draw graphs for map tasks, 
+    ## then the same graphs for reduce tasks
+    ################################################################
+    plots = []
+    task_types = []
+    task_types << :map if report.maps.length > 0
+    task_types << :reduce if report.reduces.length > 0
+    task_types.each do |task_type|
+      all_tasks = task_type == :map ? report.maps : report.reduces
+      
+      file_suffixes = ["good", "suspect-finished", "suspect-killed",
+                       "speculative-finished", "speculative-killed"]
+      file_suffixes.map!{|x| x + "-" + task_type.to_s} 
+      
+      plots <<  get_plot_2(jobid, task_type.to_s + "_distr") do |graph_file|
+        suffixes = file_suffixes.clone
+        if task_type == :reduce then
+          suffixes += ["shuffle_finish", "sort_finish"]
+        end
+        data_files = suffixes.map{|x| graph_file + "." + x + ".txt"}
+        data_ios = data_files.map{|f_name| File.new(f_name, "w")}
+      
+        all_tasks.sort{|a,b| b.duration<=>a.duration}.each_with_index do |x,i|
+          data_line = "#{i+1}\t#{x.duration}\n"
+          zero_data_line = "#{i+1}\t0\n"
+          
+          if x.spec_state == :good then data_ios[0] << data_line; 
+          else data_ios[0] << zero_data_line
+          end
+          
+          if x.spec_state == :suspect_good then data_ios[1] << data_line
+          else data_ios[1] << zero_data_line
+          end
+          
+          if x.spec_state == :suspect_killed then data_ios[2] << data_line
+          else data_ios[2] << zero_data_line
+          end
+          
+          if x.spec_state == :spec_good then data_ios[3] << data_line
+          else data_ios[3] << zero_data_line
+          end
+          
+          if x.spec_state == :spec_killed then data_ios[4] << data_line
+          else data_ios[4] << zero_data_line
+          end
+
+          #add point for lines of reduce phase finish times
+          if task_type == :reduce
+            data_ios[5] << "#{i+1}\t#{x.shuffle_duration}\n"
+            data_ios[6] << "#{i+1}\t#{x.sort_duration}\n"
+          end
+        end
+        data_ios.each{|x| x.close}
+        # Return GNUPlot commands
+        retval = "set title '#{task_type.to_s.capitalize} Task Durations Sorted'
+        set xlabel 'Task number'
+        set ylabel 'Duration (s)'
+        set yrange [0:]
+        plot '#{data_files[0]}' title '#{suffixes[0]}' with boxes fs solid,\\
+          '#{data_files[1]}' title '#{suffixes[1]}' with boxes fs solid,\\
+          '#{data_files[2]}' title '#{suffixes[2]}' with boxes fs solid,\\
+          '#{data_files[3]}' title '#{suffixes[3]}' with boxes fs solid,\\
+          '#{data_files[4]}' title '#{suffixes[4]}' with boxes fs solid"
+        #if this is a reducer, also graph the finish times of the stages
+        if task_type == :reduce then
+          retval << ",\\
+          '#{data_files[5]}' title '#{suffixes[5]}' with histeps,\\
+          '#{data_files[6]}' title '#{suffixes[6]}' with histeps"
+        end
+        retval
+      end
+      %><img src="<%=plots.last%>" /><p><ul>
+      <% file_suffixes.each do |suf| %>
+        <li><a href="<%= plots.last + "." + suf + ".txt\"/>" + suf %> Data</a></li>
+      <% end %>
+      </ul></p>
+      <% 
+      plots << get_plot_2(jobid, task_type.to_s+"_distr_grouped_by_task_type") do |graph_file|
+        data_files = file_suffixes.map{|x| graph_file + "." + x + ".txt"}
+        data_ios = data_files.map{|f_name| File.new(f_name, "w")}
+        tasks = []
+        5.times do tasks << StatCounter.new end
+
+        all_tasks.sort{|a,b| b.duration<=>a.duration}.each_with_index do |x,i|
+          
+         if x.spec_state == :good then
+            tasks[0] << x.duration 
+          end
+          
+         if x.spec_state == :suspect_good then
+            tasks[1] << x.duration
+          end
+         
+         if x.spec_state == :suspect_killed then
+            tasks[2] << x.duration
+          end
+         
+         if x.spec_state == :spec_good then
+            tasks[3] << x.duration
+          end
+          
+         if x.spec_state == :spec_killed then
+            tasks[4] << x.duration
+          end
+        end
+        i = 0
+        tasks.each_with_index do |sc,k|
+          if sc.values.length < 1 then data_ios[k] << "0\t0\n" end
+          sc.values.each do |v|
+            data_ios[k] << "#{i+1}\t#{v}\n"
+            i += 1
+          end
+        end
+        data_ios.each{|x| x.close}
+        # Return GNUPlot commands
+        "set title '#{task_type.to_s.capitalize} Durations'
+         set xlabel 'Task number'
+         set ylabel 'Duration (s)'
+         set yrange [0:]
+         plot '#{data_files[0]}' title '#{file_suffixes[0]}' with boxes fs solid,\\
+           '#{data_files[1]}' title '#{file_suffixes[1]}' with boxes fs solid,\\
+           '#{data_files[2]}' title '#{file_suffixes[2]}' with boxes fs solid,\\
+           '#{data_files[3]}' title '#{file_suffixes[3]}' with boxes fs solid,\\
+           '#{data_files[4]}' title '#{file_suffixes[4]}' with boxes fs solid"
+
+      end
+      %><img src="<%=plots.last%>" /><p><ul>
+      <% file_suffixes.each do |suf| %>
+        <li><a href="<%= plots.last + "." + suf + ".txt\"/>" + suf %> data</a></li>
+      <% end %>
+      </ul></p>
+      <% 
+      
+      draw_task_plot_by_task_tracker = lambda do |sort_func, n_name|
+        get_plot_2(jobid, task_type.to_s+"_distr_grouped_by_host"+n_name) do |graph_file|
+          data_files = (file_suffixes << "mean_task_length_per_tracker " + 
+                        task_type.to_s).map{|x| graph_file + "." + x + n_name + ".txt"}
+          data_ios = data_files.map{|f_name| File.new(f_name, "w")}
+          task_trackers = Hash.new {|key,value| key[value] = 
+              Array.new(6) {StatCounter.new}}
+
+          all_tasks.sort{|a,b| b.duration<=>a.duration}.each_with_index do |x,i|
+            if x.spec_state == :good then
+              task_trackers[x.tracker][0] << x.duration
+            end
+            
+            if x.spec_state == :suspect_good then
+              task_trackers[x.tracker][1] << x.duration
+            end
+           
+            if x.spec_state == :suspect_killed then
+              task_trackers[x.tracker][2] << x.duration
+            end
+          
+            if x.spec_state == :spec_good then 
+              task_trackers[x.tracker][3] << x.duration
+            end
+         
+            if x.spec_state == :spec_killed then 
+              task_trackers[x.tracker][4] << x.duration
+            end
+            #also track an aggregate view of all tasks per this task tracker
+            task_trackers[x.tracker][5] << x.duration
+
+          end
+          
+          i = 0 
+          task_trackers.sort{|a,b| sort_func.call(a,b) }.each do |tt|
+            tt_name = tt[0]
+            tt[1].each_with_index do |tt_task_type, k|
+              if k==5 then
+                data_ios[5] << "#{i+1-tt_task_type.values.length/2}\t#{tt_task_type.mean}\t#<--#{tt_name}\n"
+              else
+                tt_task_type.values.each do |v|
+                  data_ios[k] << "#{i+1}\t#{v}\t###{tt_name}\n"
+                  data_ios[0..4].each_with_index {|dio,ind| if ind!=k : dio << "#{i+1}\t0\t#<--zero so that the #{file_suffixes[k]} task can be drawn\n" end}
+                  i += 1
+                end
+              end
+            end
+            (all_tasks.length/task_trackers.length/2).times {data_ios[0..4].each {|dio| dio << "#{i+1}\t0\t#<--spacer\n"}; i+=1}
+          end
+          
+          data_ios.each{|x| x.close}
+          # Return GNUPlot commands
+          "set title '#{task_type.to_s.capitalize} Durations'
+           set xlabel 'Task number'
+           set ylabel 'Duration (s)'
+           set yrange [0:]
+           plot '#{data_files[0]}' title '#{file_suffixes[0]}' with boxes fs solid,\\
+             '#{data_files[1]}' title '#{file_suffixes[1]}' with boxes fs solid,\\
+             '#{data_files[2]}' title '#{file_suffixes[2]}' with boxes fs solid,\\
+             '#{data_files[3]}' title '#{file_suffixes[3]}' with boxes fs solid,\\
+             '#{data_files[4]}' title '#{file_suffixes[4]}' with boxes fs solid,\\
+             '#{data_files[5]}' title '#{file_suffixes[5]}' with lines lw 1"
+
+        end
+      end
+      plots << draw_task_plot_by_task_tracker.call(lambda{|a,b| b[1][5].mean <=> a[1][5].mean}, "sorted_by_mean")
+     
+      sort_trackers = lambda{|a,b| a.match(/tracker_.*(\d\d\d):/)[1] <=> b.match(/tracker_.*(\d\d\d):/)[1]}
+      f_plot = draw_task_plot_by_task_tracker.call(lambda{|a,b| sort_trackers.call(b[0], a[0])}, "sorted_by_task_tracker")
+
+      %>
+      <img src="<%=plots.last%>" /><p><ul>
+      <%file_suffixes.each do |suf| %>
+      <li><a href="<%= plots.last + "." + suf + "sorted_by_mean.txt\"/>" + suf %> data</a></li> <% 
+      end %> 
+      </ul></p>
+<%
+    end
+  end
+else
+  %><ul><%
+  files = []
+  Dir.foreach(PROGRESS_LOG_DIR) {|f| files << f}
+  files.sort.each do |file|
+    unless file =~ /^\./ # Ignore directory entires and hidden files
+    %>
+    <li><a href="<%=SERVER_URL+"/hadoop-tasks.rb?jobid="+file%>"><%=file%></a></li>
+    <%
+    end
+  end
+  %></ul><%
+end
+%>
+</body>
+
+<hr />
+<p>Page generated in <%=Time.new-script_start_time%> seconds.</p>
+
+</html>

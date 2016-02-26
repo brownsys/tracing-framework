@@ -1,0 +1,88 @@
+<%
+#TODO:
+# 1) add parameter to url for which report (default is -2) to generate page for
+# 2) same graph as number 3, but sorted by task task-tracker-id starttime
+# 3) if the num reducers = 0, don't draw reducers
+# 4) copy phase laggard graph, for each map, mean time of reducer read size and reducer read time
+
+
+script_start_time = Time.new
+log = Logger.new(STDERR)
+log.datetime_format = "%Y-%m-%d %H:%M:%S"
+title = "Please select a job"
+%>
+<html>
+<head>
+  <title><%=title%></title>
+  <link rel="stylesheet" href="hadoop-analysis.css" />
+</head>
+<body>
+
+<h1><%=title%></h1>
+
+<table>
+<%
+files = []
+Dir.foreach(PROGRESS_LOG_DIR) {|f| files << f}
+files.sort.each do |file|
+  unless file =~ /^\./ # Ignore directory entires and hidden files
+      log.info file.class
+      io = open(PROGRESS_LOG_DIR + "/" + file)
+      reportTexts = io.read.split(/\n\n/)
+      io.close
+
+      if reportTexts.empty?
+        %>No progress reports have yet been written.<%
+      else
+        begin
+          json_report = JSON.parse(reportTexts[-1]) # Look only at the 2nd to last report
+          report = HadoopReport.new(json_report)
+          log.info "loaded a new HadoopReport with #{report.length} tasks"
+          log.info report.to_s
+          log.info report.tasks.select{|x| x.is_success}.length.to_s + " successful tasks"
+        rescue
+          log.info "error parsing report"
+        end
+      end
+  %>
+  <tr><td><a href="<%=SERVER_URL+"/hadoop-tasks.rb?jobid="+file%>"><%=file%></a></td>
+  <td>Useful time: <%=
+         begin 
+           useful = report.tasks.select{|x|x.spec_state == :good or 
+                               x.spec_state == :suspect_good or 
+                               x.spec_state == :spec_good
+                           }.map{
+                             |x|x.duration
+                           }.inject(0) {
+                             |sum,x| sum + x
+                           }.round; useful.to_s + " (#{(useful/report.task_stats.sum * 100).round}%)"
+         rescue
+           "ERROR"
+         end
+           %>
+ </td>
+ <td>Useless time: <%=
+         begin
+     useless = report.tasks.select{|x|x.spec_state == :suspect_killed or 
+                                    x.spec_state == :spec_killed
+                                }.map{
+                                  |x|x.duration
+                                }.inject(0) {|sum,x| sum + x}.round
+                                useless.to_s + " (#{(useless/report.task_stats.sum * 100).round}%)"
+         rescue
+           "ERROR"
+         end
+     %>
+ </td>
+ </tr>
+  <%
+  end
+end
+%></table><%
+%>
+</body>
+
+<hr />
+<p>Page generated in <%=Time.new-script_start_time%> seconds.</p>
+
+</html>

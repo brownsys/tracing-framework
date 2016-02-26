@@ -1,0 +1,9 @@
+## Render a list of tasks, bound to $tasks, given a HttpServletRequest,
+## bound to $request. If the request includes format=json as a GET parameter,
+## we render JSON, otherwise, we render HTML. This is done by using the
+## appropriate tasks-*.vm template.
+#if ($request.getParameter("format").equals("json"))
+  #parse("tasks-json.vm")
+#else
+  #parse("tasks-html.vm")
+#end

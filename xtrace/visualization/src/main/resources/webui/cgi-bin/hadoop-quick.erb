@@ -1,0 +1,186 @@
+<%
+script_start_time = Time.new
+log = Logger.new(STDOUT)
+log.datetime_format = "%Y-%m-%d %H:%M:%S"
+taskid = cgi['taskid']
+title = "Quick Stats for task #{taskid}"
+%>
+
+<html>
+<head>
+  <title><%=title%></title>
+  <link rel="stylesheet" href="hadoop-analysis.css" />
+</head>
+<body>
+
+<%
+if taskid
+  log.info "Making HTTP request for reports for task #{taskid}"
+  response = Net::HTTP.get_response(URI::parse("#{REPORTS_URL}#{taskid}"))
+  if response.body and not response.body.empty?
+    log.info "Got response (length = #{response.body.length})"
+    trace = Trace.new(response.body)
+    response = nil # Free memory
+    log.info "Created Trace object; roots = #{trace.roots.length}"
+    if trace.duplicates > 0
+      log.warn "Task #{taskid} has #{trace.duplicates} opID collisions"
+      %><p>WARNING: <%=trace.duplicates%> opID collisions - graph will be incorrect.</p><%
+    end
+    root = trace.roots.min{|a,b| a.timestamp <=> b.timestamp}
+    log.info "Root label is #{root.label}"
+    is_map_reduce = root.label =~ /^Start Trace: Run Job: .*/
+    start_time = trace.start_time
+    end_time = trace.end_time
+      
+    # Get a list of machines involved in the trace and give each of them a
+    # numerical ID so we can make plots of operation size vs. machine.
+    hosts = trace.reports.map{|x| x.host}.uniq.sort
+    host_idx = {}
+    hosts.each_with_index{|host,idx| host_idx[host] = idx}
+      
+    # Print overall task statistics
+    %><h1>Statistics for task <%=taskid%></h1><%
+    stats = [
+      ['Start time', Time.at(start_time)],
+      ['End time', Time.at(end_time)],
+      ['Duration (s)', (end_time - start_time).to_i],
+      ['Number of reports', trace.reports.length],
+      ['Number of hosts', hosts.length],
+      ['Source nodes', trace.roots.length],
+      ['Sink nodes', trace.reports.select{|x| x.children.empty?}.length]]
+      
+    # Add map-reduce statistics
+    if is_map_reduce
+      job_type = (root.label.match /^Start Trace: Run Job: (.*)/)[1]
+      stats += [['Job type', job_type]]
+      maps = 0
+      reduces = 0
+      map_attempts = 0
+      reduce_attempts = 0
+      trace.reports.each do |rep|
+        if rep.label == "init" and rep.agent =~ /TaskInProgress: (.*)/
+          tip = $1
+          if tip =~ /tip_[0-9]*_[0-9]*_m_([0_9])*/
+            maps += 1
+            map_attempts += rep.children.select{|x| x.label =~ /^startNew/}.length
+          else
+            reduces += 1
+            reduce_attempts += rep.children.select{|x| x.label =~ /^startNew/}.length
+          end
+        end 
+      end
+      stats += [
+        ['Maps', maps],
+        ['Reduces', reduces],
+        ['Map attempts', map_attempts],
+        ['Reduce attempts', reduce_attempts]]
+    end
+      
+    # Add resource utilization statistics
+      
+    bytes_read = 0
+    bytes_written = 0
+    bytes_transferred = 0
+    
+    read_calls = []    # Contains [size, time, host, start_report] tuples
+    write_calls = []   # Contains [size, time, host, start_report] tuples
+    local_writes = []  # Contains [size, time, host, start_report] tuples
+    trace.reports.each do |r|
+      begin
+        if r.label == "OP_READ_BLOCK processing start"  
+          ends = r.children.select{|n| n.label == "OP_READ_BLOCK processing end"}
+          unless ends.empty?
+            e = ends[0]
+            if e.parents[-1].label == "BlockReader finished"
+              numbytes = e.parents[-1].numbytes
+            else # There is a "block verified by client" node in between
+             numbytes = e.parents[-1].parents[0].numbytes
+            end
+            time = [e.timestamp - r.timestamp, 0].max
+            read_calls << [numbytes.to_i, time, r.host, r.parents[0]]
+          end
+        elsif r.label == "OP_WRITE_BLOCK processing start" and r.parents[0] and
+              r.parents[0].agent == "DFSClient" # Only look at writes on first node in replication chain
+          ends = r.children.select{|n| n.label == "OP_WRITE_BLOCK processing end"}
+          unless ends.empty?
+            e = ends[0]
+            numbytes = e.parents[-1].numbytes
+            time = [e.timestamp - r.timestamp, 0].max
+            write_calls << [numbytes.to_i, time, e.host, r.parents[0]]
+          end
+        elsif r.label == "BlockReceiver finished"
+          # Also add a count for local reads (between BlockReceiver finished and Read FirstBadLink end)
+          prev = r.parents[0]
+          time = [r.timestamp - prev.timestamp, 0].max
+          local_writes << [r.numbytes.to_i, time, r.host, r]
+        end
+      rescue
+      end
+    end
+    
+    # Figure out bytes read, and add to bytes_transferred
+    # when the reads aren't local
+    read_calls.each do |size, time, host, start_report|
+      bytes_read += size
+      if start_report and start_report.host != host
+        bytes_transferred += size
+      end
+    end
+    
+    # Figure out bytes written locally
+    local_writes.each do |size, time, host, start_report|
+      bytes_written += size
+    end
+    
+    # Figure out bytes transferred during writes, by looking at the
+    # chain of hosts for each write
+    write_calls.each do |size, time, host, parent|
+      write_hosts = [parent.host]
+      node = parent
+      while child = node.children.find {|x| x.agent == "DataNode" and
+                         x.label == "OP_WRITE_BLOCK processing start"}
+        write_hosts << child.host
+        node = child
+      end
+      transfer_count = 0
+      (0..write_hosts.length-2).each do |i|
+        if write_hosts[i] != write_hosts[i+1]
+          transfer_count += 1
+        end
+      end
+      bytes_transferred += transfer_count * size
+    end
+    
+    # Figure out bytes transferred to during copy-outputs
+    # (TODO: This isn't exactly right since it doesn't check whether we are
+    # copying from a remote or local mapper.)
+    trace.reports.each do |r|
+      if r.mapoutputlength
+        bytes_transferred += r.mapoutputlength.to_i
+      end
+    end
+    
+    stats += [ ['Bytes read', bytes_read] ]
+    stats += [ ['Bytes written', bytes_written] ]
+    stats += [ ['Bytes transferred', bytes_transferred] ]
+    
+    factor = 1024 * 1024 * (end_time - start_time) * hosts.size
+    stats += [ [ 'Read rate (MB/s/node)', '%.02f' % (bytes_read / factor)] ]
+    stats += [ [ 'Write rate (MB/s/node)', '%.02f' % (bytes_written / factor)] ]
+    stats += [ [ 'Transfer rate (MB/s/node)', '%.02f' % (bytes_transferred / factor)] ]
+    
+    # Print all the stats to a HTML table
+    %><%=vertical_table stats%><%
+  else
+    %><p>No task with ID <%=taskid%>.</p><%
+  end
+else 
+  %><p>No task named <%=taskid%> was found.</p><% 
+end
+%>
+</body>
+
+<hr />
+<p>Page generated in <%=Time.new-script_start_time%> seconds.</p>
+
+</html>

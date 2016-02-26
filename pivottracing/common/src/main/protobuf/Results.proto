@@ -1,0 +1,24 @@
+package pivottracingspec;
+
+option java_package = "edu.brown.cs.systems.pivottracing";
+option java_outer_classname = "ResultsProtos";
+
+import "src/main/protobuf/Advice.proto";
+import "src/main/protobuf/PTAgent.proto";
+
+message ResultsTuple {
+	repeated string value = 1; // Tuple values;
+}
+
+message ResultsGroup {
+	repeated string groupBy = 1; // Group by values
+	repeated sfixed64 aggregation = 2; // Aggregations
+}
+
+message QueryResults {
+	required EmitSpec emit = 1; // Emit that produced these results
+	required AgentInfo agent = 2; // Agent sending this output
+	required uint64 timestamp = 3; // Timestamp of these results in epoch ms
+	repeated ResultsTuple tuple = 4; // tuple results
+	repeated ResultsGroup group = 5; // group results
+}
