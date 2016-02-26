@@ -1,0 +1,9 @@
+package baggage;
+
+option java_package = "edu.brown.cs.systems.baggage";
+
+message OptionalBaggageBytesMessage {
+
+	optional bytes baggage = 1;
+
+}

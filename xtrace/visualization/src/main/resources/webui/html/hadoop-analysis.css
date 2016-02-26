@@ -1,0 +1,27 @@
+body {
+  color: black;
+  background: white;
+}
+
+table {
+  border: 1px solid black;
+  border-spacing: 0px;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 3px;
+  text-align: left
+}
+
+div.scrollable {
+  border: 1px solid black;
+  padding: 5px;
+  height: 400px;
+  overflow: auto;
+}
+
+.contTableCell {
+  border: thin solid #BBBBBB;
+}

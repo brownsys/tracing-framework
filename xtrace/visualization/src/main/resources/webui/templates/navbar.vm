@@ -1,0 +1,82 @@
+## Render the nav bar for going to the previous/next tasks in a result set.
+<div style="padding-top: 5px; padding-bottom: 3px;">
+    <div style="float: left; display: inline-block;">
+        <input class="get-selected" type="submit" value="Get Selected JSON" onclick="getSelected()" title="Get raw JSON for selected graphs"/>
+        <input class="cluster-selected" type="submit" value="Cluster Selected" onclick="clusterSelected()" title="View clustering visualization for selected graphs"/>
+        <input class="compare-selected" type="submit" value="Side-by-side Comparison" onclick="compareSelected()" title="Compare two graphs side-by-side using the graph visualization"/>
+        <input class="swimlane-selected" type="submit" value="Swimlane Selected" onclick="swimlaneSelected()" title="View a swimlane visualization of the selected task IDs"/>
+        <input class="selected-related" type="submit" value="Select Related" onclick="selectRelated()" title="Select all Task IDs whose timestamps overlap with the select task ID timestamps"/>
+    </div>
+    <div style="float: right; display: inline-block;">
+        <a href="$request.requestURI?offset=$prevOffset&length=$length">[&lt;&lt; Previous $length]</a>
+        - Showing Tasks ${offset} - $lastResultNum -
+        <a href="$request.requestURI?offset=$nextOffset&length=$length">[Next $length &gt;&gt;]</a>
+    </div>
+    <div style="clear: both"></div>
+</div>
+
+<script language="javascript">
+
+function getSelectedIDs() {
+    var ids = [];
+    var checkboxes = document.getElementsByClassName("select-trace");
+    for (var i = 0; i < checkboxes.length; i++) {
+        var checkbox = checkboxes[i];
+        if (checkbox.checked) {
+            ids.push(checkbox.value);
+        }
+    }
+    return ids;
+}
+
+function getSelected() {
+    var selected = getSelectedIDs();
+    if (selected.length >= 1) {
+        window.open("/interactive/reports/"+selected.join(), "_blank");
+    }
+}
+
+function clusterSelected() {
+    var selected = getSelectedIDs();
+    if (selected.length >= 2) {
+        window.open("/interactive/cluster.html?id="+selected.join(), "_blank");
+    }
+}
+
+function compareSelected() {
+    var selected = getSelectedIDs();
+    if (selected.length == 2) {
+        window.open("/interactive/compare.html?id="+selected.join(), "_blank");
+    }
+}
+
+function selectRelated() {
+    var overlapping_url = "interactive/overlapping/" + getSelectedIDs().join(",");
+    
+    var xhr = new XMLHttpRequest();
+    
+    xhr.open("GET", overlapping_url, true);
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState==4) {
+            if (xhr.status = 200) {
+    		console.log("selecting", xhr.responseText);
+                var json = JSON.parse(xhr.responseText);
+                selectCheckboxes(json);
+            }
+        }
+    };
+    
+    xhr.send(null);    
+}
+
+function swimlaneSelected() {
+    var selected = getSelectedIDs();
+	if (selected.length >= 1) {
+		window.open("/interactive/swimlane.html?id="+selected.join(), "_blank");
+	}
+}
+
+checkControlsEnabled();
+
+</script>

@@ -1,0 +1,1061 @@
+<%
+# TODO: Move some of this code into separate files and refactor some common
+# functionality such as drawing a scatter plot.
+script_start_time = Time.new
+log = Logger.new(STDERR)
+log.datetime_format = "%Y-%m-%d %H:%M:%S"
+taskid = cgi['taskid']
+title = "#{Socket.gethostname} Trace Analysis UI"
+DEFAULT_DETAIL = 0
+detail = cgi.has_key?('detail') ? cgi['detail'].to_i : DEFAULT_DETAIL
+show_machine_utilization = detail >= 3
+show_perf_vs_load = detail >= 2
+show_dfs_utilization = detail >= 1
+%>
+
+<html>
+<head>
+  <title><%=title%></title>
+  <link rel="stylesheet" href="hadoop-analysis.css" />
+</head>
+<body>
+
+<%
+if taskid
+  log.info "Making HTTP request for reports for task #{taskid}"
+  response = Net::HTTP.get_response(URI::parse("#{REPORTS_URL}#{taskid}"))
+  if response.body and not response.body.empty?
+    log.info "Got response (length = #{response.body.length})"
+    trace = Trace.new(response.body)
+    response = nil # Free memory
+    log.info "Created Trace object; roots = #{trace.roots.length}"
+    if trace.duplicates > 0
+      log.warn "Task #{taskid} has #{trace.duplicates} opID collisions"
+      %><p>WARNING: <%=trace.duplicates%> opID collisions - graph will be incorrect.</p><%
+    end
+    if trace.roots.length > 1 and detail >= 3
+      log.warn "Task #{taskid} has #{trace.roots.length} roots"
+      %><p>WARNING: <%=trace.roots.length%> roots - some reports are probably missing.</p>
+      <p>Root labels: <%=trace.roots.map{|x| "'#{x.label}'"}.uniq.join(', ')%></p>
+      <%
+    end
+    root = trace.roots.min{|a,b| a.timestamp <=> b.timestamp}
+    log.info "Root label is #{root.label}"
+    is_map_reduce = root.label =~ /^Start Trace: Run Job: .*/
+    start_time = trace.start_time
+    end_time = trace.end_time
+
+    # Get a list of machines involved in the trace and give each of them a
+    # numerical ID so we can make plots of operation size vs. machine.
+    hosts = trace.reports.map{|x| x.host}.uniq.sort
+    host_idx = {}
+    hosts.each_with_index{|host,idx| host_idx[host] = idx}
+
+    # Print overall task statistics
+    %><h1>Statistics for task <%=taskid%></h1><%
+    stats = [
+      ['Start time', Time.at(start_time)],
+      ['End time', Time.at(end_time)],
+      ['Duration', "%.1f minutes" % ((end_time - start_time) / 60)],
+      ['Number of reports', trace.reports.length],
+      ['Number of hosts', hosts.length],
+      ['Source nodes', trace.roots.length],
+      ['Sink nodes', trace.reports.select{|x| x.children.empty?}.length]]
+    if is_map_reduce
+      job_type = (root.label.match /^Start Trace: Run Job: (.*)/)[1]
+      stats += [['Job type', job_type]]
+      maps = 0
+      reduces = 0
+      map_attempts = 0
+      reduce_attempts = 0
+      retried_maps = 0
+      retried_reduces = 0
+      tip = ""
+      trace.reports.each do |rep|
+        if rep.label == "init" and rep.agent =~ /TaskInProgress: (.*)/
+          tip = $1
+          if tip =~ /tip_[0-9]*_[0-9]*_m_([0_9])*/
+            maps += 1
+            map_attempts += rep.children.select{|x| x.label =~ /^startNew/}.length
+            retried_maps += rep.children.select{|x| x.label =~ /^startNew.*_[1-9][0-9]*$/}.length
+          else
+            reduces += 1
+            reduce_attempts += rep.children.select{|x| x.label =~ /^startNew/}.length
+            retried_reduces += rep.children.select{|x| x.label =~ /^startNew.*_[1-9][0-9]*$/}.length
+          end
+        end 
+      end
+      begin
+        hadoop_job_id = tip.match(/tip_(.*)_[mr]/)[1] 
+      rescue
+        hadoop_job_id = "UNKNOWN"
+        log.error "TaskInProgress malformed: " + tip
+      end
+      stats += [
+        ['Hadoop Job ID', hadoop_job_id],
+        ['Maps', maps],
+        ['Reduces', reduces],
+        ['Map attempts', map_attempts],
+        ['Reduce attempts', reduce_attempts],
+        ['Retried maps', retried_maps],
+        ['Retried reduces', retried_reduces],
+        ['Graphs from non X-Trace data', "<a href=\"hadoop-tasks.rb?jobid=job_" + hadoop_job_id + "\">link</a>"]]
+    end
+    %><%=vertical_table stats%><%
+    
+    log.info "Wrote overall statistics"
+
+    if show_machine_utilization
+      # Calculate a list of usage "events" for each host, representing time
+      # intervals when the machine is in use.
+      # Format: [time, type] where type = +1 for a start and -1 for an end
+      events = {}
+      hosts.each {|host| events[host] = []}
+      trace.reports.each do |report|
+        report.children.each do |child|
+          if child.host == report.host
+            events[report.host] << [report.timestamp, 1]
+            events[report.host] << [child.timestamp, -1]
+          end
+        end
+      end
+      # Sort events by time for efficiency
+      events.values.each do |list|
+        list.sort! {|a,b| a[0] <=> b[0]}
+      end
+      # Calculate number of active edges on each host at each time
+      edge_count = {}
+      hosts.each {|host| edge_count[host] = [0]}
+      hosts.each do |host|
+        list = events[host]
+        count = 0
+        (start_time.floor .. end_time+1).each do |time|
+          until list.empty? or list[0][0] >= time
+            count += list[0][1]
+            list.shift
+          end
+          edge_count[host] << count
+        end
+      end
+      events = nil
+    end
+
+    %><h2>RPC Statistics</h2><%
+    proc_table = StatTable.new
+    trace.reports.each do |r|
+      if r.label =~ / call start$/
+        method = r.label.match(/(.*) call start$/)[1]
+        next if method =~ /OP_(READ|WRITE)_BLOCK/
+        ends = r.children.select{|n| n.host == r.host and
+                                     n.agent == r.agent and
+                                     n.label == method + " call end"}
+        unless ends.empty?
+          proc_table[method] << [ends[0].timestamp - r.timestamp, 0].max
+        end
+      end
+    end
+    %><%=proc_table.to_html "Method"%><%
+
+    log.info "Wrote RPC statistics"
+    
+    # Output copying statistcs
+    
+    if is_map_reduce
+      proc_table = StatTable.new
+      %><h2>Copy Phase Statistics</h2><%
+      trace.reports.each do |r|
+        if r.label =~ /(copyOutput|getFile) start/
+          method = r.label.match(/(.*) start$/)[1]
+          ends = r.children.select{|n| n.host == r.host and
+                                     n.agent == r.agent and
+                                     n.label == method + " end"}
+          unless ends.empty?
+            proc_table[method] << [ends[0].timestamp - r.timestamp, 0].max
+          end
+        end
+      end
+      %><%=proc_table.to_html "Method"%><%
+    end
+
+    # DFS Statistics
+
+    %><h2>DFS Statistics</h2><%
+    dfs_table = StatTable.new
+    read_calls = []    # Contains [size, time, host, report] tuples
+    write_calls = []   # Contains [size, time, host, report] tuples
+    local_writes = []  # Contains [size, time, host, report] tuples
+    trace.reports.each do |r|
+      begin
+        if r.label == "OP_READ_BLOCK processing start"  
+            ends = r.children.select{|n| n.label == "OP_READ_BLOCK processing end"}
+            unless ends.empty?
+              e = ends[0]
+              if e.parents[-1].label == "BlockReader finished"
+                numbytes = e.parents[-1].numbytes
+              else # There is a "block verified by client" node in between
+               numbytes = e.parents[-1].parents[0].numbytes
+              end
+              time = [e.timestamp - r.timestamp, 0].max
+              dfs_table["OP_READ_BLOCK (entire operation)"] << time
+              read_calls << [numbytes, time, r.host, r.parents[0]]
+            end
+        elsif r.label == "OP_WRITE_BLOCK processing start" and r.parents[0] and
+              r.parents[0].agent == "DFSClient" # Only look at writes on first node in replication chain
+          ends = r.children.select{|n| n.label == "OP_WRITE_BLOCK processing end"}
+          unless ends.empty?
+            e = ends[0]
+            numbytes = e.parents[-1].numbytes
+            time = [e.timestamp - r.timestamp, 0].max
+            dfs_table["OP_WRITE_BLOCK (entire operation)"] << time
+            write_calls << [numbytes, time, e.host, r.parents[0]]
+          end
+        elsif r.label =~ /^Read FirstBadLink end/
+          # Also count time from OP_READ_BLOCK processing start to Read FirstBadLink end
+          start = r.parents[0].parents[0]
+          time = [r.timestamp - start.timestamp, 0].max
+          dfs_table["OP_WRITE_BLOCK (setup)"] << time
+        elsif r.label == "BlockReceiver finished"
+          # Also add a count for local reads (between BlockReceiver finished and Read FirstBadLink end)
+          prev = r.parents[0]
+          time = [r.timestamp - prev.timestamp, 0].max
+          dfs_table["OP_WRITE_BLOCK (local write)"] << time
+          local_writes << [r.numbytes, time, r.host, r]
+        end
+      rescue
+      end
+    end
+    %><%=dfs_table.to_html "Operation"%><%
+    slow_setups = dfs_table['OP_WRITE_BLOCK (setup)'].values.select{|x| x > 10}
+    slow_setups_str = "[#{slow_setups.map{|x| "%.1f" % x}.join(', ')}]"
+    %>
+    <p><%=slow_setups.length%> OP_WRITE_BLOCK setup(s) above 10 sec:
+       <%=slow_setups_str%></p>
+    <%
+    
+    # Create graphs of read and write performance vs various factors
+
+    # Read performance vs size
+    unless read_calls.empty?
+      plot = get_plot(trace, "read_perf_vs_size") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        read_calls.each do |size, time|
+          data_io << "#{size}\t#{time}\n"
+        end
+        data_io.close
+        # Return GNUPlot commands
+        "set title 'Read Performance vs Size'
+         set xlabel 'Size (bytes)'
+         set ylabel 'Duration (s)'
+         set yrange [0:]
+         set xrange [0:]
+         plot '#{data_file}' notitle"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    # Write performance vs size
+    unless local_writes.empty?
+      plot = get_plot(trace, "write_perf_vs_size") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        local_writes.each do |size, time|
+          data_io << "#{size}\t#{time}\n"
+        end
+        data_io.close
+        # Return GNUPlot commands
+        "set title '(Local) Write Performance vs Size'
+         set xlabel 'Size (bytes)'
+         set ylabel 'Duration (s)'
+         set yrange [0:]
+         set xrange [0:]
+         plot '#{data_file}' notitle"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    # Read performance by host
+    unless read_calls.empty?
+      plot = get_plot(trace, "read_perf_by_host") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        read_calls.each do |size, time, host|
+          data_io << "#{host_idx[host]}\t#{time}\n"
+        end
+        data_io.close
+        # Return GNUPlot commands
+        "set title 'Read Performance by Host'
+         set xlabel 'Host'
+         set ylabel 'Duration (s)'
+         set yrange [0:]
+         set xrange [0:]
+         plot '#{data_file}' notitle"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    # Write performance by host sorted by 1)mean, 2)95th, 3)var 
+
+    # f = lambda {|x| x.mean}
+    # f.call(...)
+
+    unless local_writes.empty?
+      sort_modes = []
+      sort_modes << ["mean", lambda {|x| x.mean}]
+      sort_modes << ["std", lambda{|x| x.std}]
+
+      sort_modes.each do |stat_type, function|
+        plot = get_plot(trace, "write_perf_by_host"+stat_type) do |graph_file|
+          #compute stats and per-host timings
+          write_st = StatTable.new 
+          local_writes.each do |size, time, host|
+            write_st[host_idx[host]] << time  
+          end
+
+          graph_types = []
+          graph_types << ["values"]
+          graph_types << ["mean", lambda {|x| x.mean}]
+          graph_types << ["std", lambda {|x| x.std}]
+          graph_types << ["25th_percentile", lambda {|x| x.percentile(25)}]
+          graph_types << ["95th_percentile", lambda {|x| x.percentile(95)}]
+          graph_names = graph_types.map{|elt| elt[0]} 
+          data_io, file_names = {}, {} 
+          graph_names.each do |type|
+            file_names[type] = graph_file + type + ".txt"
+            data_io[type] = File.new(file_names[type], "w")
+          end 
+          
+          sorted_write_st = write_st.sort{ |a, b| 
+            function.call(a[1]) <=> function.call(b[1])
+          }
+
+          i = 0
+          sorted_write_st.each do |hoststats|
+            hoststats[1].values.each do |value|
+              data_io["values"] << "#{i}\t#{value}\n"
+            end
+            graph_types.select{|item| item[0] != "values"}.each do |name, funct|
+              data_io[name] << "#{i}\t#{funct.call(hoststats[1])}\n"
+            end
+            i += 1
+          end
+
+          data_io.each do |key, value|
+            value.close
+          end
+
+          # Return GNUPlot commands
+          retval =
+          "set title '(Local) Write Performance by Host Sorted by #{stat_type}'
+           set xlabel 'Host'
+           set ylabel 'Duration (s)'
+           set yrange [0:]
+           set xrange [0:]
+           plot '#{file_names["values"]}' notitle lt 9" 
+          graph_types.select{|item| item[0] != "values"}.each do |name, funct| 
+            retval += ", '" + file_names[name] + "' with lines lw 2 title '" + name + "'"
+          end
+          retval
+        end
+        %><img src="<%=plot%>" /><%
+      end
+    end
+    
+    # Reads per host
+    unless read_calls.empty?
+      plot = get_plot(trace, "reads_per_host") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        host_counts = Hash.new(0)
+        read_calls.each  { |size, time, host| host_counts[host] += 1 }
+        host_counts.each { |host, count| data_io << "#{host_idx[host]}\t#{count}\n" }
+        data_io.close
+        # Return GNUPlot commands
+        "set title 'Reads per Host'
+         set xlabel 'Host'
+         set ylabel 'Reads'
+         set yrange [0:]
+         set xrange [0:]
+         set boxwidth 1
+         plot '#{data_file}' with boxes fs solid notitle"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+    
+    # Writes per host
+    unless write_calls.empty?
+      plot = get_plot(trace, "writes_per_host") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        host_counts = Hash.new(0)
+        local_writes.each  { |size, time, host| host_counts[host] += 1 }
+        host_counts.each { |host, count| data_io << "#{host_idx[host]}\t#{count}\n" }
+        data_io.close
+        # Return GNUPlot commands
+        "set title '(Local) Writes per Host'
+         set xlabel 'Host'
+         set ylabel 'Writes'
+         set yrange [0:]
+         set xrange [0:]
+         set boxwidth 1
+         plot '#{data_file}' with boxes fs solid notitle"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    # Read performance vs time
+    unless read_calls.empty?
+      plot = get_plot(trace, "read_perf_vs_time") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        read_calls.each do |size, length, host, report|
+          begin
+            t = report.timestamp - start_time
+            data_io << "#{t}\t#{length}\t#{length}\t#{0}\n"
+          rescue
+            puts "Ignoring report without timestamp"
+          end
+        end
+        data_io.close
+        # Return GNUPlot commands
+        "set title 'Read Performance vs Time'
+         set xlabel 'Time (s)'
+         set ylabel 'Duration (s)'
+         set xrange [0:#{end_time+1-start_time.floor}]
+         set yrange [0:]
+         plot '#{data_file}' with vectors lt 2 notitle,\\
+           '#{data_file}' lt 1 notitle"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    # Write performance vs time
+    unless local_writes.empty?
+      plot = get_plot(trace, "write_perf_vs_time") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        local_writes.each do |size, length, host, report|
+          t = report.timestamp - start_time
+          data_io << "#{t}\t#{length}\t#{length}\t#{0}\n"
+        end
+        data_io.close
+        # Return GNUPlot commands
+        "set title '(Local) Write Performance vs Time'
+         set xlabel 'Time (s)'
+         set ylabel 'Duration (s)'
+         set xrange [0:#{end_time+1-start_time.floor}]
+         set yrange [0:]
+         plot '#{data_file}' with vectors lt 2 notitle,\\
+           '#{data_file}' lt 1 notitle"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+    
+    # Read and write performance vs active reads/writes
+    if show_perf_vs_load
+      unless read_calls.empty?
+        plot = get_plot(trace, "read_perf_vs_load") do |graph_file|
+          data_file = graph_file + ".txt"
+          data_io = File.new(data_file, "w")
+          # WARNING: here there be quadratic-time operations
+          hosts.each do |host|
+            host_reads = read_calls.select{|size,time,hst| hst==host}
+            host_reads.each do |size, time, host, report|
+              start_t = report.timestamp
+              end_t = report.timestamp + time
+              numedges = host_reads.select {|s,t,h,r| 
+                start_t>=r.timestamp and start_t<=r.timestamp+t}.length
+              data_io << "#{numedges}\t#{time}\n"
+            end
+          end
+          data_io.close
+          # Return GNUPlot commands
+          "set title 'Read Performance vs Active Reads'
+           set xlabel 'Active Reads on DataNode'
+           set ylabel 'Duration (s)'
+           set yrange [0:]
+           plot '#{data_file}' notitle"
+        end
+        %><img src="<%=plot%>" /><%
+      end
+
+      unless write_calls.empty?
+        plot = get_plot(trace, "write_perf_vs_load") do |graph_file|
+          data_file = graph_file + ".txt"
+          data_io = File.new(data_file, "w")
+          # WARNING: here there be quadratic-time operations
+          hosts.each do |host|
+            host_writes = local_writes.select{|size,time,hst| hst==host}
+            host_writes.each do |size, time, host, report|
+              start_t = report.timestamp
+              end_t = report.timestamp + time
+              numedges = host_writes.select {|s,t,h,r| 
+                start_t>=r.timestamp and start_t<=r.timestamp+t}.length
+              data_io << "#{numedges}\t#{time}\n"
+            end
+          end
+          data_io.close
+          # Return GNUPlot commands
+          "set title 'Write Performance vs Active Writes'
+           set xlabel 'Active Writes on DataNode'
+           set ylabel 'Duration (s)'
+           set yrange [0:]
+           plot '#{data_file}' notitle"
+        end
+        %><img src="<%=plot%>" /><%
+      end
+    end
+
+    # Slowest reads
+    unless read_calls.empty?
+      read_calls.sort!{|a,b| -(a[1] <=> b[1])}
+      headers = ["Duration (s)", "Host", "Caller", "Size (KB)",
+        "Start Time (s)", "In successful task?"]
+      values = []
+      num = [read_calls.length, 10].min
+      (0..num-1).each do |i|
+        ar = read_calls[i]
+        r = ar[3]
+        next if r == nil
+        was_suc = false
+        done_node = r.next{|x| x.label == "done" and x.agent =~ /^Task:/}
+        if done_node
+          done_time = done_node.timestamp - r.timestamp
+          done_diff = done_time - ar[1]
+          done_task = done_node.agent.match(/^Task: (.*)/)[1]
+          was_suc = "true, %s, done %.1fs later" % [done_task, done_diff]
+        end
+        values << ["%.1f" % ar[1], ar[2], r.host, 
+          "%.1f" % (ar[0].to_f / 1024.0), 
+          "%.1f" % (r.timestamp - start_time), was_suc]
+      end
+      %><h3>Slowest Reads</p> <%=html_table(headers, values)%><%
+    end
+    
+    # Slowest writes
+    unless write_calls.empty?
+      slowness_count = Hash.new(0) # Count how many times each host is slow
+      write_calls.sort!{|a,b| -(a[1] <=> b[1])}
+      headers = ["Duration (s)", "Hosts", "Caller", "Size (KB)",
+        "Start Time (s)", "In successful task?"]
+      values = []
+      num = [write_calls.length, 10].min
+      (0..num-1).each do |i|
+        ar = write_calls[i]
+        r = ar[3]
+        write_hosts = []
+        node = r
+        while child = node.children.find {|x| x.agent == "DataNode" and
+                           x.label == "OP_WRITE_BLOCK processing start"}
+          write_hosts << child.host
+          node = child
+        end
+        was_suc = false
+        done_node = r.next{|x| x.label == "done" and x.agent =~ /^Task:/}
+        if done_node
+          done_time = done_node.timestamp - r.timestamp
+          done_diff = done_time - ar[1]
+          done_task = done_node.agent.match(/^Task: (.*)/)[1]
+          was_suc = "true, %s, done %.1fs later" % [done_task, done_diff]
+        end
+        values << ["%.1f" % ar[1], write_hosts.join(", "), r.host, 
+          "%.1f" % (ar[0].to_f / 1024.0), 
+          "%.1f" % (r.timestamp - start_time), was_suc]
+        write_hosts.each {|h| slowness_count[h] += 1}
+      end
+      sorted_slow_hosts = slowness_count.map{|h,c| [h,c]}.sort{|a,b| -(a[1]<=>b[1])}
+      table = StatTable.new
+      (0..3).each do |i|
+        to_ignore = sorted_slow_hosts.first(i).map{|h,c| h}
+        write_calls.each do |size, time, host, parent|
+          write_hosts = []
+          node = parent
+          while child = node.children.find {|x| x.agent == "DataNode" and
+                             x.label == "OP_WRITE_BLOCK processing start"}
+            write_hosts << child.host
+            node = child
+          end
+          if (write_hosts & to_ignore).empty?
+            table[i==0 ? "All writes" : "Without slowest #{i} host(s)"] << time
+          end
+        end
+      end
+      %>
+        <h3>Slowest Writes</h3>
+        <%=html_table(headers, values)%>
+        <p>Slowest 3 Hosts: 
+        <%=sorted_slow_hosts.first(3).map{|h,c| "#{h} (*#{c})"}.join(', ')%></p>
+        <h3>Write Statistics Without Slowest Hosts:</h3>
+        <%=table.to_html "Condition"%>
+      <%    
+    end
+    
+    
+    log.info "Wrote DFS statistics"
+
+    # Calculate map and reduce task duration intervals; these will be tuples
+    map_intervals = [] # [start_time, end_time, success, is_retry, tid]
+    reduce_intervals = []
+    map_runs = []   # [inputsize, time, host, success, is_retry, tid] tuples for each map
+    suspects = [] # keep track of those tasks who we launch spec executions for
+    trace.reports.each do |report|
+      if report.agent == "TaskTracker" and
+         report.label =~ /^startNewTask: (.*)/
+        task = $1
+        # Find task end node; this could be either the task completed node
+        # or some node with no children for tasks that were killed.
+        end_node = report.next do |node|
+          (node.label == "done" and node.agent == "Task: #{task}") or
+              (node.children.empty? and node.agent != "DataNode")
+        end
+        # Add intervals to the appropriate arrays
+        if end_node
+          success = end_node.label == "done"
+          is_retry = false
+          if task =~ /(.*)(_[1-9][0-9]*)$/ then 
+            is_retry = true 
+            #also mark the 0th attempt of this task as being suspect
+            suspects << $1 + "_0"
+            log.info "adding " + suspects.last + " to the suspects array"
+          end
+          if report.label =~ /_m_/ # It's a map task
+            map_intervals << [report.timestamp, end_node.timestamp, success, is_retry, task]#.match(/(.*)_[0-9][0-9]*$/)[1]]
+            # Find a node which gives input length
+            create_split = report.next{|n| n.label == "create input split"}
+            if create_split
+              map_runs << [create_split.inputlength,
+                end_node.timestamp - report.timestamp,
+                report.host, success, is_retry, task]
+            end
+          else
+            reduce_intervals << [report.timestamp, end_node.timestamp, success, is_retry, task]
+          end
+        end
+      end
+    end
+    # Create a list of "events" when a map task starts or ends; these will be tuples
+    # in the form [time, type] where type = +1 for a task start and -1 for a task end
+    map_events = []
+    map_intervals.select{|x| x[2]}.each do |start_t, end_t|
+      map_events << [start_t, +1]
+      map_events << [end_t, -1]
+    end
+    map_events.sort! {|a,b| a[0] <=> b[0]}
+    reduce_events = []
+    reduce_intervals.select{|x| x[2]}.each do |start_t, end_t|
+      reduce_events << [start_t, +1]
+      reduce_events << [end_t, -1]
+    end
+    reduce_events.sort! {|a,b| a[0] <=> b[0]}
+
+    if is_map_reduce
+      %><h2>Job Progress</h2><%
+      plot = get_plot(trace, "mapred_compl") do |graph_file|
+        # Print data file containing data points
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        maps_done = reduces_done = 0
+        m = r = 0  # Indices into map_events and reduce_events
+        max_count = 0
+        (start_time.floor .. end_time+1).each do |time|
+          until m >= map_events.length or map_events[m][0] > time
+            maps_done += 1 if map_events[m][1] == -1
+            m += 1
+          end
+          until r >= reduce_events.length or reduce_events[r][0] > time
+            reduces_done += 1 if reduce_events[r][1] == -1
+            r += 1
+          end
+          offset = time - start_time.floor
+          data_io << "#{offset}\t#{maps_done}\t#{reduces_done}\n"
+          max_count = [max_count, maps_done, reduces_done].max
+        end
+        data_io.close
+        # Return gnuplot commands to execute
+        "set title 'Completed Tasks over Time'
+         set xlabel 'Time (s)'
+         set ylabel 'Tasks completed'
+         set key outside right
+         set yrange [0:#{max_count + 1}]
+         plot '#{data_file}' using 1:2 title 'Maps' with steps,\\
+           '#{data_file}' using 1:3 title 'Reduces' with steps"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    %><h2>Utilization Statistics</h2><%
+    
+    if show_machine_utilization
+      # Figure out, for each second from 0 to <end of job>, how many
+      # machines were active at that time (i.e. there was an edge from
+      # the machine to itself covering that second).
+      plot = get_plot(trace, "utilization") do |graph_file|
+        # Print data file containing data points
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        max_count = 0
+        (start_time.floor .. end_time+1).each do |time|
+          index = time - start_time.floor
+          count = 0
+          hosts.each do |host|
+            count += 1 if edge_count[host][index] > 0
+          end
+          data_io << "#{index}\t#{count}\n"
+          max_count = [max_count, count].max
+        end
+        data_io.close
+        # Return gnuplot commands to execute
+        "set title 'Machine Utilization over Time'
+         set xlabel 'Time (s)'
+         set ylabel 'Machines in use'
+         set yrange [0:#{max_count + 1}]
+         plot '#{data_file}' notitle with boxes fs solid"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    # Plot number of active reduces and maps over time
+    if is_map_reduce
+      plot = get_plot(trace, "mapred_tasks") do |graph_file|
+        # Print data file containing data points
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        maps_active = reduces_active = 0
+        m = r = 0  # Indices into map_events and reduce_events
+        max_count = 0
+        offset = nil
+        (start_time.floor .. end_time+1).each do |time|
+          until m >= map_events.length or map_events[m][0] > time
+            maps_active += map_events[m][1]
+            m += 1
+          end
+          until r >= reduce_events.length or reduce_events[r][0] > time
+            reduces_active += reduce_events[r][1]
+            r += 1
+          end
+          offset = time - start_time.floor
+          data_io << "#{offset}\t#{maps_active+reduces_active}\t#{reduces_active}\n"
+          max_count = [max_count, maps_active + reduces_active].max
+        end
+        data_io.close
+        # Return gnuplot commands to execute
+        "set title 'Active Tasks over Time'
+         set xlabel 'Time (s)'
+         set ylabel 'Tasks active'
+         set yrange [0:#{max_count + 1}]
+         plot '#{data_file}' using 1:2 title 'Maps' with boxes fs solid,\\
+           '#{data_file}' using 1:3 title 'Reduces' with boxes fs solid"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    if show_dfs_utilization
+      # Plot number of active DFS reads and writes
+      # WARNING: quadratic-time
+      plot = get_plot(trace, "dfs_operations") do |graph_file|
+        # Print data file containing data points
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        maps_active = reduces_active = 0
+        max_count = 0
+        offset = nil
+        (start_time.floor .. end_time+1).each do |time|
+          reads = read_calls.select {|s,t,h,r| 
+            time>=r.timestamp and time<=r.timestamp+t}.length
+          writes = write_calls.select {|s,t,h,r| 
+            time>=r.timestamp and time<=r.timestamp+t}.length
+          offset = time - start_time.floor
+          data_io << "#{offset}\t#{reads+writes}\t#{writes}\n"
+          max_count = [max_count, reads+writes].max
+        end
+        data_io.close
+        # Return gnuplot commands to execute
+        "set title 'DFS Utilization over Time'
+         set xlabel 'Time (s)'
+         set ylabel 'Operations active'
+         set yrange [0:#{max_count + 1}]
+         plot '#{data_file}' using 1:2 title 'Reads' with boxes fs solid,\\
+           '#{data_file}' using 1:3 title 'Writes' with boxes fs solid"
+      end
+      %><img src="<%=plot%>" /><%
+      
+      # Try this for a single host too?
+      plot = get_plot(trace, "dfs_operations_h0") do |graph_file|
+        # Print data file containing data points
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        maps_active = reduces_active = 0
+        max_count = 0
+        offset = nil
+        (start_time.floor .. end_time+1).each do |time|
+          reads = read_calls.select {|s,t,h,r| 
+            host_idx[h]==0 and time>=r.timestamp and time<=r.timestamp+t}.length
+          writes = write_calls.select {|s,t,h,r| 
+            host_idx[h]==0 and time>=r.timestamp and time<=r.timestamp+t}.length
+          offset = time - start_time.floor
+          data_io << "#{offset}\t#{reads+writes}\t#{writes}\n"
+          max_count = [max_count, reads+writes].max
+        end
+        data_io.close
+        # Return gnuplot commands to execute
+        "set title 'DFS Utilization over Time - Host 0'
+         set xlabel 'Time (s)'
+         set ylabel 'Operations active'
+         set yrange [0:#{max_count + 1}]
+         plot '#{data_file}' using 1:2 title 'Reads' with boxes fs solid,\\
+           '#{data_file}' using 1:3 title 'Writes' with boxes fs solid"
+      end
+      %><img src="<%=plot%>" /><%
+    end
+
+    if is_map_reduce
+      %><h2>Task Duration Distributions</h2><%
+      #plot the duration of each map, sorted
+      #there are 5 types of tasks to distinguish between:
+      #  0) not-suspected, i.e. succeeded on first try
+      #  1) suspected, succeeded
+      #  2) suspected, killed
+      #  3) speculative, succeeded
+      #  4) speculative, killed
+      plot = get_plot(trace, "map_distr") do |graph_file|
+        file_suffixes = ["good", "suspect-finished", "suspect-killed", 
+            "speculative-finished", "speculative-killed"]
+        data_files = file_suffixes.map{|x| graph_file + "." + x + ".txt"}
+        data_ios = data_files.map{|f_name| File.new(f_name, "w")}
+        map_intervals.map{|x| x << x[1]-x[0]}.sort{|a,b| a.last<=>b.last}.reverse.each_with_index do |x,i|
+          data_line = "#{i+1}\t#{x.last}\n"
+          zero_data_line = "#{i+1}\t0\n"
+          # 0 means success and not is_retry and is not suspected
+          #log.info "suspects.find(#{x[4]}) = " + suspects.find{|tid| tid == x[4]}.nil?.to_s
+          if x[2] and not x[3] and suspects.find{|tid| tid == x[4]}.nil? then data_ios[0] << data_line 
+          else data_ios[0] << zero_data_line 
+          end
+          # 1 is hard to tell apart from 0, skip this for now
+          if x[2] and not x[3] and not suspects.find{|tid| tid == x[4]}.nil? then data_ios[1] << data_line 
+          else data_ios[1] << zero_data_line 
+          end
+          # 2 means not success and not is_retry
+          if not x[2] and not x[3] then data_ios[2] << data_line
+          else data_ios[2] << zero_data_line 
+          end
+          # 3 means successful and is_retry
+          if x[2] and x[3] then data_ios[3] << data_line 
+          else data_ios[3] << zero_data_line 
+          end
+          # 4 means not successful and is_retry
+          if not x[2] and x[3] then data_ios[4] << data_line 
+          else data_ios[4] << zero_data_line 
+          end
+        end
+        data_ios.each{|x| x.close}
+        # Return GNUPlot commands
+        "set title 'Map Durations'
+         set xlabel 'Task number'
+         set ylabel 'Duration (s)'
+         #{'set xtics 1' if map_intervals.length < 10}
+         set yrange [0:]
+         plot '#{data_files[0]}' title '#{file_suffixes[0]}' with boxes fs solid,\\
+           '#{data_files[1]}' title '#{file_suffixes[1]}' with boxes fs solid,\\
+           '#{data_files[2]}' title '#{file_suffixes[2]}' with boxes fs solid,\\
+           '#{data_files[3]}' title '#{file_suffixes[3]}' with boxes fs solid,\\
+           '#{data_files[4]}' title '#{file_suffixes[4]}' with boxes fs solid"
+
+      end
+      %><img src="<%=plot%>" /><%
+
+      #plot the duration of each reduce, sorted
+      plot = get_plot(trace, "reduce_distr") do |graph_file|
+        data_file = graph_file + ".txt"
+        data_io = File.new(data_file, "w")
+        durations = reduce_intervals.map{|start,finish| finish-start}.sort.reverse
+        durations.each_with_index{|x,i| data_io << "#{i+1}\t#{x}\n"}
+        data_io << "#{durations.length+1}\t0\n" if durations.length <= 1
+        data_io.close
+        # Return GNUPlot commands
+        "set title 'Reduce Durations'
+         set xlabel 'Task number'
+         set ylabel 'Duration (s)'
+         #{'set xtics 1' if durations.length < 10}
+         set yrange [0:]
+         plot '#{data_file}' notitle with boxes fs solid"
+      end
+      %><img src="<%=plot%>" /><%
+      unless map_runs.empty?
+        plot = get_plot(trace, "map_perf_vs_size") do |graph_file|
+          good_file = graph_file + ".good.txt"
+          bad_file = graph_file + ".bad.txt"
+          good_io = File.new(good_file, "w")
+          bad_io = File.new(bad_file, "w")
+          has_bad = false
+          map_runs.each do |size, time, host, success|
+            if success
+              good_io << "#{size}\t#{time}\n"
+            else
+              bad_io << "#{size}\t#{time}\n"
+              has_bad = true
+            end
+          end
+          good_io.close
+          bad_io.close
+          # Return GNUPlot commands
+          "set title 'Map Performance vs Input Size'
+           set xlabel 'Input size (bytes)'
+           set ylabel 'Duration (s)'
+           set yrange [0:]
+           set xrange [0:]
+           set key outside bottom horizontal
+           plot '#{good_file}' title 'Successful Maps'\\
+             #{", '#{bad_file}' title 'Failed/Killed Maps'" if has_bad}"
+        end
+        %><img src="<%=plot%>" /><%
+        plot = get_plot(trace, "map_perf_by_host") do |graph_file|
+          good_file = graph_file + ".good.txt"
+          bad_file = graph_file + ".bad.txt"
+          good_io = File.new(good_file, "w")
+          bad_io = File.new(bad_file, "w")
+          has_bad = false
+          map_runs.each do |size, time, host, success|
+            if success
+              good_io << "#{host_idx[host]}\t#{time}\n"
+            else
+              bad_io << "#{host_idx[host]}\t#{time}\n"
+              has_bad = true
+            end
+          end
+          good_io.close
+          bad_io.close
+          # Return GNUPlot commands
+          "set title 'Map Performance vs Host'
+           set xlabel 'Host'
+           set ylabel 'Duration (s)'
+           set yrange [0:]
+           set xrange [0:]
+           set key outside bottom horizontal
+           plot '#{good_file}' title 'Successful Maps'\\
+             #{", '#{bad_file}' title 'Failed/Killed Maps'" if has_bad}"
+        end
+        %><img src="<%=plot%>" /><%
+      end
+
+
+      %><h2>Critical Path Analysis</h2><%
+
+      %><h3>Longest Map</h3><%
+      best_duration = 0
+      best_task = nil
+      best_start_node = nil
+      trace.reports.each do |report|
+        if report.agent == "TaskTracker" and
+           report.label =~ /^startNewTask: (.*_m_.*)/
+          task = $1
+          # Find end node
+          end_node = report.next do |node|
+            node.label == "done" and node.agent == "Task: #{task}"
+          end
+          # If this is a complete map, find its duration
+          if end_node
+            duration = end_node.timestamp - report.timestamp
+            if duration > best_duration
+              best_duration = duration
+              best_task = task
+              best_start_node = report
+            end
+          end
+        end
+      end
+      if best_task
+        begin
+          formatted_duration = "%.1f minutes" % (best_duration / 60)
+          %><p>Task: <%=best_task%><br /><%
+          %>Duration: <%=formatted_duration%><br /><%
+          %>Machine: <%=best_start_node.host%></p><%
+          start = best_start_node
+          launch = start.next {|x| x.label == "launchTask"}
+          log.info "Found launchTask"
+          start_runner = launch.next {|x| x.label =~ /^run start/}
+          log.info "Found start_runner"
+          end_runner = start_runner.next {|x| x.label =~ /^run end/}
+          log.info "Found end_runner"
+          finish = end_runner.next {|x| x.label == "done"}
+          log.info "Found finish"
+          nodes = [start, launch, start_runner, end_runner, finish]
+          times = nodes.map {|x| x.timestamp}
+          labels = ["Launch task", "Init runner", "Run map", "Cleanup"]
+          %><%=duration_table(times, labels)%><%
+        rescue => e
+          %>Failed to generate table: <pre><%=e.backtrace.join "\n"%></pre><%
+        end
+      else
+        %><p>No map task has completed.</p><%
+      end
+
+      %><h3>Longest Reduce</h3><%
+      best_duration = 0
+      best_task = nil
+      best_start_node = nil
+      trace.reports.each do |report|
+        if report.agent == "TaskTracker" and
+           report.label =~ /^startNewTask: (.*_r_.*)/
+          task = $1
+          # Find end node
+          end_node = report.next do |node|
+            node.label == "done" and node.agent == "Task: #{task}"
+          end
+          # If this is a complete map, find its duration
+          if end_node
+            duration = end_node.timestamp - report.timestamp
+            if duration > best_duration
+              best_duration = duration
+              best_task = task
+              best_start_node = report
+            end
+          end
+        end
+      end
+      if best_task
+        begin
+          formatted_duration = "%.1f minutes" % (best_duration / 60)
+          %><p>Task: <%=best_task%><br /><%
+          %>Duration: <%=formatted_duration%><br /><%
+          %>Machine: <%=best_start_node.host%></p><%
+          start = best_start_node
+          launch = start.next {|x| x.label == "launchTask"}
+          start_run = launch.next {|x| x.label == "run start"}
+          start_copy = start_run.next {|x| x.label == "start copy phase"}
+          start_merge = start_copy.next {|x| x.label == "start merge phase"}
+          start_sort = start_merge.next {|x| x.label == "start sort phase"}
+          start_reduce = start_sort.next {|x| x.label == "start reduce phase"}
+          end_runner = start_reduce.next {|x| x.label == "run end"}
+          finish = end_runner.next {|x| x.label == "done"}
+          nodes = [start, launch, start_run, start_copy, start_merge,
+              start_sort, start_reduce, end_runner, finish]
+          times = nodes.map {|x| x.timestamp - start_time}
+          labels = ["Launch task", "Init runner", "Copy phase",
+              "Merge phase", "Sort phase", "Reduce phase", "Cleanup"]
+          %><%=duration_table(times, labels)%><%
+        rescue => e
+          %>Failed to generate table: <pre><%=e.backtrace.join "\n"%></pre><%
+        end
+      else
+        %><p>No reduce task has completed.</p><%
+      end
+    end
+
+    # Write host table
+    %><h2>Host Table</h2><%
+    host_table = []
+    hosts.each_with_index{|host,idx| host_table << [idx, host]}
+    %><%=html_table(['ID', 'Host'], host_table)%><%
+  else
+    %><p>No task with ID <%=taskid%>.</p><%
+  end
+else 
+  %><p>No task named <%=taskid%> was found.</p><% 
+end
+%>
+</body>
+
+<hr />
+<p>Page generated in <%=Time.new-script_start_time%> seconds.</p>
+
+</html>

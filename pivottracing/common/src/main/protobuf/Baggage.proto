@@ -1,0 +1,40 @@
+package pivottracingspec;
+
+option java_package = "edu.brown.cs.systems.pivottracing.baggage";
+option java_outer_classname = "BaggageProtos";
+
+import "src/main/protobuf/Advice.proto";
+
+/* A tuple with no aggregations or filters */
+message SimpleTuple {
+	repeated string value = 1;
+}
+
+/* A bag containing tuples, with no aggregations or filters */
+message TupleBag {
+	repeated SimpleTuple tuple = 1; // List of tuples
+}
+
+/* A group with some aggregations */
+message Group {
+	repeated string groupBy = 1; // Group by values, as strings
+	repeated sfixed64 aggregation = 2; // Aggregation values, as longs
+}
+
+/* A bag containing groupby tuples */
+message GroupBag {
+	repeated Group group = 1; // List of groups, groupBy keys should be unique
+}
+
+/* A bag with a filter applied */
+message FilterBag {
+	repeated SimpleTuple tuple = 1; // List of tuples
+}
+
+/* A baggage bag */
+message Bag {
+	required sfixed64 versionId = 1; // A randomly generated version ID
+	optional TupleBag tupleBag = 2; // A bag containing tuples with no aggregations or filters
+	optional GroupBag groupBag = 3; // A groupby bag with 0 or more aggregations
+	optional FilterBag filterBag = 4; // A tuple bag with a filter applied
+}

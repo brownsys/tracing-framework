@@ -1,0 +1,161 @@
+<html>
+<head><title>X-Trace Viewer - $title</title>
+<script language="javascript">
+
+    function doSearch() {
+        document.location.href = "/" + document.searchForm.searchType.value + "/" + document.searchForm.query.value;
+    }
+    
+    var multiselect = { "previous_id": null }
+    function onCheckboxChecked(checkbox, event) {
+        if (event.shiftKey && checkbox.value != multiselect.previous_id) {
+            setting = false;
+            var checkboxes = document.getElementsByClassName("select-trace");
+            for (var i = 0; i < checkboxes.length; i++) {
+                var current = checkboxes[i];
+                if (setting) {
+                    current.checked = checkbox.checked;
+                }
+                if (current.value==multiselect.previous_id || current==checkbox) {
+                    setting = !setting;
+                    current.checked = checkbox.checked;
+                }
+            }
+        } else if (!checkbox.checked) {
+            document.getElementById("select-all-checkbox").checked = false;
+        } else {
+            var all_selected = true;
+            var checkboxes = document.getElementsByClassName("select-trace");
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (!checkboxes[i].checked) {
+                    all_selected = false;
+                    break;
+                }
+            }
+            if (all_selected) document.getElementById("select-all-checkbox").checked = true;    
+        }
+        multiselect.previous_id = checkbox.value;
+        checkControlsEnabled();
+    }
+    
+    function onSelectAllCheckboxChecked(checkbox) {
+        var checkboxes = document.getElementsByClassName("select-trace");
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = checkbox.checked;
+        }
+        checkControlsEnabled();
+    }
+    
+    function selectCheckboxes(ids) {
+    	console.log("selecting", ids);
+        var checkboxes = document.getElementsByClassName("select-trace");
+        for (var i = 0; i < checkboxes.length; i++) {
+        	var checkboxval = checkboxes[i].value;
+        	for (var j = 0; j < ids.length; j++) {
+        		if (ids[j]==checkboxval) {
+        			checkboxes[i].checked = true;
+        		}
+        	}
+        }
+        checkControlsEnabled();
+    }
+    
+    function checkControlsEnabled() {
+        var numChecked = 0;
+        var checkboxes = document.getElementsByClassName("select-trace");
+        var checked = [];
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                numChecked++;
+                checked.push(checkboxes[i].value);
+            }
+        }
+        var get_selected_buttons = document.getElementsByClassName("get-selected");
+        for (var i = 0; i < get_selected_buttons.length; i++) {
+            get_selected_buttons[i].disabled = numChecked>=1 ? false : true;
+        }
+        var cluster_selected_buttons = document.getElementsByClassName("cluster-selected");
+        for (var i = 0; i < cluster_selected_buttons.length; i++) {
+            cluster_selected_buttons[i].disabled = numChecked>=2 ? false : true;
+        }
+        var compare_selected_buttons = document.getElementsByClassName("compare-selected");
+        for (var i = 0; i < compare_selected_buttons.length; i++) {
+            compare_selected_buttons[i].disabled = numChecked==2 ? false : true;
+        }
+        displayCheckedIDs(checked);
+    }
+    
+    function displayCheckedIDs(checked) {
+        var attachPoint = document.getElementById("selected_ids");
+        attachPoint.innerHTML="";
+        attachPoint.appendChild(document.createTextNode(checked.join(" ")));
+        attachPoint.appendChild(document.createElement("br"));
+        attachPoint.appendChild(document.createTextNode(checked.join(",")));
+    }
+</script>
+</head>
+<body>
+    <div>
+        <form action="#" method="get" name="searchForm" onSubmit="doSearch(); return false;" style="display: inline">
+            <a href="/">Return Home</a> |
+            Search by
+            <select name="searchType">
+                <option selected value="titleLike">title</option>
+                <option value="tag">tag</option>
+            </select>
+            <input name="query" value="" />
+            <input type="submit" value="Go" />
+        </form>
+    </div>
+    <h1>$title</h1>
+    #parse("navbar.vm")
+    <table border=1 cellspacing=0 cellpadding=3 style="width: 100%; text-align: left">
+        <tr>
+            <th><input type="checkbox" onclick="onSelectAllCheckboxChecked(this)" id="select-all-checkbox"></th>
+            <th>Trace Title</th>
+            <th>Plain</th>
+            <th>JSON</th>
+            <th>Created</th>
+            <th>Last Report</th>
+            <th>TaskID</th>
+            <th>Tags</th>
+            <th>Graphs</th>
+        </tr>
+        #foreach ($task in $tasks)
+        <tr>
+            <td><input type="checkbox" class="select-trace" value="$task.taskId" onclick="onCheckboxChecked(this, event)"></td>
+            <td><a href="/title/$task.title">$task.title</a></td>
+            <td><a href="/reports/${task.taskId}">$task.numReports</a></td>
+            <td><a href="/interactive/reports/$task.taskId">$task.numReports</a></td>
+            <td>$HTML_DATE_FORMAT.format($task.firstSeen)</td>
+            <td>$HTML_DATE_FORMAT.format($task.lastUpdated)</td>
+            <td><tt>$task.taskId</tt></td>
+            <td>
+            #foreach ($tag in $task.tags)
+                <a href="/tag/$tag">$tag</a>#if($velocityCount<$task.tags.size()),#end
+            #end
+            </td>
+            <td>
+                <a href="/interactive/graph.html?id=$task.taskId">Animated</a>,
+                <a href="/interactive/graph.html?id=$task.taskId&lightweight=true">Lite</a>,
+                <a href="/interactive/graph.html?id=$task.taskId&lightweight=true&mapreduceonly=true">Lite-MapReduce</a>,
+                <a href="/interactive/swimlane.html?id=$task.taskId">SwimLane</a>,
+            </td>
+        </tr>
+    #end
+    </table>
+    #parse("navbar.vm")
+    <form action="$request.requestURI" method="get">
+        <div style="text-align: right">
+            <input type="hidden" name="offset" value="$offset" />
+            Results per page: <input type="text" name="length" value="$length" size="6" />
+            <input type="submit" value="Change" />
+        </div>
+    </form>
+    <div id="selected_ids"></div>
+    #if ($showStats)
+    <hr />
+    <p>Database size: $reportStore.numTasks() tasks, $reportStore.numReports() reports.</p>
+    #end
+</body>
+</html>

@@ -1,0 +1,5 @@
+This project contains a visualization server for resource consumption reported by resource aggregation.
+
+Build using maven, and in the target/appassembler/bin folder there will be a script that runs the server.
+
+Connect on localhost:4081 to view the realtime resource graphs.

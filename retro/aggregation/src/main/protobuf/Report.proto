@@ -1,0 +1,47 @@
+package pubsub;
+
+import "src/main/protobuf/Resource.proto";
+
+option java_package = "edu.brown.cs.systems.retro.aggregation";
+option java_outer_classname = "Report";
+
+// A summary of a resource's usage over a fixed time window
+message ResourceReport {
+  required uint64 start = 1; // Start of this report window, in milliseconds since epoch
+  required uint64 end = 2; // End of this report window, in milliseconds since epoch
+  required Type resource = 3; // The type of this resource
+  optional string resourceID = 4; // An optional ID for this resource if a single process can have multiple instances
+  required string machine = 5; // The machine that is generating this report
+  required uint32 processID = 6; // The process ID for the process that is generating this report
+  optional string processName = 7; // An optional name of the process that is generating this report
+  optional double utilization = 8; // Optional value between 0 and 1 inclusive indicating % utilization of this resource
+  repeated TenantOperationReport tenantReport = 9; // Per-tenant, per-operation usage reports
+}
+
+// A summary of a single tenant's use of some resource over a fixed time window
+message TenantOperationReport {
+	required sint32 tenantClass = 1;
+	optional Operation operation = 2; // specify the specific operation being reported
+	required uint32 numStarted = 3; // the number of requests started during this reporting window
+	required uint32 numFinished = 4; // the number of requests finished during this reporting window
+	required uint64 totalWork = 5; // sum of work done during this reporting window
+	required uint64 totalWorkSquared = 6; // sum of squares of work done during this reporting window
+	required uint64 totalLatency = 7; // sum of latency of requests during this reporting window
+	required uint64 totalLatencySquared = 8; // sum of squares of latency of requests during this reporting window
+	required uint64 totalOccupancy = 9;
+	required uint64 totalOccupancySquared = 10;
+}
+
+// An immediate, out-of-band report of a single operation
+message ImmediateReport {
+	required uint64 timestamp = 1;
+	required Type resource = 2;
+	optional string resourceID = 3;
+	required string machine = 4;
+	required uint32 processID = 5;
+	optional string processName = 6;
+	required sint32 tenantClass = 7;
+	optional Operation operation = 8;
+	optional uint64 latency = 9;
+	optional uint64 work = 10;
+}

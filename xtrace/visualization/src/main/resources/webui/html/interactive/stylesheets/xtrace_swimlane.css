@@ -1,0 +1,151 @@
+.main .lane-background {
+	cursor: move;
+}
+
+.main .lane-labels text {
+	font: 9px sans-serif;
+}
+
+.main .spans rect {
+	stroke: gray;
+	stroke-width: 1.1px;
+	fill-opacity: 0.4;
+	fill: white;
+}
+
+.main .spans rect.waiting {
+	opacity: 0.7;
+	stroke: none;
+}
+
+.main .events circle {
+	fill: black;
+}
+
+.main .edges line {
+	stroke-width: 2px;
+	opacity: 0.5;
+}
+
+.main .edges line.lane {
+	stroke: blue;
+	opacity: 0.2;
+}
+
+.main .edges line.group {
+	stroke: blue;
+	opacity: 0.3;
+}
+
+.main .edges line.layout {
+	stroke: red;
+}
+
+.main .timeindicator {
+	opacity: 0;
+}
+
+.main .timeindicator line {
+	stroke-width: 1.6px;
+	stroke: #AAA;
+}
+
+.main:hover .timeindicator {
+	opacity: 1;
+}
+
+.main .hdd rect {
+	fill: #A0A;
+	opacity: 0.7;
+}
+
+.main .hdd rect.fileflush,.main .hdd rect.fileclose {
+	fill: #808;
+}
+
+.main .network rect {
+	fill: #0AA;
+	opacity: 0.7;
+}
+
+.main .gc rect {
+	fill: #AA0;
+	opacity: 0.2;
+}
+
+.mini .lane-labels text {
+	font: 9px sans-serif;
+}
+
+.mini .spans path {
+	stroke: green;
+	fill: lightgreen;
+	stroke-width: 6;
+}
+
+.mini .brush .extent {
+	stroke: gray;
+	fill: blue;
+	fill-opacity: .165;
+	stroke-width: 1.1px;
+}
+
+.mini .lane-lines line {
+	stroke: lightgray;
+}
+
+.controlpanel .button {
+	cursor: pointer;
+}
+
+.controlpanel .button rect {
+	stroke: black;
+	stroke-width: 1px;
+	fill: red;
+}
+
+.controlpanel .button rect.enabled {
+	stroke: black;
+	stroke-width: 1px;
+	fill: green;
+}
+
+.axis line,.axis path {
+	stroke: black;
+}
+
+.xtrace-tooltip {
+	text-align: left;
+	font: 14px Arial;
+}
+
+.xtrace-tooltip .key {
+	display: inline-block;
+	float: left;
+	width: 120px;
+	font-weight: bold;
+}
+
+.xtrace-tooltip .value {
+	display: inline-block;
+	float: left;
+	word-wrap: break-word;
+	max-width: 750px;
+}
+
+.xtrace-tooltip .clear {
+	clear: both;
+}
+
+text,tspan,.tipsy {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+.tipsy-inner {
+	background: rgba(30, 30, 30, 0.9) !important;
+}

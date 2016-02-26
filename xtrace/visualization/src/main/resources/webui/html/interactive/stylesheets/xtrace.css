@@ -1,0 +1,203 @@
+.graph,.list {
+	cursor: default
+}
+
+.graph.animate .node {
+	opacity: 0;
+	transition: fill 0.5s, stroke 0.5s, opacity 1s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, opacity 1s;
+}
+
+.graph.animate .node.visible {
+	opacity: 1;
+	transition: fill 0.5s, stroke 0.5s, opacity 0.5s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, opacity 0.5s;
+}
+
+.graph.animate .node.visible.entering {
+	transition: fill 0.5s, stroke 0.5s, opacity 1.5s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, opacity 1.5s;
+}
+
+.hovering .graph .node.visible {
+	opacity: 0.2;
+}
+
+.hovering .graph.animate .node.visible {
+	transition: fill 0.5s, stroke 0.5s, opacity 0.4s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, opacity 0.4s;
+}
+
+.hovering .graph .node.visible.hovered,.hovering .graph .node.visible.selected
+	{
+	opacity: 1;
+}
+
+.hovering .graph .node.hovered.immediate rect {
+	stroke: #A4011B;
+	fill: #FFE0E5;
+}
+
+.graph .node rect {
+	fill: #FFF2CC;
+	stroke-width: 2px;
+	stroke: #A16D00;
+}
+
+.graph.animate .node rect {
+	transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s;
+}
+
+.graph .node text {
+	font-family: Verdana;
+}
+
+.graph .node.selected rect,.hovering .graph .node.selected rect,.hovering .graph .node.selected.hovered.immediate rect
+	{
+	stroke: #0F4BFF;
+	fill: #B3ECFF;
+}
+
+.graph .node.preview rect,.hovering .graph .node.preview rect {
+	fill: #EADAEC;
+	stroke: #9A38A2;
+}
+
+.graph .edge {
+	fill: none;
+	stroke-width: 2.5px;
+	stroke: #D19D00;
+	opacity: 0;
+}
+
+.graph.animate .edge {
+	transition: fill 0.1s, stroke 0.1s, stroke-width 0.1s, opacity 0.3s;
+	-webkit-transition: fill 0.1s, stroke 0.1s, stroke-width 0.1s, opacity
+		0.3s;
+}
+
+.graph .edge.visible.preview {
+	stroke-width: 4px;
+	stroke: #9A38A2;
+}
+
+.graph .edge.visible.selected,.hovering .graph .edge.hovered.immediate.selected
+	{
+	stroke-width: 6px;
+	stroke: #386AFF;
+}
+
+.graph .edge.visible.preview,.hovering .graph .edge.hovered.immediate.preview
+	{
+	stroke: #9A38A2;
+}
+
+.graph .edge.visible {
+	opacity: 1;
+}
+
+.graph.animate .edge.visible {
+	transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s, opacity 0.5s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s, opacity
+		0.5s;
+}
+
+.graph.animate .edge.visible.entering {
+	transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s, opacity 1.5s;
+	transition-delay: 0, 0, 0, 0.5s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s, opacity
+		1.5s;
+	-webkit-transition-delay: 0, 0, 0, 0.5s;
+}
+
+.hovering .graph .edge.visible {
+	opacity: 0.1;
+}
+
+.hovering .graph.animate .edge.visible {
+	transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s, opacity 0.4s;
+	-webkit-transition: fill 0.5s, stroke 0.5s, stroke-width 0.5s, opacity
+		0.4s;
+}
+
+.hovering .graph .edge.visible.hovered,.hovering .graph .edge.selected {
+	opacity: 1;
+}
+
+.hovering .graph .edge.hovered.immediate {
+	stroke: #A4011B;
+	stroke-width: 4px;
+}
+
+.minimap .edge {
+	stroke-width: 2px;
+	stroke: black;
+	fill-opacity: 0;
+}
+
+.minimap .node rect {
+	fill: #ddd;
+	stroke-width: 2px;
+	stroke: black;
+}
+
+.list .item rect {
+	stroke: #0F4BFF;
+	fill: #B3ECFF;
+	fill-opacity: 0.5;
+	stroke-width: 1;
+	transition: fill 0.5s, stroke 0.5s;
+	-webkit-transition: fill 0.5s, stroke 0.5s;
+}
+
+.list .item:hover rect {
+	fill: #FFF2CC;
+	stroke: #A16D00;
+}
+
+.list .item text {
+	x: 50%;
+	dy: 1em;
+	text-anchor: middle;
+	dominant-baseline: central;
+}
+
+.xtrace-tooltip {
+	text-align: left;
+}
+
+.xtrace-tooltip .key {
+	display: inline-block;
+	float: left;
+	width: 90px;
+	font-weight: bold;
+}
+
+.xtrace-tooltip .value {
+	display: inline-block;
+	float: left;
+	word-wrap: break-word;
+	max-width: 410px;
+}
+
+.xtrace-tooltip .clear {
+	clear: both;
+}
+
+.context-menu .highlight {
+	color: #7F2389;
+}
+
+.context-menu a:hover .highlight {
+	color: #CA78D2;
+}
+
+text,tspan,.tipsy {
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}

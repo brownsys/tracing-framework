@@ -1,0 +1,7 @@
+.classpath
+.settings
+.project
+bin
+target
+xtrace-data
+application.conf
