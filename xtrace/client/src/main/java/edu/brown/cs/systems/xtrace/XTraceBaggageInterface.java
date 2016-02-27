@@ -1,6 +1,5 @@
 package edu.brown.cs.systems.xtrace;
 
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -13,6 +12,7 @@ import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 
 import edu.brown.cs.systems.baggage.BaggageContents;
+import edu.brown.cs.systems.tracing.ByteStrings;
 
 /**
  * Interface to get and set X-Trace task IDs and event IDs in the tracing
@@ -30,6 +30,9 @@ public class XTraceBaggageInterface {
     
     /** Second of two baggage fields is the parent event ID (s) field **/
     public static final ByteString PARENT_EVENT_ID_BAGGAGE_FIELD = ByteString.copyFrom(new byte[] { 0x02 });
+    
+    /** Extra baggage field for discovery mode **/
+    public static final ByteString DISCOVERY_MODE_ID_BAGGAGE_FIELD = ByteString.copyFrom(new byte[] { 0x03 });
 
     /**
      * Looks at this thread's current baggage to determine whether an X-Trace
@@ -60,28 +63,56 @@ public class XTraceBaggageInterface {
      *         found
      */
     public static long getTaskID() {
-        // Get task IDs from the baggage
+        // Get task ID from the baggage
         Set<ByteString> taskIds = BaggageContents.get(XTRACE_BAGGAGE_NAMESPACE, TASK_ID_BAGGAGE_FIELD);
-
-        // Under normal circumstances, either one 8-byte task ID, or no task ID
-        if (taskIds.size() == 1) {
-            ByteString taskIdBs = taskIds.iterator().next();
-            if (taskIdBs.size() == 8) {
-                return taskIdBs.asReadOnlyByteBuffer().getLong();
-            } else {
-                log.warn("Encountered task ID with incorrect length {}: {}", taskIdBs.size(), taskIdBs);
-            }
-        } else if (taskIds.size() > 1) {
-            log.warn("Execution has {} task IDs.  This could be indicative of an error in tracing", taskIds.size());
-            BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, TASK_ID_BAGGAGE_FIELD, taskIds.iterator().next());
-            return getTaskID();
-        } else if (XTraceSettings.discoveryMode()) {
-            XTrace.startTask(true);
-            return getTaskID();
+        
+        // Warn if multiple task IDs
+        if (taskIds.size() > 1) {
+            log.warn("Found multiple X-Trace task IDs, this is indicative of tracing context leak");
         }
-        return 0;
-    }
+        
+        // Return a valid task ID
+        for (ByteString taskId : taskIds) {
+            if (taskId.size() == 8) {
+                return ByteStrings.toLong(taskId);
+            } else {
+                log.warn("Found invalid X-Trace task ID: {}", taskId);
+            }
+        }
 
+        // If we have no IDs use discovery mode ID if we're in discovery mode; otherwise 0
+        if (XTraceSettings.discoveryMode()) {
+            return getDiscoveryModeId();
+        } else {
+            return 0;
+        }
+    }
+    
+    /** Like a task ID, but we throw it away once we encounter an actual task */
+    public static long getDiscoveryModeId() {
+        // Must be in discovery mode to put id in baggage
+        if (!XTraceSettings.discoveryMode()) {
+            return 0;
+        }
+        
+        // Get IDs from the baggage
+        Set<ByteString> taskIds = BaggageContents.get(XTRACE_BAGGAGE_NAMESPACE, DISCOVERY_MODE_ID_BAGGAGE_FIELD);
+        
+        // Find the first valid ID, replace all the others with it in the baggage, and return it
+        for (ByteString taskId : taskIds) {
+            if (taskId.size()==8) {
+                BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, DISCOVERY_MODE_ID_BAGGAGE_FIELD, taskId);
+                return ByteStrings.toLong(taskId);
+            }
+        }
+        
+        // No valid discovery ID; create one
+        long newDiscoveryId = XTrace.discoveryId();
+        BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, DISCOVERY_MODE_ID_BAGGAGE_FIELD, ByteStrings.copyFrom(newDiscoveryId));
+        setParentEventId(0);
+        return newDiscoveryId;
+    }
+    
     /**
      * Set the task ID in the thread's current baggage to the specified task ID
      * 
@@ -89,8 +120,7 @@ public class XTraceBaggageInterface {
      *            The task ID to set for the current execution
      */
     public static void setTaskID(long taskId) {
-        byte[] taskIdBytes = ByteBuffer.allocate(8).putLong(taskId).array();
-        BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, TASK_ID_BAGGAGE_FIELD, ByteString.copyFrom(taskIdBytes));
+        BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, TASK_ID_BAGGAGE_FIELD, ByteStrings.copyFrom(taskId));
     }
 
     /**
@@ -111,7 +141,7 @@ public class XTraceBaggageInterface {
         Collection<Long> parentEventIds = Lists.newArrayList();
         for (ByteString parentEventId : eventIds) {
             if (parentEventId.size() == 8) {
-                parentEventIds.add(parentEventId.asReadOnlyByteBuffer().getLong());
+                parentEventIds.add(ByteStrings.toLong(parentEventId));
             } else {
                 log.warn("Encountered parent event ID with incorrect length {}: {}", parentEventId.size(), parentEventId);
             }
@@ -127,8 +157,7 @@ public class XTraceBaggageInterface {
      *            The event ID to set for the current execution
      */
     public static void setParentEventId(long parentEventId) {
-        byte[] parentEventIdBytes = ByteBuffer.allocate(8).putLong(parentEventId).array();
-        BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, PARENT_EVENT_ID_BAGGAGE_FIELD, ByteString.copyFrom(parentEventIdBytes));
+        BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, PARENT_EVENT_ID_BAGGAGE_FIELD, ByteStrings.copyFrom(parentEventId));
     }
 
     /**
@@ -141,8 +170,7 @@ public class XTraceBaggageInterface {
     public static void setParentEventIds(long... parentEventIds) {
         Set<ByteString> parentEventIdSet = Sets.newHashSetWithExpectedSize(parentEventIds.length);
         for (int i = 0; i < parentEventIds.length; i++) {
-            byte[] parentEventIdBytes = ByteBuffer.allocate(8).putLong(parentEventIds[i]).array();
-            parentEventIdSet.add(ByteString.copyFrom(parentEventIdBytes));
+            parentEventIdSet.add(ByteStrings.copyFrom(parentEventIds[i]));
         }
         BaggageContents.replace(XTRACE_BAGGAGE_NAMESPACE, PARENT_EVENT_ID_BAGGAGE_FIELD, parentEventIdSet);
     }

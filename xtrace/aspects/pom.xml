@@ -70,6 +70,7 @@
                             <basedir>${basedir}/src/test/aspect</basedir>
                             <includes>
                                 <include>edu/brown/cs/systems/xtrace/logging/TestLoggerWrapper.java</include>
+                                <include>edu/brown/cs/systems/xtrace/logging/TestBaggageWrappers.java</include>
                             </includes>
                         </source>
                     </testSources>

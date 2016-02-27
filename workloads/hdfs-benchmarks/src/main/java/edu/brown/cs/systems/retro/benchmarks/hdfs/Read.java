@@ -61,6 +61,12 @@ public class Read implements Benchmark {
 
         // Randomly read from files
         while (!Thread.currentThread().isInterrupted()) {
+            BenchmarkUtils.StopTracing();
+            BenchmarkUtils.SetTenant(1);
+            XTrace.startTask(true);
+            BenchmarkUtils.PopulateCurrentBaggage(nbags, nper);
+            XTrace.getDefaultLogger().tag("Starting read op", "Read");
+            
             Path file = ds.randomFile();
 
             try {
@@ -71,11 +77,11 @@ public class Read implements Benchmark {
                     int start_offset = r.nextInt(max_start_offset + 1);
                     long toread = readsize;
 
-                    BenchmarkUtils.StopTracing();
-                    BenchmarkUtils.SetTenant(1);
-                    XTrace.startTask(true);
-                    BenchmarkUtils.PopulateCurrentBaggage(nbags, nper);
-                    XTrace.getDefaultLogger().tag("Starting read op", "Read");
+//                    BenchmarkUtils.StopTracing();
+//                    BenchmarkUtils.SetTenant(1);
+//                    XTrace.startTask(true);
+//                    BenchmarkUtils.PopulateCurrentBaggage(nbags, nper);
+//                    XTrace.getDefaultLogger().tag("Starting read op", "Read");
 
                     // START
                     long begin = System.nanoTime();

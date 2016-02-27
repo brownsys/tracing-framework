@@ -27,6 +27,16 @@
             <artifactId>tracingplane-client</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>xtrace-aspects</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>retro-aspects</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -48,7 +58,7 @@
                     <source>1.7</source>
                     <target>1.7</target>
                     <complianceLevel>1.7</complianceLevel>
-                    <!--  <showWeaveInfo>true</showWeaveInfo>  -->
+                    <!-- <showWeaveInfo>true</showWeaveInfo> -->
                     <sources>
                         <source>
                             <basedir>${basedir}/src/main/aspect</basedir>
@@ -68,6 +78,16 @@
                             <basedir>${basedir}/src/test/aspect</basedir>
                         </source>
                     </testSources>
+                    <aspectLibraries>
+                        <aspectLibrary>
+                            <groupId>edu.brown.cs.systems</groupId>
+                            <artifactId>retro-aspects</artifactId>
+                        </aspectLibrary>
+                        <aspectLibrary>
+                            <groupId>edu.brown.cs.systems</groupId>
+                            <artifactId>xtrace-aspects</artifactId>
+                        </aspectLibrary>
+                    </aspectLibraries>
                 </configuration>
             </plugin>
             <!-- specify that this is an aspectj project to aid in eclipse 

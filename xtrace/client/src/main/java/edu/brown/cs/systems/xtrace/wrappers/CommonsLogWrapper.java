@@ -10,8 +10,8 @@ public class CommonsLogWrapper implements org.apache.commons.logging.Log {
     
     private static ThreadLocal<JoinPoint.StaticPart> logSources = new ThreadLocal<JoinPoint.StaticPart>();
     
-    public final Log log;
-    public final XTraceLogger xtrace;
+    public Log log;
+    public XTraceLogger xtrace;
     
     public CommonsLogWrapper(Log log, XTraceLogger xtrace) {
         this.log = log;

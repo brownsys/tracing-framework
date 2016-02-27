@@ -1,5 +1,6 @@
 package edu.brown.cs.systems.xtrace.reporting;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,11 +52,18 @@ public class XTraceReport {
      * @return This report, with additional fields added
      */
     public XTraceReport makeXTraceEvent() {
-        builder.setTaskId(XTraceBaggageInterface.getTaskID());
-        builder.addAllParentEventId(XTraceBaggageInterface.getParentEventIds());
+        long taskId = XTraceBaggageInterface.getTaskID();
         long eventId = XTrace.randomId();
-        builder.setEventId(eventId);
+        Collection<Long> parentIds = XTraceBaggageInterface.getParentEventIds();
+        setXTrace(taskId, eventId, parentIds);
         XTraceBaggageInterface.setParentEventId(eventId);
+        return this;
+    }
+    
+    public XTraceReport setXTrace(long taskId, long eventId, Collection<Long> parentEventIds) {
+        builder.setTaskId(taskId);
+        builder.setEventId(eventId);
+        builder.addAllParentEventId(parentEventIds);
         return this;
     }
 

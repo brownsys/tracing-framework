@@ -2,6 +2,8 @@ package edu.brown.cs.systems.xtrace;
 
 import java.util.Random;
 
+import com.google.common.collect.Lists;
+
 import edu.brown.cs.systems.tracing.Utils;
 import edu.brown.cs.systems.xtrace.logging.NullLogger;
 import edu.brown.cs.systems.xtrace.logging.XTraceLogger;
@@ -25,6 +27,11 @@ public class XTrace {
     private static final Random r = new Random(31 * (17 * Utils.getHost().hashCode() + Utils.getProcessID()) * System.currentTimeMillis());
     public static synchronized long randomId() {
         return r.nextLong();
+    }
+    
+    /** Deterministic task ID used in discovery mode */
+    static long discoveryId() {
+        return Lists.<Object>newArrayList(Utils.getHost(), Utils.getProcessID(), Thread.currentThread().getId()).hashCode();
     }
 
     /** Publishes reports to the X-Trace server */
