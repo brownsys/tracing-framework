@@ -1,0 +1,34 @@
+template:
+  directory: website/template
+
+# Base URL of the published website
+baseUrl: http://username.github.io/project
+
+# Used to link to the GitHub project
+github:
+    user: brownsys
+    repo: tracing-framework
+
+title: Brownsys Tracing Framework Documentation
+
+menu:
+  sections:
+    main:
+      section: Home
+      url: 
+    projects:
+      section: Projects
+      url: docs/projects.html
+      items:
+        tracingplane:
+          text: Tracing Plane
+          url: docs/projects/tracingplane.html
+        xtrace:
+          text: X-Trace
+          url: docs/projects/xtrace.html
+        retro:
+          text: Retro
+          url: docs/projects/retro.html
+        pivottracing:
+          text: Pivot Tracing
+          url: docs/projects/pivottracing.html
