@@ -1,8 +1,8 @@
 template:
-  directory: website/template
+  url: https://github.com/JonathanMace/PivotTemplate
 
 # Base URL of the published website
-baseUrl: http://username.github.io/project
+baseUrl: http://brownsys.github.io/tracing-framework
 
 # Used to link to the GitHub project
 github:
