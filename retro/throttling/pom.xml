@@ -88,23 +88,18 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
-                <version>1.7</version>
                 <configuration>
                     <programs>
                         <program>
-                            <mainClass>edu.brown.cs.systems.pubsub.Server</mainClass>
-                            <name>pubsub-server</name>
-                        </program>
-                        <program>
-                            <mainClass>edu.brown.cs.systems.resourcethrottling.cli.ThrottlingServerCLI</mainClass>
+                            <mainClass>edu.brown.cs.systems.retro.throttling.cli.ThrottlingServerCLI</mainClass>
                             <name>server-cli</name>
                         </program>
                         <program>
-                            <mainClass>edu.brown.cs.systems.resourcethrottling.cli.ThrottlingClientCLI</mainClass>
+                            <mainClass>edu.brown.cs.systems.retro.throttling.cli.ThrottlingClientCLI</mainClass>
                             <name>client-cli</name>
                         </program>
                         <program>
-                            <mainClass>edu.brown.cs.systems.resourcethrottling.cli.UtilCommand</mainClass>
+                            <mainClass>edu.brown.cs.systems.retro.throttling.cli.UtilCommand</mainClass>
                             <name>clear-all-throttlingpoints</name>
                             <commandLineArguments>
                                 <commandLineArgument>CLEARALL</commandLineArgument>

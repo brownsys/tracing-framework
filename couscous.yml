@@ -16,6 +16,38 @@ menu:
     main:
       section: Home
       url: 
+    gettingstarted:
+      section: Getting Started
+      url: docs/gettingstarted.html
+      items:
+        building:
+          text: Build and Install
+          url: docs/build.html
+        configuration:
+          text: Configuration
+          url: docs/config.html
+        running:
+          text: Running Pubsub
+          url: docs/starting.html
+        trying:
+          text: Trying It Out
+          url: docs/starting.html
+    rollyourown:
+      section: Starting From Scratch
+      url: docs/rollyourown.html
+      items:
+        dependencies:
+          text: Dependencies Overview
+          url: docs/dependencies.html
+        clientlibraries:
+          text: Client Libraries
+          url: docs/clients.html
+        baggage:
+          text: Adding Baggage
+          url: docs/baggage.html
+        automatic:
+          text: Automatic Instrumentation
+          url: docs/automatic.html
     projects:
       section: Projects
       url: docs/projects.html
