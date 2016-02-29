@@ -119,9 +119,9 @@ public enum Network {
             aggregator.finished(op, Retro.getTenant(), bytes, latency);
         if (xtrace.valid())
             if (bytes > 0)
-                xtrace.log(jp, opname, "Duration", latency, "Bytes", bytes, "Connection", connection);
+                xtrace.log(jp, opname, "Operation", opname, "Duration", latency, "Bytes", bytes, "Connection", connection);
             else
-                xtrace.log(jp, opname, "Duration", latency, "Connection", connection);
+                xtrace.log(jp, opname, "Operation", opname, "Duration", latency, "Connection", connection);
     }
 
     public void alreadyStarted(Object connection) {
@@ -134,9 +134,9 @@ public enum Network {
             aggregator.finished(op, Retro.getTenant(), bytes, 0);
         if (xtrace.valid())
             if (bytes > 0)
-                xtrace.log(opname, "Duration", 0, "Bytes", bytes, "Connection", connection);
+                xtrace.log(opname, "Operation", opname, "Duration", 0, "Bytes", bytes, "Connection", connection);
             else
-                xtrace.log(opname, "Duration", 0, "Connection", connection);
+                xtrace.log(opname, "Operation", opname, "Duration", 0, "Connection", connection);
     }
 
     public static void startingDiskTransfer(DiskResource diskop, JoinPoint.StaticPart jp) {
@@ -162,8 +162,8 @@ public enum Network {
             LoopbackWrite.aggregator.finished(Write.op, Retro.getTenant(), bytes, latency);
 
         if (diskop == DiskResource.TransferFromNetwork && xtrace.valid())
-            xtrace.log(jp, Read.opname, "Duration", latency, "Bytes", bytes);
+            xtrace.log(jp, Read.opname, "Operation", Read.opname, "Duration", latency, "Bytes", bytes);
         else if (diskop == DiskResource.TransferToNetwork && xtrace.valid())
-            xtrace.log(jp, Write.opname, "Duration", latency, "Bytes", bytes);
+            xtrace.log(jp, Write.opname, "Operation", Write.opname, "Duration", latency, "Bytes", bytes);
     }
 }

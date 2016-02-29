@@ -79,9 +79,9 @@ public enum DiskResource {
             aggregator.finished(optype, Retro.getTenant(), bytes, latency);
         if (opname != null && xtrace.valid())
             if (bytes > 0)
-                xtrace.log(jp, opname, "Duration", latency, "Bytes", bytes, "File", file);
+                xtrace.log(jp, opname, "Operation", opname, "Duration", latency, "Bytes", bytes, "File", file);
             else
-                xtrace.log(jp, opname, "Duration", latency, "File", file);
+                xtrace.log(jp, opname, "Operation", opname, "Duration", latency, "File", file);
         if (this == TransferFromNetwork || this == TransferToNetwork || this == TransferFromLoopback || this == TransferToLoopback)
             Network.finishedDiskTransfer(this, jp, latency, bytes);
     }

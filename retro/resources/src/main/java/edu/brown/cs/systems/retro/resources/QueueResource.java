@@ -24,19 +24,19 @@ public class QueueResource {
 
     public void enqueue() {
         if (xtrace.valid())
-            xtrace.log(JoinPointTracking.Caller.get(null), "threadpool-enqueue", "Queue", name);
+            xtrace.log(JoinPointTracking.Caller.get(null), "threadpool-enqueue", "Operation", "threadpool-enqueue", "Queue", name);
         if (aggregator.enabled())
             aggregator.starting(Retro.getTenant());
     }
 
     public void starting(long enqueue, long start) {
         if (xtrace.valid())
-            xtrace.log(JoinPointTracking.Caller.get(null), "threadpool-start", "Queue", name, "QueueDuration", start - enqueue);
+            xtrace.log(JoinPointTracking.Caller.get(null), "threadpool-start", "Operation", "threadpool-start", "Queue", name, "QueueDuration", start - enqueue);
     }
 
     public void finished(long enqueue, long start, long finish) {
         if (xtrace.valid())
-            xtrace.log(JoinPointTracking.Caller.get(null), "threadpool-end", "Queue", name, "QueueDuration", start - enqueue, "ThreadDuration", finish - start);
+            xtrace.log(JoinPointTracking.Caller.get(null), "threadpool-end", "Operation", "threadpool-end", "Queue", name, "QueueDuration", start - enqueue, "ThreadDuration", finish - start);
         if (aggregator.enabled())
             aggregator.finished(Retro.getTenant(), finish - start, finish - enqueue);
     }

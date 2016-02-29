@@ -54,7 +54,7 @@ public class MonitorLock {
     public static void acquired(Object lock, long request, long acquire, JoinPoint.StaticPart jp) {
         CPUTracking.continueTracking();
         if (xtrace.valid()) {
-            xtrace.log(jp, "lockacquire", "LockID", System.identityHashCode(lock), "Lock", lockClass(lock).getName(), "LockType", lockType(lock),
+            xtrace.log(jp, "lockacquire", "Operation", "lockacquire", "LockID", System.identityHashCode(lock), "Lock", lockClass(lock).getName(), "LockType", lockType(lock),
                     "LockRequest", request, "LockAcquire", acquire);
             if (XTraceBaggageInterface.hasParents()) {
                 acquire_xmds.get().put(lock, XTraceBaggageInterface.getParentEventIds().iterator().next());
@@ -68,10 +68,10 @@ public class MonitorLock {
         if (xtrace.valid()) {
             if (XTraceBaggageInterface.hasParents()) {
                 Long acquirexmd = acquire_xmds.get().remove(lock);
-                xtrace.log(jp, "lockrelease", "LockID", System.identityHashCode(lock), "Lock", lockClass(lock).getName(), "LockType", lockType(lock),
+                xtrace.log(jp, "lockrelease", "Operation", "lockrelease","LockID", System.identityHashCode(lock), "Lock", lockClass(lock).getName(), "LockType", lockType(lock),
                         "LockRequest", request, "LockAcquire", acquire, "LockRelease", release, "LockAcquireEdge", acquirexmd == null ? "none" : acquirexmd);
             } else {
-                xtrace.log(jp, "lockrelease", "LockID", System.identityHashCode(lock), "Lock", lockClass(lock).getName(), "LockType", lockType(lock),
+                xtrace.log(jp, "lockrelease", "Operation", "lockrelease","LockID", System.identityHashCode(lock), "Lock", lockClass(lock).getName(), "LockType", lockType(lock),
                         "LockRequest", request, "LockAcquire", acquire, "LockRelease", release);
             }
         }

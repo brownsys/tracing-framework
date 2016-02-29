@@ -34,7 +34,7 @@ public enum Execution {
 
     public void starting(JoinPoint.StaticPart jp) {
         if (startop != null && xtrace.valid())
-            xtrace.log(jp, startop);
+            xtrace.log(jp, startop, "Operation", startop);
         if (CPUTracking.enabled())
             if (this == CPU)
                 CPUTracking.startTracking();
@@ -51,7 +51,7 @@ public enum Execution {
             else
                 CPUTracking.continueTracking();
         if (endop != null && xtrace.valid())
-            xtrace.log(jp, endop, "Duration", latency);
+            xtrace.log(jp, endop, "Operation", endop, "Duration", latency);
     }
 
 }

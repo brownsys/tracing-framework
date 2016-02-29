@@ -40,7 +40,7 @@ public class RWLockResource {
 
         public void request(long request_hrt, JoinPoint.StaticPart jp) {
             if (xtrace.valid())
-                xtrace.log(jp, req, "LockID", lockid, "LockRequest", request_hrt);
+                xtrace.log(jp, req, "Operation", req, "LockID", lockid, "LockRequest", request_hrt);
             if (aggregator.enabled())
                 aggregator.starting(op, Retro.getTenant());
             CPUTracking.pauseTracking();
@@ -49,14 +49,14 @@ public class RWLockResource {
         public void acquire(long request_hrt, long acquire_hrt, JoinPoint.StaticPart jp) {
             CPUTracking.continueTracking();
             if (xtrace.valid())
-                xtrace.log(jp, acq, "LockID", lockid, "LockRequest", request_hrt, "LockAcquire", acquire_hrt);
+                xtrace.log(jp, acq, "Operation", acq, "LockID", lockid, "LockRequest", request_hrt, "LockAcquire", acquire_hrt);
         }
 
         public void release(long request_hrt, long acquire_hrt, long release_hrt, JoinPoint.StaticPart jp) {
             if (aggregator.enabled())
                 aggregator.finished(op, Retro.getTenant(), release_hrt - acquire_hrt, release_hrt - request_hrt);
             if (xtrace.valid())
-                xtrace.log(jp, rel, "LockID", lockid, "LockRequest", request_hrt, "LockAcquire", acquire_hrt);
+                xtrace.log(jp, rel, "Operation", rel, "LockID", lockid, "LockRequest", request_hrt, "LockAcquire", acquire_hrt);
         }
     }
 
