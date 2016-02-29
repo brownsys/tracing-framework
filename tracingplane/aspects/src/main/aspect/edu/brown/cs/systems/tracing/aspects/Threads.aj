@@ -1,5 +1,7 @@
 package edu.brown.cs.systems.tracing.aspects;
 
+import edu.brown.cs.systems.xtrace.reporting.XTraceReport;
+
 /**
  * Returns a InstrumentedThread whenever a new thread is created. Allows
  * rejoining of XTraceMetadata.
@@ -50,7 +52,12 @@ public aspect Threads {
 
     void around(Thread t): target(t) && call(void Thread+.join(..)) {
         proceed(t);
-        InstrumentedThread.join(t);
+        try {
+            XTraceReport.entering(thisJoinPointStaticPart);
+            InstrumentedThread.join(t);
+        } finally {
+            XTraceReport.left(thisJoinPointStaticPart);
+        }
     }
 
 }

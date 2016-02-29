@@ -66,13 +66,31 @@ public class XTraceReport {
         builder.addAllParentEventId(parentEventIds);
         return this;
     }
+    
+    private static final ThreadLocal<JoinPoint.StaticPart> originalJp = new ThreadLocal<JoinPoint.StaticPart>();
+    
+    /** Indicates that the execution is entering the specified join point, and that all X-Trace reports should attribute to this join point */
+    public static void entering(JoinPoint.StaticPart jp) {
+        if (jp == null) {
+            originalJp.remove();
+        } else {
+            originalJp.set(jp);
+        }
+    }
+    
+    /** Indicates that the execution left the specified join poin, and that X-Trace reports should no longer attribute to this join point */
+    public static void left(JoinPoint.StaticPart jp) {
+        originalJp.remove();
+    }
 
     /** Add information to the report such as source line, etc. */
     public void setJoinPoint(JoinPoint.StaticPart joinPoint) {
-        if (joinPoint == null) {
-            return;
+        JoinPoint.StaticPart originalJoinPoint = originalJp.get();
+        if (originalJoinPoint != null) {
+            builder.setSource(originalJoinPoint.getSourceLocation().toString());
+        } else if (joinPoint != null) {
+            builder.setSource(joinPoint.getSourceLocation().toString());
         }
-        builder.setSource(joinPoint.getSourceLocation().toString());
     }
 
     /**
