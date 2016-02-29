@@ -36,7 +36,7 @@ var makeEventTooltip = function(gravity) {
 
 		var tooltip = $("<div>").attr("class", "xtrace-tooltip event");
 		var seen = {
-			"Operation": true, 	"Source": true, 	"Label": true, 		"Edge": true, 
+			"Operation": true, 	"Source": true, 	"Label": true, 		"ParentEventID": true, 
 			"version": true, 	"Agent": true, 		"Class": true, 		"Host": true, 
 			"ProcessID": true, 	"ThreadID": true, 	"ThreadName": true,	"Signature": true,
 			"id": true, "taskID": true
@@ -230,6 +230,7 @@ var makeThreadTooltip = function(gravity) {
 
 		appendRow("ThreadID", getOne("ThreadID"), tooltip);
 		appendRow("ProcessID", getOne("ProcessID"), tooltip);
+		appendRow("ProcessName", getOne("ProcessName"), tooltip);
 		appendRow("Host", "<div style='padding-bottom:10px'>"+getOne("Host")+"</div>", tooltip);
 
 
