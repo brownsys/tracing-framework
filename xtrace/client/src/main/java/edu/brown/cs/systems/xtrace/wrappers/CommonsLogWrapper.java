@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.aspectj.lang.JoinPoint;
 
 import edu.brown.cs.systems.xtrace.logging.XTraceLogger;
+import edu.brown.cs.systems.xtrace.logging.XTraceLoggingLevel;
 
 /** Wraps an apache commons logging Log */
 public class CommonsLogWrapper implements org.apache.commons.logging.Log {
@@ -80,32 +81,32 @@ public class CommonsLogWrapper implements org.apache.commons.logging.Log {
 
     @Override
     public boolean isDebugEnabled() {
-        return log.isDebugEnabled() || xtrace.valid();
+        return log.isDebugEnabled() || xtrace.valid(XTraceLoggingLevel.DEBUG);
     }
 
     @Override
     public boolean isErrorEnabled() {
-        return log.isErrorEnabled() || xtrace.valid();
+        return log.isErrorEnabled() || xtrace.valid(XTraceLoggingLevel.ERROR);
     }
 
     @Override
     public boolean isFatalEnabled() {
-        return log.isFatalEnabled() || xtrace.valid();
+        return log.isFatalEnabled() || xtrace.valid(XTraceLoggingLevel.FATAL);
     }
 
     @Override
     public boolean isInfoEnabled() {
-        return log.isInfoEnabled() || xtrace.valid();
+        return log.isInfoEnabled() || xtrace.valid(XTraceLoggingLevel.INFO);
     }
 
     @Override
     public boolean isTraceEnabled() {
-        return log.isTraceEnabled() || xtrace.valid();
+        return log.isTraceEnabled() || xtrace.valid(XTraceLoggingLevel.TRACE);
     }
 
     @Override
     public boolean isWarnEnabled() {
-        return log.isWarnEnabled() || xtrace.valid();
+        return log.isWarnEnabled() || xtrace.valid(XTraceLoggingLevel.WARN);
     }
 
     @Override

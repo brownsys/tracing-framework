@@ -6,6 +6,7 @@ import org.slf4j.Marker;
 import org.slf4j.helpers.MessageFormatter;
 
 import edu.brown.cs.systems.xtrace.logging.XTraceLogger;
+import edu.brown.cs.systems.xtrace.logging.XTraceLoggingLevel;
 
 public class Slf4jLoggerWrapper implements Logger {
 
@@ -43,7 +44,52 @@ public class Slf4jLoggerWrapper implements Logger {
 
     @Override
     public boolean isTraceEnabled() {
-        return logger.isTraceEnabled() || xtrace.valid();
+        return logger.isTraceEnabled() || xtrace.valid(XTraceLoggingLevel.TRACE);
+    }
+
+    @Override
+    public boolean isTraceEnabled(Marker marker) {
+        return logger.isTraceEnabled(marker) || xtrace.valid(XTraceLoggingLevel.TRACE);
+    }
+
+    @Override
+    public boolean isDebugEnabled() {
+        return logger.isDebugEnabled() || xtrace.valid(XTraceLoggingLevel.DEBUG);
+    }
+
+    @Override
+    public boolean isDebugEnabled(Marker marker) {
+        return logger.isDebugEnabled(marker) || xtrace.valid(XTraceLoggingLevel.DEBUG);
+    }
+
+    @Override
+    public boolean isInfoEnabled() {
+        return logger.isInfoEnabled() || xtrace.valid(XTraceLoggingLevel.INFO);
+    }
+
+    @Override
+    public boolean isInfoEnabled(Marker marker) {
+        return logger.isInfoEnabled(marker) || xtrace.valid(XTraceLoggingLevel.INFO);
+    }
+
+    @Override
+    public boolean isWarnEnabled() {
+        return logger.isWarnEnabled() || xtrace.valid(XTraceLoggingLevel.WARN);
+    }
+
+    @Override
+    public boolean isWarnEnabled(Marker marker) {
+        return logger.isWarnEnabled(marker) || xtrace.valid(XTraceLoggingLevel.WARN);
+    }
+
+    @Override
+    public boolean isErrorEnabled() {
+        return logger.isErrorEnabled() || xtrace.valid(XTraceLoggingLevel.ERROR);
+    }
+
+    @Override
+    public boolean isErrorEnabled(Marker marker) {
+        return logger.isErrorEnabled(marker) || xtrace.valid(XTraceLoggingLevel.ERROR);
     }
 
     @Override
@@ -77,11 +123,6 @@ public class Slf4jLoggerWrapper implements Logger {
     }
 
     @Override
-    public boolean isTraceEnabled(Marker marker) {
-        return logger.isTraceEnabled(marker) || xtrace.valid();
-    }
-
-    @Override
     public void trace(Marker marker, String msg) {
         logger.trace(marker, msg);
         xtrace.log(previousEntryPoint(), msg);
@@ -109,11 +150,6 @@ public class Slf4jLoggerWrapper implements Logger {
     public void trace(Marker marker, String msg, Throwable t) {
         logger.trace(marker, msg, t);
         xtrace.log(previousEntryPoint(), msg);
-    }
-
-    @Override
-    public boolean isDebugEnabled() {
-        return logger.isDebugEnabled() || xtrace.valid();
     }
 
     @Override
@@ -147,11 +183,6 @@ public class Slf4jLoggerWrapper implements Logger {
     }
 
     @Override
-    public boolean isDebugEnabled(Marker marker) {
-        return logger.isDebugEnabled(marker) || xtrace.valid();
-    }
-
-    @Override
     public void debug(Marker marker, String msg) {
         logger.debug(marker, msg);
         xtrace.log(previousEntryPoint(), msg);
@@ -179,11 +210,6 @@ public class Slf4jLoggerWrapper implements Logger {
     public void debug(Marker marker, String msg, Throwable t) {
         logger.debug(marker, msg, t);
         xtrace.log(previousEntryPoint(), msg);
-    }
-
-    @Override
-    public boolean isInfoEnabled() {
-        return logger.isInfoEnabled() || xtrace.valid();
     }
 
     @Override
@@ -217,11 +243,6 @@ public class Slf4jLoggerWrapper implements Logger {
     }
 
     @Override
-    public boolean isInfoEnabled(Marker marker) {
-        return logger.isInfoEnabled(marker) || xtrace.valid();
-    }
-
-    @Override
     public void info(Marker marker, String msg) {
         logger.info(marker, msg);
         xtrace.log(previousEntryPoint(), msg);
@@ -249,11 +270,6 @@ public class Slf4jLoggerWrapper implements Logger {
     public void info(Marker marker, String msg, Throwable t) {
         logger.info(marker, msg, t);
         xtrace.log(previousEntryPoint(), msg);
-    }
-
-    @Override
-    public boolean isWarnEnabled() {
-        return logger.isWarnEnabled() || xtrace.valid();
     }
 
     @Override
@@ -287,11 +303,6 @@ public class Slf4jLoggerWrapper implements Logger {
     }
 
     @Override
-    public boolean isWarnEnabled(Marker marker) {
-        return logger.isWarnEnabled(marker) || xtrace.valid();
-    }
-
-    @Override
     public void warn(Marker marker, String msg) {
         logger.warn(marker, msg);
         xtrace.log(previousEntryPoint(), msg);
@@ -322,11 +333,6 @@ public class Slf4jLoggerWrapper implements Logger {
     }
 
     @Override
-    public boolean isErrorEnabled() {
-        return logger.isErrorEnabled() || xtrace.valid();
-    }
-
-    @Override
     public void error(String msg) {
         logger.error(msg);
         xtrace.log(previousEntryPoint(), msg);
@@ -354,11 +360,6 @@ public class Slf4jLoggerWrapper implements Logger {
     public void error(String msg, Throwable t) {
         logger.error(msg, t);
         xtrace.log(previousEntryPoint(), msg);
-    }
-
-    @Override
-    public boolean isErrorEnabled(Marker marker) {
-        return logger.isErrorEnabled(marker) || xtrace.valid();
     }
 
     @Override

@@ -8,6 +8,7 @@ import edu.brown.cs.systems.tracing.Utils;
 import edu.brown.cs.systems.xtrace.logging.NullLogger;
 import edu.brown.cs.systems.xtrace.logging.XTraceLogger;
 import edu.brown.cs.systems.xtrace.logging.XTraceLoggerImpl;
+import edu.brown.cs.systems.xtrace.logging.XTraceLoggingLevel;
 import edu.brown.cs.systems.xtrace.reporting.NullReporter;
 import edu.brown.cs.systems.xtrace.reporting.PubSubReporter;
 import edu.brown.cs.systems.xtrace.reporting.XTraceReporter;
@@ -160,5 +161,14 @@ public class XTrace {
     public static void setTask(long taskid, long... parentEventIds) {
         XTraceBaggageInterface.setTaskID(taskid);
         XTraceBaggageInterface.setParentEventIds(parentEventIds);
+    }
+    
+    /**
+     * Sets the X-Trace logging level of the current request to the specified level.
+     * This affects log4j / apache loggers -- X-Trace aspects will wrap calls to those loggers,
+     * and any invocations at or above the specified logging level will also be proxied to X-Trace
+     */
+    public static void setLoggingLevel(XTraceLoggingLevel level) {
+        XTraceBaggageInterface.setLoggingLevel(level);
     }
 }

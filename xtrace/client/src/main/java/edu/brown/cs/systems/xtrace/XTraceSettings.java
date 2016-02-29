@@ -3,7 +3,10 @@ package edu.brown.cs.systems.xtrace;
 import java.util.Set;
 
 import com.google.common.collect.Sets;
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+
+import edu.brown.cs.systems.xtrace.logging.XTraceLoggingLevel;
 
 public class XTraceSettings {
 
@@ -19,20 +22,37 @@ public class XTraceSettings {
         }
         return instance;
     }
+    
+    public final boolean on, defaultEnabled, discoveryMode, traceMain;
+    public final XTraceLoggingLevel defaultLoggingLevel, mainMethodLoggingLevel;
+    public final Set<String> classesEnabled, classesDisabled;
 
-    public final boolean on = ConfigFactory.load().getBoolean("xtrace.client.reporting.on");
-    public final boolean defaultEnabled = ConfigFactory.load().getBoolean("xtrace.client.reporting.default");
-    public final boolean discoveryMode = ConfigFactory.load().getBoolean("xtrace.client.reporting.discoverymode");
-    public final boolean traceMain = ConfigFactory.load().getBoolean("xtrace.client.tracemain");
-    public final Set<String> classesEnabled = Sets.newHashSet(ConfigFactory.load().getStringList("xtrace.client.reporting.enabled"));
-    public final Set<String> classesDisabled = Sets.newHashSet(ConfigFactory.load().getStringList("xtrace.client.reporting.disabled"));
-
+    public XTraceSettings() {
+        Config config = ConfigFactory.load();
+        on = config.getBoolean("xtrace.client.reporting.on");
+        defaultEnabled = config.getBoolean("xtrace.client.reporting.default");
+        discoveryMode = config.getBoolean("xtrace.client.reporting.discoverymode");
+        traceMain = config.getBoolean("xtrace.client.tracemain");
+        defaultLoggingLevel = XTraceLoggingLevel.valueOf(config.getString("xtrace.client.reporting.default_level").toUpperCase());
+        mainMethodLoggingLevel = XTraceLoggingLevel.valueOf(config.getString("xtrace.client.tracemain_level").toUpperCase());
+        classesEnabled = Sets.newHashSet(config.getStringList("xtrace.client.reporting.enabled"));
+        classesDisabled = Sets.newHashSet(config.getStringList("xtrace.client.reporting.disabled"));
+    }
+    
+    public static XTraceLoggingLevel defaultLoggingLevel() {
+        return instance().defaultLoggingLevel;
+    }
+    
     public static boolean discoveryMode() {
         return instance().discoveryMode;
     }
 
     public static boolean traceMainMethods() {
         return instance().traceMain;
+    }
+
+    public static XTraceLoggingLevel mainMethodLoggingLevel() {
+        return instance().mainMethodLoggingLevel;
     }
     
     public static boolean On() {

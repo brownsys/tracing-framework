@@ -36,6 +36,10 @@ public class XTraceLoggerImpl implements XTraceLogger {
     public boolean valid() {
         return XTraceSettings.discoveryMode() || XTraceBaggageInterface.hasTaskID();
     }
+    
+    public boolean valid(XTraceLoggingLevel level) {
+        return XTraceSettings.discoveryMode() || (level.valid() && XTraceBaggageInterface.hasTaskID());
+    }
 
     public void log(String message, Object... labels) {
         log(null, message, labels);

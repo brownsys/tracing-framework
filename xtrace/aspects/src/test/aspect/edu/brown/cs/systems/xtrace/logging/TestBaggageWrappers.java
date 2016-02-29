@@ -19,6 +19,10 @@ public class TestBaggageWrappers extends TestCase {
             return true;
         }
 
+        public boolean valid(XTraceLoggingLevel level) {
+            return true;
+        }
+
         public void log(String message, Object... labels) {
             logCount++;
         }

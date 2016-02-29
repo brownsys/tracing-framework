@@ -12,6 +12,9 @@ public interface XTraceLogger {
     /** Returns true if this logger is currently able to send reports */
     public boolean valid();
 
+    /** Returns true if this logger is currently able to send reports at the specified logging level */
+    public boolean valid(XTraceLoggingLevel level);
+
     /**
      * Log a message to the X-Trace server.
      * 

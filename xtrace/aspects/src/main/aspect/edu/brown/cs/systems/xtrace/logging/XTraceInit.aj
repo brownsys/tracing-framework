@@ -12,6 +12,7 @@ public aspect XTraceInit {
     before(): execution(public static void main(String[])) {
         if (XTraceSettings.traceMainMethods()) {
             XTrace.startTask(true);
+            XTrace.setLoggingLevel(XTraceSettings.mainMethodLoggingLevel());
             XTrace.getLogger(XTraceInit.class).tag(thisJoinPointStaticPart, "Process main method begin", Utils.getMainClass().getSimpleName(), "main");
         }
     }

@@ -9,6 +9,9 @@ public class NullLogger implements XTraceLogger {
     public boolean valid() {
         return false;
     }
+    public boolean valid(XTraceLoggingLevel level) {
+        return false;
+    }
 
     public void log(String message, Object... labels) {
     }
