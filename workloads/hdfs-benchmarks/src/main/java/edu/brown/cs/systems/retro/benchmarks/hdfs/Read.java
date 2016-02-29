@@ -11,6 +11,7 @@ import edu.brown.cs.systems.retro.aggregation.Resource.Operation;
 import edu.brown.cs.systems.retro.aggregation.aggregators.HDFSAggregator;
 import edu.brown.cs.systems.tracing.Utils;
 import edu.brown.cs.systems.xtrace.XTrace;
+import edu.brown.cs.systems.xtrace.logging.XTraceLoggingLevel;
 
 public class Read implements Benchmark {
 
@@ -64,8 +65,10 @@ public class Read implements Benchmark {
             BenchmarkUtils.StopTracing();
             BenchmarkUtils.SetTenant(1);
             XTrace.startTask(true);
+//            XTrace.setLoggingLevel(XTraceLoggingLevel.DEBUG);
             BenchmarkUtils.PopulateCurrentBaggage(nbags, nper);
             XTrace.getDefaultLogger().tag("Starting read op", "Read");
+            System.out.println("Request");
             
             Path file = ds.randomFile();
 
