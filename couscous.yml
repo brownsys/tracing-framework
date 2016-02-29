@@ -58,3 +58,18 @@ menu:
         pivottracing:
           text: Pivot Tracing
           url: docs/projects/pivottracing.html
+    retro:
+      section: Retro
+      items:
+          retrovisualization:
+            text: Visualization
+            url: retro/visualization/index.html
+          retroconfig:
+            text: Configuration
+            url: docs/retro/configuration.html
+          retrowithxtrace:
+            text: Retro with X-Trace
+            url: docs/retro/retrowithxtrace.html
+          buildoptions:
+            text: Lock Instrumentation
+            url: docs/retro/lockinstrumentation.html
