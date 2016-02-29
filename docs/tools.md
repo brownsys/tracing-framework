@@ -1,8 +1,4 @@
-# Running PubSub
-
-All of the instrumentation libraries use a pub sub system to communicate.  Agents running in the instrumented system will receive commands over pubsub, and send their output back over the pubsub.
-
-To run a pub sub server, run the `server` executable that is built in the `target/appassembler/bin` folder of the `tracingplane/pubsub` project.
+# Tools and Executables
 
 In general, some projects have some handy executables that will be located in the `target/appassembler/bin` folder of the project.
 
