@@ -8,4 +8,4 @@ These projects are all instrumentation libraries.  They are intended for use wit
 * [HDFS, Hadoop MapReduce, YARN version 2.7.2](https://github.com/brownsys/hadoop/tree/brownsys-pivottracing-2.7.2)
 * HBase (*coming soon*)
 
-This documentation is incomplete and in progress.  For questions, please use the [pivot-tracing-users](https://groups.google.com/forum/#!forum/pivot-tracing-users) Google group.
+This documentation is a work in progress.  For questions, please use the [pivot-tracing-users](https://groups.google.com/forum/#!forum/pivot-tracing-users) Google group.
