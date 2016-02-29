@@ -25,8 +25,8 @@ KernelNode.prototype.clone = function() {
 }
 
 KernelNode.fromJSON = function(json) {
-    var id = json["taskID"];
-    var label = hash_report(json);
+    var id = json["EventID"].toString();
+    var label = "L-"+hash_report(json);
     return new KernelNode(id, label, json);
 }
 

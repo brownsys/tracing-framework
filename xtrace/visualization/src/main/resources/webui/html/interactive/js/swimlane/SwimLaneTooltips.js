@@ -39,7 +39,7 @@ var makeEventTooltip = function(gravity) {
 			"Operation": true, 	"Source": true, 	"Label": true, 		"ParentEventID": true, 
 			"version": true, 	"Agent": true, 		"Class": true, 		"Host": true, 
 			"ProcessID": true, 	"ThreadID": true, 	"ThreadName": true,	"Signature": true,
-			"id": true, "taskID": true
+			"id": true, "TaskID": true, "EventID": true
 		};
 
 		if (report["Source"])

@@ -59,6 +59,7 @@ function XTraceClusterViz(attach, data) {
     
     // Twiddle the attach point a little bit
     var svg = d3.select(attach).append("svg").attr("class", "compare-graph")
+    										.attr("width", "100%").attr("height", "100%")
                                              .attr("viewBox", "0 0 " + w + " " + h )
                                              .attr("preserveAspectRatio", "xMidYMid meet");
     svg.node().oncontextmenu = function(d) { return false; };
@@ -74,8 +75,9 @@ function XTraceClusterViz(attach, data) {
                 window.open("graph.html?id="+d.get_id()+"&mapreduceonly=true&lightweight=true", "_blank");
             }).on("hide", function(ds) {
                 ids = {};
-                graphs.map(function(d) {
-                    ids[d.get_id()] = true;
+                data.map(function(d) {
+                    console.log(d);
+                    ids[d.id] = true;
                 })
                 ds.map(function(d) {
                     delete ids[d.get_id()];
@@ -174,7 +176,7 @@ function XTraceClusterViz(attach, data) {
              .nodes(nodes).links(edges).alpha(0.5).start();
     }
     
-    console.log("Extracting Yarnchild Graphs");
-    data.forEach(function(report) { nodemap[report.id] = yarnchild_kernelgraph_for_trace(report); });
+    console.log("Extracting Graphs");
+    data.forEach(function(report) { nodemap[report.id] = kernelgraph_for_trace(report); });
     console.log("Done, awaiting worker results");
 }

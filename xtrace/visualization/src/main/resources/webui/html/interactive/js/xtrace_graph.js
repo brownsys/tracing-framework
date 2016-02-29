@@ -1,5 +1,6 @@
 // lightweight is an optional argument that will try to draw the graph as fast as possible
 function XTraceDAG(attachPoint, reports, /*optional*/ params) {
+console.log("XTrace dag", reports);
     var dag = this;
     
     // Get the necessary parameters

@@ -9,7 +9,7 @@ onmessage = function(event) {
 };
 
 ondata = function(event) {
-    graphs = event.data.data.map(function(report) { return yarnchild_kernelgraph_for_trace(report); });
+    graphs = event.data.data.map(function(report) { return kernelgraph_for_trace(report); });
 }
 
 oncalculate = function(event) {

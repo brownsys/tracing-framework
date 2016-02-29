@@ -64,7 +64,7 @@ public class ReportImpl implements Report {
         JSONObject json = new JSONObject();
 
         if (event.hasTaskId())
-            json.put("taskID", this.taskID);
+            json.put("TaskID", this.taskID);
         if (event.hasTimestamp())
             json.put("Timestamp", event.getTimestamp());
         if (event.hasHrt())

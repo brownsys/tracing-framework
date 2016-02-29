@@ -1,21 +1,27 @@
 function XTraceCompareViz(attach, data, params) {
+console.log("xtrace compare", data);
+
     // Add the data necessary to colour the compare graphs
     var data_a = data[0];
     var data_b = data[1];
     
     var kernel = new WeisfeilerLehmanKernel(5);
-    var kga = yarnchild_kernelgraph_for_trace(data_a);
-    var kgb = yarnchild_kernelgraph_for_trace(data_b);
+    var kga = kernelgraph_for_trace(data_a);
+    var kgb = kernelgraph_for_trace(data_b);
     this.scores = kernel.calculate_node_stability(kga, kgb, "both");
     
     var labels_a = this.scores[0].labels, labels_b = this.scores[1].labels;
     var scores_a = this.scores[0].scores, scores_b = this.scores[1].scores;
     
+    var min = Infinity;
     var max = 0;
     for (var id in scores_a) {
         scores_a[id] = scores_a[id] / labels_a[id].length;
         if (scores_a[id] > max) {
             max = scores_a[id];
+        }
+        if (scores_a[id] < min) {
+            min = scores_a[id];
         }
     }
     for (var id in scores_b) {
@@ -23,27 +29,32 @@ function XTraceCompareViz(attach, data, params) {
         if (scores_b[id] > max) {
             max = scores_b[id];
         }
+        if (scores_b[id] < min) {
+            min = scores_b[id];
+        }
     }
     
     data_a.reports.forEach(function(report) {
-        if (!report.hasOwnProperty("taskID")) return;
-        var id = report["taskID"];
+        if (!report.hasOwnProperty("EventID")) return;
+        var id = report["EventID"];
         if (labels_a.hasOwnProperty(id)) {
             report["KernelLabels"] = labels_a[id];
         }
         if (scores_a.hasOwnProperty(id)) {
-            report["KernelScore"] = [scores_a[id] / max];
+        	var score = (scores_a[id]-min) / (max-min);
+            report["KernelScore"] = score;
         }
     })
     
     data_b.reports.forEach(function(report) {
-        if (!report.hasOwnProperty("taskID")) return;
-        var id = report["taskID"];
+        if (!report.hasOwnProperty("EventID")) return;
+        var id = report["EventID"];
         if (labels_b.hasOwnProperty(id)) {
             report["KernelLabels"] = labels_b[id];
-            if (scores_b.hasOwnProperty(id)) {
-                report["KernelScore"] = [scores_b[id] / max];
-            }
+        }
+        if (scores_b.hasOwnProperty(id)) {
+        	var score = (scores_b[id]-min) / (max-min);
+            report["KernelScore"] = score;
         }
     })
 
@@ -58,7 +69,7 @@ function XTraceCompareViz(attach, data, params) {
     
     var kernelscore_opacity = function(d) {
         if (d.report["KernelScore"]) {
-            var score = d.report["KernelScore"][0];
+            var score = d.report["KernelScore"];
             return 0.2 + 5 * Math.pow(1-score, 5);
         }
         return 1;

@@ -227,7 +227,7 @@ var sanitizeReports = function(reports) {
         if (!report.hasOwnProperty("ParentEventID") || report["ParentEventID"].length==0) {
           erroneous.edges.push(report);
         	report["ParentEventID"] = [];
-        } else if (!report.hasOwnProperty("taskID")) {
+        } else if (!report.hasOwnProperty("EventID")) {
           erroneous.ids.push(report);
         	reports.splice(i, 1);
         	i--;
@@ -334,9 +334,10 @@ String.prototype.hashCode = function(){
 
 function hash_report(report) {
  hash = 0;
- if (report["Agent"]) hash += ("Agent:"+report["Agent"]).hashCode();
- if (report["Label"]) hash += ("Label:"+report["Label"]).hashCode();
- if (report["Class"]) hash += ("Class:"+report["Class"]).hashCode();
+ //if (report["Agent"]) hash += ("Agent:"+report["Agent"]).hashCode();
+ //if (report["Label"]) hash += ("Label:"+report["Label"]).hashCode();
+ //if (report["Class"]) hash += ("Class:"+report["Class"]).hashCode();
+ if (report["Source"]) hash += ("Source:"+report["Source"]).hashCode();
  return hash & hash;
 }
 
