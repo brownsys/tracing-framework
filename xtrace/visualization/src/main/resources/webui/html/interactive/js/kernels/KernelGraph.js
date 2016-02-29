@@ -25,7 +25,7 @@ KernelNode.prototype.clone = function() {
 }
 
 KernelNode.fromJSON = function(json) {
-    var id = json["X-Trace"][0].substr(18);
+    var id = json["taskID"];
     var label = hash_report(json);
     return new KernelNode(id, label, json);
 }
@@ -218,7 +218,7 @@ KernelGraph.fromJSON = function(json) {
     var nodes = json["reports"].map(function(report) { return KernelNode.fromJSON(report); });
     var trace = new KernelGraph(json["id"], nodes);
     nodes.forEach(function(node) {
-        var edges = node.data["Edge"];
+        var edges = node.data["ParentEventID"];
         if (edges) {
             for (var i = 0; i < edges.length; i++) {
                 trace.link(edges[i], node.id);

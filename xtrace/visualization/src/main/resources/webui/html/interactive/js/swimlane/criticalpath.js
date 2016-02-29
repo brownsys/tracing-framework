@@ -10,9 +10,9 @@ function critical_path(reports, finalreport) {
 	
 	var cpath = [];
 	var next = finalreport;
-	while (next && next["Edge"]) {
+	while (next && next["ParentEventID"]) {
 		cpath.push(next);
-		var parents = next["Edge"];
+		var parents = next["ParentEventID"];
 		next = reportmap[parents[0]];
 		for (var i = 1; next==null && i < parents.length; i++) {
 			next = reportmap[parents[i]];

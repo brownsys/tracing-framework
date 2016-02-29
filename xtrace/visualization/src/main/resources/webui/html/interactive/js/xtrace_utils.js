@@ -224,10 +224,10 @@ var sanitizeReports = function(reports) {
     var erroneous = { "edges": [], "ids": []};
     while (i < reports.length) {
         var report = reports[i];
-        if (!report.hasOwnProperty("Edge") || report["Edge"].length==0) {
+        if (!report.hasOwnProperty("ParentEventID") || report["ParentEventID"].length==0) {
           erroneous.edges.push(report);
-        	report["Edge"] = [];
-        } else if (!report.hasOwnProperty("X-Trace") || report["X-Trace"].length!=1) {
+        	report["ParentEventID"] = [];
+        } else if (!report.hasOwnProperty("taskID")) {
           erroneous.ids.push(report);
         	reports.splice(i, 1);
         	i--;
@@ -308,9 +308,9 @@ var createJSONFromVisibleGraph = function(graph) {
         var node = nodes[i];
         var parents = node.getVisibleParents();
         var report = $.extend({}, node.report);
-        report["Edge"] = [];
+        report["ParentEventID"] = [];
         for (var j = 0; j < parents.length; j++) {
-            report["Edge"].push(parents[j].id);
+            report["ParentEventID"].push(parents[j].id);
         }
         reports.push(report);
     }
@@ -398,19 +398,19 @@ var filter_reports = function(reports, f) {
             return;
         } else {
             var report = reportmap[id];
-            var parents = report["Edge"];
+            var parents = report["ParentEventID"];
             var newparents = {};
             for (var i = 0; i < parents.length; i++) {
                 if (removed[parents[i]]) {
                     remap_parents(parents[i]);
-                    reportmap[parents[i]]["Edge"].forEach(function(grandparent) {
+                    reportmap[parents[i]]["ParentEventID"].forEach(function(grandparent) {
                         newparents[grandparent] = true;
                     })
                 } else {
                     newparents[parents[i]] = true;
                 }
             }
-            report["Edge"] = Object.keys(newparents);
+            report["ParentEventID"] = Object.keys(newparents);
             remapped[id] = true;
         }
     }

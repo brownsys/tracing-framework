@@ -26,8 +26,8 @@ function XTraceCompareViz(attach, data, params) {
     }
     
     data_a.reports.forEach(function(report) {
-        if (!report.hasOwnProperty("X-Trace")) return;
-        var id = report["X-Trace"][0].substr(18);
+        if (!report.hasOwnProperty("taskID")) return;
+        var id = report["taskID"];
         if (labels_a.hasOwnProperty(id)) {
             report["KernelLabels"] = labels_a[id];
         }
@@ -37,8 +37,8 @@ function XTraceCompareViz(attach, data, params) {
     })
     
     data_b.reports.forEach(function(report) {
-        if (!report.hasOwnProperty("X-Trace")) return;
-        var id = report["X-Trace"][0].substr(18);
+        if (!report.hasOwnProperty("taskID")) return;
+        var id = report["taskID"];
         if (labels_b.hasOwnProperty(id)) {
             report["KernelLabels"] = labels_b[id];
             if (scores_b.hasOwnProperty(id)) {
