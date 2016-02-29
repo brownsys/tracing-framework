@@ -23,11 +23,16 @@ public class XTraceSettings {
     public final boolean on = ConfigFactory.load().getBoolean("xtrace.client.reporting.on");
     public final boolean defaultEnabled = ConfigFactory.load().getBoolean("xtrace.client.reporting.default");
     public final boolean discoveryMode = ConfigFactory.load().getBoolean("xtrace.client.reporting.discoverymode");
+    public final boolean traceMain = ConfigFactory.load().getBoolean("xtrace.client.tracemain");
     public final Set<String> classesEnabled = Sets.newHashSet(ConfigFactory.load().getStringList("xtrace.client.reporting.enabled"));
     public final Set<String> classesDisabled = Sets.newHashSet(ConfigFactory.load().getStringList("xtrace.client.reporting.disabled"));
 
     public static boolean discoveryMode() {
         return instance().discoveryMode;
+    }
+
+    public static boolean traceMainMethods() {
+        return instance().traceMain;
     }
     
     public static boolean On() {
