@@ -14,40 +14,11 @@ title: Brownsys Tracing Framework Documentation
 menu:
   sections:
     main:
-      section: Home
+      section: Overview
       url: 
-    gettingstarted:
-      section: Getting Started
-      url: docs/gettingstarted.html
-    instrumentation:
-      section: Instrumentation Tutorial
-      url: 
-      items:
-        baggage:
-          text: Adding Baggage
-          url:
-        automatic:
-          text: Automatic Instrumentation
-          url:
-    tracingapp:
-      section: Tracing App Tutorial
-      url: 
-      items:
-    documentation:
-      section: Documentation
-      items:
-        configuration:
-          text: Configuration
-          url: docs/config.html
-        running:
-          text: Tools and Executables
-          url: docs/tools.html
-    projects:
-      section: Project Overview
-      url: docs/projects.html
       items:
         tracingplane:
-          text: Tracing Plane
+          text: TracingPlane
           url: docs/projects/tracingplane.html
         xtrace:
           text: X-Trace
@@ -58,18 +29,113 @@ menu:
         pivottracing:
           text: Pivot Tracing
           url: docs/projects/pivottracing.html
+    gettingstarted:
+      section: Tutorials
+      url: 
+      items:
+        gettingstarted:
+          text: Getting Started
+          url: docs/tutorials/gettingstarted.html
+        xtrace:
+          text: Using X-Trace
+          url: docs/tutorials/xtrace.html
+        retro:
+          text: Using Retro
+          url: docs/tutorials/retro.html
+        pivottracing:
+          text: Using PivotTracing
+          url: docs/tutorials/pivottracing.html
+        baggage:
+          text: Adding Baggage To Your System
+          url: docs/tutorials/baggage.html
+        automatic:
+          text: Using Automatic Instrumentation
+          url:  docs/tutorials/aspects.html
+        usingbaggage:
+          text: Using Baggage Yourself
+          url: docs/tutorials/tracingapplication.html
+    tracingplane:
+      section: Tracing Plane
+      url: tracingplane
+      items:
+        pubsub:
+          text: PubSub
+          url: tracingplane/pubsub
+        baggage:
+          text: Baggage
+          url: tracingplane/client
+        aspects:
+          text: Auto-Baggage
+          url: tracingplane/aspects
+        dynamic:
+          text: Dynamic Instrumentation
+          url: tracingplane/dynamic
+    xtrace:
+      section: X-Trace
+      items:
+          server:
+            text: X-Trace Server
+            url: xtrace/server
+          visualization:
+            text: Visualization
+            url: xtrace/visualization
+          client:
+            text: Client Library
+            url: xtrace/client
+          aspects:
+            text: Automatic Instrumentation
+            url: xtrace/aspects
+          log4j:
+            text: Log4j & Commons Logging
+            url: docs/xtrace/log4j.html
     retro:
       section: Retro
       items:
-          retrovisualization:
+          resources:
+            text: Resource Instrumentation
+            url: retro/resources
+          aspects:
+            text: Auto-Instrumentation
+            url: retro/aspects
+          aggregation:
+            text: Aggregation
+            url: retro/aggregation
+          throttling:
+            text: Tenant Throttling
+            url: retro/throttling
+          visualization:
             text: Visualization
-            url: retro/visualization/index.html
-          retroconfig:
+            url: retro/visualization
+          config:
             text: Configuration
             url: docs/retro/configuration.html
-          retrowithxtrace:
-            text: Retro with X-Trace
+          xtrace:
+            text: Retro + X-Trace
             url: docs/retro/retrowithxtrace.html
           buildoptions:
-            text: Lock Instrumentation
+            text: Instrumentation for Locks
             url: docs/retro/lockinstrumentation.html
+    pivottracing:
+      section: Pivot Tracing
+      items:
+        client:
+          text: Client Library
+          url: pivottracing/client
+        agent:
+          text: Pivot Tracing Agent
+          url: pivottracing/agent
+        privileged:
+          text: Privileged Classes
+          url: pivottracing/privileged
+        examples:
+          text: Examples
+          url: pivottracing/test
+    reference:
+      section: Reference
+      items:
+        configuration:
+          text: Configuration
+          url: docs/config.html
+        running:
+          text: Tools and Executables
+          url: docs/tools.html
