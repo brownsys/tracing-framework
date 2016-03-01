@@ -1,4 +1,4 @@
-### X-Trace Server
+## X-Trace - Report Server
 
 The X-Trace server is a standalone component the receives reports from clients and persists them into a database.  It also runs a webserver for accessing and visualizing reports.  
 The following command will run the X-Trace server:
