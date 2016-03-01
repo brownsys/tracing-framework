@@ -19,7 +19,7 @@ function critical_path(reports, finalreport) {
 		}
 		for (var i = 1; i < parents.length; i++) {
 			var candidate = reportmap[parents[i]];
-			if (reportmap[parents[i]] && Number(candidate["Timestamp"][0]) > Number(next["Timestamp"][0]))
+			if (reportmap[parents[i]] && Number(candidate["Timestamp"]) > Number(next["Timestamp"]))
 				next = candidate;
 		}
 	}

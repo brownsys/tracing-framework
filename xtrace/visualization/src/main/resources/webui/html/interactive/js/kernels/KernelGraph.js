@@ -226,7 +226,7 @@ KernelGraph.fromJSON = function(json) {
         }
     });
     nodes.forEach(function(node) {
-        if (node.data["Operation"] && node.data["Operation"][0]=="merge") {
+        if (node.data["Operation"] && node.data["Operation"]=="merge") {
             trace.remove(node);
         }
     });

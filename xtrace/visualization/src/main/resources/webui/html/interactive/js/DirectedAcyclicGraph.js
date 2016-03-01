@@ -73,7 +73,8 @@ function DirectedAcyclicGraph() {
     var height = d3.functor("100%");
     var edgeid = function(d) { return d.source.id + d.target.id; }
     var nodeid = function(d) { return d.id; }
-    var nodename = function(d) { return d.report["Agent"] ? d.report["Agent"][0] : ""; }
+    var nodename = function(d) { return d.report["Source"] ? d.report["Source"] : d.report["Agent"] ? d.report["Agent"] : ""; }
+    var procname = function(d) { return d.report["ProcessName"] ? d.report["ProcessName"] : d.report["ProcessID"] ? d.report["ProcessID"] : ""; }
     var getnodes = function(d) { return d.getVisibleNodes(); }
     var getedges = function(d) { return d.getVisibleLinks(); }
     var bbox = function(d) {
@@ -83,7 +84,7 @@ function DirectedAcyclicGraph() {
         // Attach the DOM elements
         var rect = d3.select(this).append("rect");
         var text = d3.select(this).append("text").attr("text-anchor", "middle").attr("x", 0);
-        text.append("tspan").attr("x", 0).attr("dy", "1em").text(nodeid);
+        text.append("tspan").attr("x", 0).attr("dy", "1em").text(procname);
         text.append("tspan").attr("x", 0).attr("dy", "1.1em").text(nodename);
         var prior_pos = nodepos.call(this, d);
         if (prior_pos!=null) {

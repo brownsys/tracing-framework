@@ -90,7 +90,7 @@ function XTraceClusterViz(attach, data) {
                     var reports = d.get_node_data();
                     reports.forEach(function(report) {
                         if (report["ProcessID"]) {
-                            process_ids[report["ProcessID"][0]] = true;
+                            process_ids[report["ProcessID"]] = true;
                         }
                     });
                     trace_ids.push(d.get_id());

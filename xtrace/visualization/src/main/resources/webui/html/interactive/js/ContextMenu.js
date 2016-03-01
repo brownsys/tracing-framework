@@ -31,7 +31,7 @@ var DirectedAcyclicGraphContextMenu = function(graph, graphSVG) {
             var value = d.value;
             var items = graph.getNodes().filter(function(node) {
                 return !node.never_visible && node.report && 
-                node.report[fieldname] && node.report[fieldname][0]==value;
+                node.report[fieldname] && node.report[fieldname]==value;
             });
             var name = fieldname+": "+value;
             handlers.hidenodes.call(this, items, name);
@@ -60,7 +60,7 @@ var DirectedAcyclicGraphContextMenu = function(graph, graphSVG) {
             var fieldname = d.fieldname;
             var value = d.value;
             var items = graph.getVisibleNodes().filter(function(node) {
-                return node.report && node.report[fieldname] && node.report[fieldname][0]==value;
+                return node.report && node.report[fieldname] && node.report[fieldname]==value;
             });
             handlers.selectnodes.call(this, items);
         }
@@ -83,7 +83,7 @@ var DirectedAcyclicGraphContextMenu = function(graph, graphSVG) {
             var fieldname = d.fieldname;
             var value = d.value;
             items = graph.getVisibleNodes().filter(function(node) {
-                return node.report && node.report[fieldname] && node.report[fieldname][0]==value;
+                return node.report && node.report[fieldname] && node.report[fieldname]==value;
             });            
         }
         if (d.operation=="invertselection") {
@@ -138,23 +138,23 @@ var DirectedAcyclicGraphContextMenu = function(graph, graphSVG) {
             }
             
             var addHideField = function(fieldname) {
-                if (d.report && d.report[fieldname] && d.report[fieldname][0]) {
+                if (d.report && d.report[fieldname]) {
                     items.push({
                         "operation": "hidefield",
-                        "name": "Hide all <span class='highlight'>"+d.report[fieldname][0]+"</span> nodes",
+                        "name": "Hide all <span class='highlight'>"+d.report[fieldname]+"</span> nodes",
                         "fieldname": fieldname,
-                        "value": d.report[fieldname][0],
+                        "value": d.report[fieldname],
                     });
                 }
             }
             
             var addSelectField = function(fieldname) {
-                if (d.report && d.report[fieldname] && d.report[fieldname][0]) {
+                if (d.report && d.report[fieldname] && d.report[fieldname]) {
                     items.push({
                         "operation": "selectfield",
-                        "name": "Select all <span class='highlight'>"+d.report[fieldname][0]+"</span> nodes",
+                        "name": "Select all <span class='highlight'>"+d.report[fieldname]+"</span> nodes",
                         "fieldname": fieldname,
-                        "value": d.report[fieldname][0],
+                        "value": d.report[fieldname],
                     });
                 }
             }
