@@ -75,7 +75,7 @@ menu:
       url: xtrace
       items:
           server:
-            text: X-Trace Server
+            text: Report Server
             url: xtrace/server
           visualization:
             text: Visualization
@@ -86,9 +86,6 @@ menu:
           aspects:
             text: Automatic Instrumentation
             url: xtrace/aspects
-          log4j:
-            text: Log4j & Commons Logging
-            url: docs/xtrace/log4j.html
     retro:
       section: Retro
       items:
