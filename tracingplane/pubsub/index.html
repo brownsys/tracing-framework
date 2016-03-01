@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Brownsys Tracing Framework Documentation</title>
+
+        <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/bootstrap.min.css">
+        <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/font-awesome.min.css">
+        <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/highlight.dark.css">
+        <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/main.css">
+            <link href="http://fonts.googleapis.com/css?family=Abel:400|Oswald:300,400,700" media="all" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+
+        <header class="navbar navbar-default navbar-fixed-top">
+
+            <a class="navbar-brand" href="http://brownsys.github.io/tracing-framework/">
+                Brownsys Tracing Framework Documentation
+                            </a>
+
+                            <a href="https://github.com/brownsys/tracing-framework">
+                    <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
+                </a>
+            
+        </header>
+
+        <main class="container-fluid">
+            <div class="row">
+
+                
+                    <nav id="sidebar" class="col-sm-4 col-lg-3" role="navigation">
+
+                 <!--       <ul class="nav nav-pills nav-stacked">
+                                                    </ul> -->
+
+                        <ul>
+                                                            <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/">                        
+                                                                        Overview
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/tracingplane.html">
+                                                    TracingPlane
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/xtrace.html">
+                                                    X-Trace
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/retro.html">
+                                                    Retro
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/pivottracing.html">
+                                                    Pivot Tracing
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/">                        
+                                                                        Tutorials
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/gettingstarted.html">
+                                                    Getting Started
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/xtrace.html">
+                                                    Using X-Trace
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/retro.html">
+                                                    Using Retro
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/pivottracing.html">
+                                                    Using PivotTracing
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/baggage.html">
+                                                    Adding Baggage To Your System
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/aspects.html">
+                                                    Using Automatic Instrumentation
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/tracingapplication.html">
+                                                    Using Baggage Yourself
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/tracingplane">                        
+                                                                        Tracing Plane
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/tracingplane/pubsub">
+                                                    PubSub
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/tracingplane/client">
+                                                    Baggage
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/tracingplane/aspects">
+                                                    Auto-Baggage
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/tracingplane/dynamic">
+                                                    Dynamic Instrumentation
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/xtrace">                        
+                                                                        X-Trace
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/xtrace/client">
+                                                    Client Library
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/xtrace/aspects">
+                                                    Automatic Instrumentation
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/xtrace/server">
+                                                    Report Server
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/xtrace/visualization">
+                                                    Visualization
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
+                            		                                    Retro
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/retro/resources">
+                                                    Resource Instrumentation
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/retro/aspects">
+                                                    Auto-Instrumentation
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/retro/aggregation">
+                                                    Aggregation
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/retro/throttling">
+                                                    Tenant Throttling
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/retro/visualization">
+                                                    Visualization
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/retro/configuration.html">
+                                                    Configuration
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/retro/retrowithxtrace.html">
+                                                    Retro + X-Trace
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/retro/lockinstrumentation.html">
+                                                    Instrumentation for Locks
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
+                            		                                    Pivot Tracing
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
+                                                    Client Library
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
+                                                    Pivot Tracing Agent
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
+                                                    Privileged Classes
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
+                                                    Examples
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
+                            		                                    Reference
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/config.html">
+                                                    Configuration
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tools.html">
+                                                    Tools and Executables
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                    </ul>
+
+
+                    </nav>
+
+                
+
+                <section id="content" class="col-sm-8 col-lg-9">
+                    <h2 id="pubsub">PubSub</h2>
+<p>This project is a simple pub-sub implementation with a single server using Java's NIO.  It is not too reliable, and not too robust, but it is simple.  We rolled our own pubsub system because we had poor experiences with heavyweight libraries like ZeroMQ and Akka, and because this is research code.</p>
+<p>To run a standalone pub sub server, run the <code>server</code> executable in <code>target/appassembler/bin</code>.</p>
+<p>Once a pub sub server is running, clients can send and receive messages using the static API in <code>edu.brown.cs.systems.pubsub</code>.</p>
+<p>PubSub depends on protocol buffers, and provides convenience methods for sending and receiving protobuf messages.</p>
+<p>To send any protocol buffers message on a topic, invoke <code>PubSub.publish(String topic, Message message)</code>.  PubSub will internally serialize the method and send it to the pub sub server.  The server will forward the message to any clients that have subscribed to the specified topic.</p>
+<p>To subscribe to messages on a topic, extend the class <code>PubSubClient.Subscriber&lt;T extends Message&gt;</code> to override the <code>OnMessage(T message)</code> method.  Then call <code>PubSub.subscribe(String topic, Subscriber subscriber)</code>.  PubSub will internally register with the pub sub server to subscribe to the topic.  When anyone publishes a message on that topic, the pub sub server will forward the message to this client, and the callback will be invoked with the deserialized message.</p>
+<p>PubSub clients automatically attempt to reconnect to the server if they are unable to connect.  Any pending or partially sent messages will remain queued until the client reconnects, at which point they will be retransmitted.</p>
+<p>PubSub uses the following default configuration options:</p>
+<pre><code>pubsub {
+
+  server {
+    hostname = "127.0.0.1"
+    bindto = "0.0.0.0"
+    port = 5563
+  }
+
+  topics {
+    control = "_"
+  }
+
+}</code></pre>
+                </section>
+
+            </div>
+        </main>
+
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        <script src="//yastatic.net/highlightjs/8.2/highlight.min.js"></script>
+
+        <script>
+            $(function() {
+                $("section>h1").wrap('<div class="page-header" />');
+                // Syntax highlighting
+                hljs.initHighlightingOnLoad();
+            });
+        </script>
+
+    </body>
+</html>
