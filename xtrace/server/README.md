@@ -8,7 +8,7 @@ The `backend` executable will run an X-Trace server and a pubsub server within t
 
     xtrace/server/target/appassembler/bin/backend
 
-This will pick up any PubSub configuration (see [PubSub](tracingplane/pubsub/index.html)).
+This will pick up any PubSub configuration (see [PubSub](../tracingplane/pubsub/index.html)).
 
 #### Receiving Reports
 
@@ -26,7 +26,7 @@ The webserver has APIs for retrieving reports by task ID in plaintext and JSON f
 
 Visit http://localhost:4080 to view the X-Trace dashboard:
 
-![X-Trace dashboard](../docs/images/xtrace_dashboard.png "X-Trace dashboard")
+![X-Trace dashboard](../../docs/images/xtrace_dashboard.png "X-Trace dashboard")
 
 Each unique taskID will show up as a row in the dashboard.  The Plain and JSON columns get the raw reports for each task ID.  The Tags column displays any tags that were added to the trace (eg, if anywhere during the request, `XTrace.tag(x, y, z)` was called, the tags x, y, and z will show up here).  The Graphs column gives links to visualize tasks -- the page [X-Trace/Visualization](visualization) has more information about X-Trace visualizations.
 

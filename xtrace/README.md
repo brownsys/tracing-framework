@@ -14,9 +14,9 @@ In the NameNode process, the RPC is received and it begins being serviced in a t
 
 Concurrently in Benchmarks, after sending the RPC, the client makes a further logging statement at `ProtoUtil.java:182`, then branches the execution by creating a second thread.  After forking the new thread, the original thread logs a statement at `Client.java:1041`, while the new thread makes a logging statement at `Client.java:1043`.
 
-At this point, the execution continued until complete.  The full interactive graph can be found [here](http://cs.brown.edu/~jcmace/xtrace_viz/graph.html?id=e065aa1a3bfe4eff.json).  The [X-Trace/Visualization](xtrace/visualization) page has more information on X-Trace visualizations.
+At this point, the execution continued until complete.  The full interactive graph can be found [here](http://cs.brown.edu/~jcmace/xtrace_viz/graph.html?id=e065aa1a3bfe4eff.json).  The [X-Trace/Visualization](visualization) page has more information on X-Trace visualizations.
 
-![X-Trace Example](docs/images/xtrace_example.png "Example X-Trace DAG")
+![X-Trace Example](../docs/images/xtrace_example.png "Example X-Trace DAG")
 
 #### Metadata Propagation using Baggage
 
