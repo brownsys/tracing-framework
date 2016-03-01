@@ -74,18 +74,18 @@ menu:
       section: X-Trace
       url: xtrace
       items:
-          server:
-            text: Report Server
-            url: xtrace/server
-          visualization:
-            text: Visualization
-            url: xtrace/visualization
           client:
             text: Client Library
             url: xtrace/client
           aspects:
             text: Automatic Instrumentation
             url: xtrace/aspects
+          server:
+            text: Report Server
+            url: xtrace/server
+          visualization:
+            text: Visualization
+            url: xtrace/visualization
     retro:
       section: Retro
       items:
