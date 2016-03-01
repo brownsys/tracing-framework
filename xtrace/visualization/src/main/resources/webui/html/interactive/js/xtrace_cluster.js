@@ -72,7 +72,7 @@ function XTraceClusterViz(attach, data) {
     var ctxmenu = CompareGraphContextMenu();
     ctxmenu.on("open", tooltip.hide)
            .on("view", function(d) {
-                window.open("graph.html?id="+d.get_id()+"&mapreduceonly=true&lightweight=true", "_blank");
+                window.open("graph.html?id="+d.get_id()+"&lightweight=true", "_blank");
             }).on("hide", function(ds) {
                 ids = {};
                 data.map(function(d) {
