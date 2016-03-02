@@ -46,7 +46,7 @@ public class SOSPPaperExamplesTracepoints {
         hdfs_datanode_dataTransferProtocol = new MethodTracepoint(
                 "DN.DataTransferProtocol", // name for the tracepoint
                 Where.ENTRY, "org.apache.hadoop.hdfs.server.datanode.DataXceiver", "readBlock", // entry point, class name, method 
-                "org.apache.hadoop.hdfs.protocol.ExtendedBlock", "org.apache.hadoop.security.token.Token", "java.lang.String", "long", "long", "boolean"); // arg types
+                "org.apache.hadoop.hdfs.protocol.ExtendedBlock", "org.apache.hadoop.security.token.Token", "java.lang.String", "long", "long", "boolean", "org.apache.hadoop.hdfs.server.datanode.CachingStrategy"); // arg types
         
         hdfs_client_open = new MethodTracepoint(
                 "DN.ClientOpen", // name for the tracepoint

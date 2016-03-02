@@ -59,6 +59,13 @@ public class SOSPPaperExamplesQueries {
             "Select st.host, DNop.host, COUNT"
     }, "\n");
 
+    public static String Q7a = StringUtils.join(new String[]{
+            "From DNop In DN.DataTransferProtocol",
+            "Join getloc In NN.GetBlockLocations On getloc -> DNop",
+            "GroupBy DNop.host, getloc.replicas",
+            "Select DNop.host, getloc.replicas, COUNT"
+    }, "\n");
+
     public static String Q7 = StringUtils.join(new String[]{
             "From DNop In DN.DataTransferProtocol",
             "Join getloc In NN.GetBlockLocations On getloc -> DNop",
@@ -76,10 +83,11 @@ public class SOSPPaperExamplesQueries {
         queries.put("Q4", Q4);
         queries.put("Q5", Q5);
         queries.put("Q6", Q6);
+        queries.put("Q7a", Q7a);
         queries.put("Q7", Q7);
     }
     
-    public static void main(String[] args) throws PTQueryParserException, PTQueryException {
+    public static void printQueries() throws PTQueryParserException, PTQueryException {
         List<String> queryNames = Lists.newArrayList(queries.keySet());
         Collections.sort(queryNames);
         for (String queryName : queryNames) {
@@ -102,6 +110,14 @@ public class SOSPPaperExamplesQueries {
 //            }
             
         }
+    }
+    
+    public static void main(String[] args) throws PTQueryParserException, PTQueryException {
+        PivotTracingClient client = SOSPPaperExamplesTracepoints.client();
+//        for (String qId : queries.keySet()) {
+//            client.install(client.parse(qId, queries.get(qId)));
+//        }
+        client.install(client.parse("Q7a", queries.get("Q7a")));
     }
     
 
