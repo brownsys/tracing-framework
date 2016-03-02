@@ -158,7 +158,9 @@ public class PivotTracingClient {
         
         // Tidy up subscribers
         installedQueries.clear();
-        subscriber().unsubscribeAll();
+        if (resultsSubscriber != null) {
+            resultsSubscriber.unsubscribeAll();
+        }
     }
     
     /** Subscribe to the results of a query.  If the query is not installed, this does nothing */
