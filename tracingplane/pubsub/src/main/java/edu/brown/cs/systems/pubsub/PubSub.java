@@ -76,6 +76,7 @@ public class PubSub {
     public static synchronized void close() {
         if (defaultClient != null) {
             defaultClient.close();
+            defaultClient = null;
         }
     }
 
