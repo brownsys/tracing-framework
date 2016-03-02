@@ -20,8 +20,7 @@ public class PubSub {
             int port = conf.getInt("pubsub.server.port");
             int maxPendingMessages = conf.getInt("pubsub.client.maxPendingMessages");
             try {
-                defaultClient = startClient(hostname, port, maxPendingMessages);
-                defaultClient.setDaemon(true);
+                defaultClient = startClient(hostname, port, maxPendingMessages, false);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -34,9 +33,10 @@ public class PubSub {
      * @param serverPort port of the server to connect to
      * @return a pub sub client that has kicked off a separate thread to connect to the server
      * @throws IOException */
-    public static PubSubClient startClient(String serverHostName, int serverPort, int maxPendingMessages)
+    public static PubSubClient startClient(String serverHostName, int serverPort, int maxPendingMessages, boolean isDaemon)
             throws IOException {
         PubSubClient client = new PubSubClient(serverHostName, serverPort, maxPendingMessages);
+        client.setDaemon(isDaemon);
         client.start();
         return client;
     }
