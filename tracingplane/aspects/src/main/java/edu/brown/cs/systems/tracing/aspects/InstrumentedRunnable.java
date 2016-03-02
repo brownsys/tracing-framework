@@ -8,4 +8,6 @@ public interface InstrumentedRunnable {
     public void rejoinConstructorContext();
 
     public void joinRunendContext();
+    
+    public void cancelContexts();
 }

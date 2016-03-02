@@ -31,6 +31,11 @@ public aspect Runnables {
     public void InstrumentedRunnable.joinRunendContext() {
         Baggage.join(runend_baggage);
     }
+    
+    public void InstrumentedRunnable.cancelContexts() {
+        constructor_baggage = null;
+        runend_baggage = null;
+    }
 
     before(InstrumentedRunnable r): this(r) && execution(InstrumentedRunnable+.new(..)) {
         try {
@@ -61,5 +66,10 @@ public aspect Runnables {
 
     // Runnable itself can't be instrumented, but any subclasses defined by the application can.
     declare parents: (!@BaggageInheritanceDisabled Runnable)+ implements InstrumentedRunnable;
+    
+    // If a runnable is a shutdown hook, cancel it
+    before(InstrumentedRunnable r): call(* *.addShutdownHook(Runnable+,..)) && args(r,..) {
+        r.cancelContexts();
+    }
 
 }
