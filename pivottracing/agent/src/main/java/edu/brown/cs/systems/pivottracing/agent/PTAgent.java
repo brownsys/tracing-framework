@@ -1,5 +1,10 @@
 package edu.brown.cs.systems.pivottracing.agent;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +95,9 @@ public class PTAgent implements PrivilegedAgent {
         
         // Install
         weaveManager.install();
+        
+        // Report status
+        reportStatus(weaveManager.problems());
     }
     
     /** Construct an AgentInfo message containing information about this agent */
@@ -102,13 +110,17 @@ public class PTAgent implements PrivilegedAgent {
     }
     
     /** Publish a message reporting this PT agent's status */
-    public void reportStatus() {
+    public void reportStatus(Collection<Throwable> problems) {
         AgentStatus.Builder status = AgentStatus.newBuilder();
         status.setAgent(getAgentInfo());
         status.setDynamicInstrumentationEnabled(dynamic != null);
         status.addAllWoven(weaveManager.woven());
         for (HardcodedTracepoint t : hardcodedTracepoints.values()) {
             status.addHardcodedTracepointsBuilder().setId(t.id).addAllExport(t.exportedVariables);
+        }
+        
+        for (Throwable t : problems) {
+            status.addProblemBuilder().setName(t.getClass().getName()).setMessage(t.getMessage()).setStacktrace(ExceptionUtils.getStackTrace(t));
         }
         
         PubSub.publish(PivotTracingConfig.STATUS_TOPIC, status.build());
@@ -127,7 +139,7 @@ public class PTAgent implements PrivilegedAgent {
             
             // Send status maybe
             if (message.hasSendStatus() && message.getSendStatus()) {
-                reportStatus();
+                reportStatus(Collections.<Throwable>emptySet());
             }
         }
     }

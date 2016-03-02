@@ -77,6 +77,10 @@
                             <id>print-query-results</id>
                         </program>
                         <program>
+                            <mainClass>edu.brown.cs.systems.pivottracing.tools.GetAgentStatus</mainClass>
+                            <id>print-agent-status</id>
+                        </program>
+                        <program>
                             <mainClass>edu.brown.cs.systems.pivottracing.tools.UninstallAll</mainClass>
                             <id>uninstall-all-queries</id>
                         </program>

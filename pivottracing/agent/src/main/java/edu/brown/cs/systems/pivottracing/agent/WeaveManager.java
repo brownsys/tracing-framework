@@ -32,6 +32,7 @@ public class WeaveManager {
     
     private final PTAgent agent;
     
+    private final Collection<Throwable> problems = Lists.newArrayList(); // Problems occurred during weaving
     private final Map<ByteString, Weave> woven = Maps.newHashMap(); // Woven advice
     private final Map<ByteString, WeaveSpec> pending = Maps.newHashMap(); // Pending advice to weave
     private final Set<Weave> removed = Sets.newHashSet(); // Pending advice to remove
@@ -41,7 +42,7 @@ public class WeaveManager {
     }
     
     /** Modify and reinstall any classes that have changed since the last call to installChanges */
-    public synchronized void install() {
+    public synchronized void install() {        
         // Process the removed weaves
         for (Weave w : removed) {
             w.destroy();
@@ -60,8 +61,10 @@ public class WeaveManager {
                 woven.put(id, new Weave(pending.get(id)));
             } catch (InvalidAdviceException e) {
                 log.warn("Cannot install invalid advice", e);
+                problems.add(e);
             } catch (PTAgentException e) {
                 log.warn("Cannot install advice with invalid weave", e);
+                problems.add(e);
             }            
         }
         
@@ -71,12 +74,21 @@ public class WeaveManager {
                 agent.dynamic.install();
             } catch (Throwable t) {
                 log.warn("Unable to install modified classes", t);
+                problems.add(t);
             }
         }
         
         // Reset our state
         pending.clear();
         removed.clear();
+    }
+    
+    public synchronized Collection<Throwable> problems() {
+        try {
+            return Lists.newArrayList(problems); 
+        } finally {
+            problems.clear();
+        }
     }
     
     /** Remove all woven advice. Clears all pending advice.  

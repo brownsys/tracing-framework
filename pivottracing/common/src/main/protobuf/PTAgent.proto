@@ -26,10 +26,18 @@ message AgentInfo {
 	required string host = 3;
 }
 
+/*  A problem installing a query, most likely an exception */
+message Problem {
+	required string name = 1;
+	required string message = 2;
+	required string stacktrace = 3;
+}
+
 /* Agents report their status */
 message AgentStatus {
 	required AgentInfo agent = 1;
 	required bool dynamicInstrumentationEnabled = 2; // Is dynamic instrumentation enabled in the process?
 	repeated HardcodedTracepointSpec hardcodedTracepoints = 3; // Known hardcoded tracepoints
 	repeated WeaveSpec woven = 4; // Woven advice
+	repeated Problem problem = 5; // Problems weaving
 }
