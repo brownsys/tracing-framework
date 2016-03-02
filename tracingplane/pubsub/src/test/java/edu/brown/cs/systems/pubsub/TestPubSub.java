@@ -1,18 +1,16 @@
 package edu.brown.cs.systems.pubsub;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.lf5.DefaultLF5Configurator;
 import org.junit.Test;
 
 import edu.brown.cs.systems.pubsub.PubSubClient.Subscriber;
 import edu.brown.cs.systems.pubsub.PubSubProtos.StringMessage;
+import junit.framework.TestCase;
 
-public class TestPubSub {
+public class TestPubSub extends TestCase {
 
     public static final String host = "127.0.0.1";
     public static final int port = 5563;
@@ -93,6 +91,52 @@ public class TestPubSub {
         System.out.println("Publisher publishing " + "hello2" + " on topic " + topic);
         publisher.publish(topic, PubSubProtos.StringMessage.newBuilder().setMessage("hello2").build());
         cb.awaitNoMessage("hello2");
+    }
+    
+    @Test
+    public void testWaitUntilEmpty() throws IOException, InterruptedException {
+        PubSubClient client = new PubSubClient(host, port, 0);
+
+        client.publish("hi", PubSubProtos.StringMessage.newBuilder().setMessage("hello").build());
+        client.publish("hi", PubSubProtos.StringMessage.newBuilder().setMessage("hello").build());
+        client.publish("hi", PubSubProtos.StringMessage.newBuilder().setMessage("hello").build());
+        
+        assertEquals(3, client.pending.size());
+
+        assertEquals(false, client.waitUntilEmpty(100));
+        assertEquals(false, client.waitUntilEmpty(100));
+        
+        client.start();
+
+        assertEquals(true, client.waitUntilEmpty(100));
+        assertEquals(0, client.pending.size());
+        
+        client.suspend();
+
+        assertEquals(0, client.pending.size());
+        client.publish("hi", PubSubProtos.StringMessage.newBuilder().setMessage("hello").build());
+        client.publish("hi", PubSubProtos.StringMessage.newBuilder().setMessage("hello").build());
+        assertEquals(2, client.pending.size());
+        
+        client.resume();
+        assertEquals(true, client.waitUntilEmpty(100));
+        assertEquals(0, client.pending.size());
+        
+        client.suspend();
+
+        assertEquals(0, client.pending.size());
+        client.publish("hi", PubSubProtos.StringMessage.newBuilder().setMessage("hello").build());
+        client.publish("hi", PubSubProtos.StringMessage.newBuilder().setMessage("hello").build());
+        assertEquals(2, client.pending.size());
+
+        assertEquals(false, client.waitUntilEmpty(100));
+        
+        client.resume();
+        assertEquals(true, client.waitUntilEmpty(100));
+        assertEquals(0, client.pending.size());
+        
+        
+        
     }
 
 }

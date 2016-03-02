@@ -8,6 +8,10 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +47,8 @@ public class PubSubClient extends Thread {
     // Outgoing messages
     private TopicMessage current = null;
     final BlockingDeque<TopicMessage> pending;
+    final Lock notifyLock = new ReentrantLock();
+    final Condition notifyCondition = notifyLock.newCondition();
 
     // Selector
     private final Selector selector;
@@ -68,6 +74,21 @@ public class PubSubClient extends Thread {
             this.interrupt();
             this.join();
         } catch (InterruptedException e) {}
+    }
+
+    /** Wait until the client's pending queue is empty. May not work if there are people concurrently adding to the
+     * queue */
+    public boolean waitUntilEmpty(long timeout) throws InterruptedException {
+        if (!notifyLock.tryLock(timeout, TimeUnit.MILLISECONDS)) {
+            return false;
+        }
+        
+        try {
+            // Only return true if the condition is explicitly triggered
+            return pending.isEmpty() || notifyCondition.await(timeout, TimeUnit.MILLISECONDS);            
+        } finally {
+            notifyLock.unlock();
+        }
     }
 
     /** Publish a message to the server */
@@ -130,6 +151,7 @@ public class PubSubClient extends Thread {
     /** Writes the current message to the channel */
     private class ClientWriter extends TopicWriter {
         private TopicMessage subscriptions = null;
+
         public ClientWriter(SocketChannel channel, TopicMessage subscriptions) {
             super(channel);
             this.subscriptions = subscriptions;
@@ -165,7 +187,7 @@ public class PubSubClient extends Thread {
                 subscriptions = new ProtobufMessage(CONTROL_TOPIC, msg.build());
             }
         }
-        
+
         // Create a message reader and writer
         log.debug("Creating client reader and writer for channel {}", channel);
         ClientReader reader = new ClientReader(channel);
@@ -205,7 +227,17 @@ public class PubSubClient extends Thread {
                 // Check to see whether we can read and write
                 if (k.isWritable()) {
                     log.debug("Writing");
-                    writer.write();
+                    boolean hasRemaining = writer.write();
+                    
+                    // Signal anybody waiting
+                    if (!hasRemaining) {
+                        notifyLock.lock();
+                        try {
+                            notifyCondition.signalAll();
+                        } finally {
+                            notifyLock.unlock();
+                        }
+                    }
                 } else if (k.isReadable()) {
                     log.debug("Reading");
                     if (!reader.read()) {
@@ -235,7 +267,7 @@ public class PubSubClient extends Thread {
             if (channel != null) {
                 channel.close();
             }
-            
+
             // Any current message, try to reinsert in front of queue, dump if full
             if (current != null) {
                 pending.offerFirst(current);
