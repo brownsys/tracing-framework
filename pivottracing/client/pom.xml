@@ -76,6 +76,10 @@
                             <mainClass>edu.brown.cs.systems.pivottracing.tools.QueryResultsPrinter</mainClass>
                             <id>print-query-results</id>
                         </program>
+                        <program>
+                            <mainClass>edu.brown.cs.systems.pivottracing.tools.UninstallAll</mainClass>
+                            <id>uninstall-all-queries</id>
+                        </program>
                     </programs>
                 </configuration>
             </plugin>
