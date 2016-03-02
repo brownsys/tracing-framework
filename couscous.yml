@@ -137,3 +137,6 @@ menu:
         running:
           text: Tools and Executables
           url: docs/tools.html
+        test:
+          text: Test Page
+          url: docs/test.html
