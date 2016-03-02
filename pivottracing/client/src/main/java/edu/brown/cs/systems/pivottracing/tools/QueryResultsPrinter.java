@@ -1,12 +1,8 @@
 package edu.brown.cs.systems.pivottracing.tools;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Properties;
 import java.util.Set;
-
-import org.apache.log4j.PropertyConfigurator;
 
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;

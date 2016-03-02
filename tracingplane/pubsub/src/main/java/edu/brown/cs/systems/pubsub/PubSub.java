@@ -71,6 +71,13 @@ public class PubSub {
         }
         return defaultClient;
     }
+    
+    /** Close the default pubsub client.  Subsequent calls to publish will create a new one */
+    public static synchronized void close() {
+        if (defaultClient != null) {
+            defaultClient.close();
+        }
+    }
 
     /** Subscribes to the specified topic, registering the provided callback, using the default subscriber.
      * 
@@ -105,8 +112,8 @@ public class PubSub {
     }
 
     /** Wait for all pending messages to be sent to the server  */
-    public static void awaitFlush(long timeout) throws InterruptedException {
-        client().waitUntilEmpty(timeout);
+    public static boolean awaitFlush(long timeout) throws InterruptedException {
+        return client().waitUntilEmpty(timeout);
     }
 
 }
