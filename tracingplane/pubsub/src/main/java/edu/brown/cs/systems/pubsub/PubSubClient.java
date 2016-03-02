@@ -7,7 +7,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.BlockingDeque;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,18 +29,20 @@ import edu.brown.cs.systems.pubsub.message.TopicMessage;
 
 public class PubSubClient extends Thread {
 
-    private static final Logger log = LoggerFactory.getLogger(PubSubClient.class);
+    static final Logger log = LoggerFactory.getLogger(PubSubClient.class);
 
     // Topic on which control messages are sent
-    private final String CONTROL_TOPIC = ConfigFactory.load().getString("pubsub.topics.control");
+    public final String CONTROL_TOPIC = ConfigFactory.load().getString("pubsub.topics.control");
+
+    public final int maxPendingMessages;
 
     // Server to connect to
-    private final String hostname;
-    private final int port;
+    public final String hostname;
+    public final int port;
 
     // Outgoing messages
     private TopicMessage current = null;
-    private final BlockingQueue<TopicMessage> pending = Queues.newLinkedBlockingQueue();
+    final BlockingDeque<TopicMessage> pending;
 
     // Selector
     private final Selector selector;
@@ -48,29 +50,36 @@ public class PubSubClient extends Thread {
     // Subscribers to incoming messages
     private final Multimap<ByteString, Subscriber<?>> subscribers = HashMultimap.create();
 
-    PubSubClient(String hostname, int port) throws IOException {
+    PubSubClient(String hostname, int port, int maxPendingMessages) throws IOException {
         this.hostname = hostname;
         this.port = port;
+        this.maxPendingMessages = maxPendingMessages;
+        if (maxPendingMessages <= 0) {
+            this.pending = Queues.newLinkedBlockingDeque();
+        } else {
+            this.pending = Queues.newLinkedBlockingDeque(maxPendingMessages);
+        }
         this.selector = Selector.open();
     }
 
-    /**
-     * Close this client's connection to the server and terminate the client
-     * thread
-     */
+    /** Close this client's connection to the server and terminate the client thread */
     public void close() {
         try {
             this.interrupt();
             this.join();
-        } catch (InterruptedException e) {
-        }
+        } catch (InterruptedException e) {}
     }
 
     /** Publish a message to the server */
     public void publish(String topic, Message message) {
         log.debug("Publishing topic {}, message {}", topic, message);
+
+        ProtobufMessage proto = new ProtobufMessage(topic, message);
+
         // Enqueue the message
-        pending.offer(new ProtobufMessage(topic, message));
+        while (!pending.offer(proto)) {
+            pending.pollFirst();
+        }
 
         // Wake up the selector
         selector.wakeup();
@@ -104,10 +113,7 @@ public class PubSubClient extends Thread {
         }
     }
 
-    /**
-     * Reads topic messages from the channel and hands them over to the
-     * onmessage callback
-     */
+    /** Reads topic messages from the channel and hands them over to the onmessage callback */
     private class ClientReader extends TopicReader {
 
         public ClientReader(SocketChannel channel) {
@@ -121,38 +127,34 @@ public class PubSubClient extends Thread {
 
     }
 
-    /**
-     * Writes the current message to the channel
-     */
+    /** Writes the current message to the channel */
     private class ClientWriter extends TopicWriter {
-        public ClientWriter(SocketChannel channel) {
+        private TopicMessage subscriptions = null;
+        public ClientWriter(SocketChannel channel, TopicMessage subscriptions) {
             super(channel);
+            this.subscriptions = subscriptions;
         }
 
         public TopicMessage CurrentMessage() {
-            if (current == null) {
-                current = pending.poll();
+            if (subscriptions != null) {
+                return subscriptions;
+            } else if (current != null) {
+                return current;
+            } else {
+                return current = pending.poll();
             }
-            return current;
         }
 
         public void MessageSendComplete() {
             current = null;
+            subscriptions = null;
         }
     }
 
-    /**
-     * The main client loop when we've connected to the server. Selects on the
-     * selector and does async read/write
-     */
+    /** The main client loop when we've connected to the server. Selects on the selector and does async read/write */
     private void ClientThreadMainLoop(SocketChannel channel) throws IOException {
-        // Create a message reader and writer
-        log.debug("Creating client reader and writer for channel {}", channel);
-        ClientReader reader = new ClientReader(channel);
-        ClientWriter writer = new ClientWriter(channel);
-        SelectionKey k = channel.register(selector, SelectionKey.OP_READ);
-
-        // Send subscriptions if we have some already
+        // Create subscription message if we have some already
+        TopicMessage subscriptions = null;
         synchronized (this) {
             if (subscribers.size() > 0) {
                 log.info("Sending existing subscriptions");
@@ -160,9 +162,15 @@ public class PubSubClient extends Thread {
                 for (ByteString topic : subscribers.keySet()) {
                     msg.addTopicSubscribe(topic);
                 }
-                publish(CONTROL_TOPIC, msg.build());
+                subscriptions = new ProtobufMessage(CONTROL_TOPIC, msg.build());
             }
         }
+        
+        // Create a message reader and writer
+        log.debug("Creating client reader and writer for channel {}", channel);
+        ClientReader reader = new ClientReader(channel);
+        ClientWriter writer = new ClientWriter(channel, subscriptions);
+        SelectionKey k = channel.register(selector, SelectionKey.OP_READ);
 
         // Do main loop
         while (!Thread.currentThread().isInterrupted()) {
@@ -210,15 +218,13 @@ public class PubSubClient extends Thread {
         }
     }
 
-    /**
-     * Establishes a connection to the server, then runs the client thread main
-     * loop Returns if connection fails or if the connection is interrupted
-     */
+    /** Establishes a connection to the server, then runs the client thread main loop Returns if connection fails or if
+     * the connection is interrupted */
     private void ClientThreadRun() throws IOException {
         SocketChannel channel = null;
         try {
             // Connect to the server synchronously
-            log.info("Attempting connection to {}:{}", hostname, port);
+            log.info("Attempting connection to {}:{} with {} pending messages", hostname, port, pending.size());
             channel = SocketChannel.open(new InetSocketAddress(hostname, port));
 
             // Convert to non-blocking and run the main loop
@@ -229,13 +235,16 @@ public class PubSubClient extends Thread {
             if (channel != null) {
                 channel.close();
             }
+            
+            // Any current message, try to reinsert in front of queue, dump if full
+            if (current != null) {
+                pending.offerFirst(current);
+                current = null;
+            }
         }
     }
 
-    /**
-     * Keeps trying to establish connection, periodically sleeping, until the
-     * thread is interrupted
-     */
+    /** Keeps trying to establish connection, periodically sleeping, until the thread is interrupted */
     @Override
     public void run() {
         while (!Thread.currentThread().isInterrupted()) {
@@ -257,10 +266,7 @@ public class PubSubClient extends Thread {
         }
     }
 
-    /**
-     * Subscriber to a topic. Uses reflection to parse byte arrays to protobuf
-     * messages
-     */
+    /** Subscriber to a topic. Uses reflection to parse byte arrays to protobuf messages */
     public static abstract class Subscriber<T extends Message> {
 
         private final Parser<T> parser;
@@ -277,7 +283,8 @@ public class PubSubClient extends Thread {
                     }
                     cl = cl.getSuperclass();
                 }
-                Class<T> type = ((Class<T>) ((ParameterizedType) cl.getGenericSuperclass()).getActualTypeArguments()[0]);
+                Class<T> type = ((Class<T>) ((ParameterizedType) cl.getGenericSuperclass())
+                        .getActualTypeArguments()[0]);
                 parser = (Parser<T>) type.getDeclaredField("PARSER").get(null);
             } catch (Exception e) {
                 System.out.println("Error: callback creation failed");

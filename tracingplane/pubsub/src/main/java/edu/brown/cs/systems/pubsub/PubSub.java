@@ -3,6 +3,7 @@ package edu.brown.cs.systems.pubsub;
 import java.io.IOException;
 
 import com.google.protobuf.Message;
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import edu.brown.cs.systems.pubsub.PubSubClient.Subscriber;
@@ -14,10 +15,12 @@ public class PubSub {
 
     private static synchronized void createDefaultClient() {
         if (defaultClient == null) {
-            String hostname = ConfigFactory.load().getString("pubsub.server.hostname");
-            int port = ConfigFactory.load().getInt("pubsub.server.port");
+            Config conf = ConfigFactory.load();
+            String hostname = conf.getString("pubsub.server.hostname");
+            int port = conf.getInt("pubsub.server.port");
+            int maxPendingMessages = conf.getInt("pubsub.client.maxPendingMessages");
             try {
-                defaultClient = startClient(hostname, port);
+                defaultClient = startClient(hostname, port, maxPendingMessages);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -35,8 +38,8 @@ public class PubSub {
      *         to the server
      * @throws IOException
      */
-    public static PubSubClient startClient(String serverHostName, int serverPort) throws IOException {
-        PubSubClient client = new PubSubClient(serverHostName, serverPort);
+    public static PubSubClient startClient(String serverHostName, int serverPort, int maxPendingMessages) throws IOException {
+        PubSubClient client = new PubSubClient(serverHostName, serverPort, maxPendingMessages);
         client.start();
         return client;
     }
