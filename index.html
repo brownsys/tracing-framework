@@ -237,6 +237,9 @@
                     <h1 id="brown-university-tracing-framework">Brown University Tracing Framework</h1>
 <p>Welcome to the Brown University Tracing Framework repository.  This repository contains multiple projects from the Brown University systems research group, such as X-Trace, Retro, and Pivot Tracing.</p>
 <p>Full documentation is available at <a href="https://brownsys.github.io/tracing-framework">https://brownsys.github.io/tracing-framework</a></p>
+<h4 id="getting-started">Getting Started</h4>
+<p>Head over to the <a href="http://brownsys.github.io/tracing-framework/docs/tutorials.html">tutorials</a> section to begin!  </p>
+<h4 id="projects-overview">Projects Overview</h4>
 <p>The tracing framework comprises four main projects:</p>
 <p><strong>Tracing Plane</strong> is the underlying instrumentation library that the other projects are built on.  The Tracing Plane provides a generic end-to-end metadata propagation primitive called <em>Baggage</em>, that lets you dynamically propagate key-value pairs along the execution path of a request.  Baggage provides a primitive similar to thread local variables, but instead at the granularity of a request, as it traverses process, machine, and application boundaries.</p>
 <p><strong>Pivot Tracing</strong> is a dynamic monitoring framework for distributed systems.  Users can write high-level monitoring queries that are compiled down into instrumentation and automatically installed into live, running systems.  Pivot Tracing uses the Tracing Plane's Baggage primitive for correlating statistics from multiple places in the system.</p>
@@ -251,8 +254,6 @@
 <li>HBase (<em>coming soon</em>)</li>
 </ul>
 <p>[Note: we are currently porting instrumentation for these systems to the latest versions for release.  Check back soon]</p>
-<h4 id="getting-started">Getting Started</h4>
-<p>Head over to the <a href="docs/tutorials.html">tutorials</a> section to begin!  </p>
 <p><em>Note: This documentation is a work in progress.  For questions, please use the <a href="https://groups.google.com/forum/#!forum/pivot-tracing-users">pivot-tracing-users</a> Google group.</em></p>
                 </section>
 
