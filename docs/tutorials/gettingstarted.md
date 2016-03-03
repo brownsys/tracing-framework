@@ -22,6 +22,22 @@ Build and install Hadoop using the following command:
 
 If you encounter any problems while building, try building the non-instrumented branch `branch-2.7.2`.  This will determine whether it is a Hadoop build issue, or a problem with our extra instrumentation.
 
+### Configuring HDFS
+
+The following instructions will configure a minimally working version of HDFS.  From the base directory for the Hadoop git repository, the built version of hadoop will be located in `hadoop-dist/target/hadoop-2.7.2`.  Within the build directory, `etc/hadoop` will contain the default config.  Copy this directory to somewhere outside of the HDFS build directory, otherwise any changes you make will be overwritten any time you build HDFS.  Edit `core-site.xml` to the following:
+
+	<configuration>
+	  <property>
+	    <name>fs.default.name</name>
+	    <value>hdfs://127.0.0.1:9000</value>
+	  </property>
+	</configuration>
+
+Set the following two environment variables:
+
+* `HADOOP_HOME` to the build directory, eg. `hadoop-dist/target/hadoop-2.7.2`
+* `HADOOP_CONF_DIR` to the location of your copied HDFS config.
+
 ### Running PubSub
 
 All of the instrumentation libraries use a pub sub system to communicate.  Agents running in the instrumented Hadoop will receive commands over pubsub, and send their output back over the pubsub.  The pubsub project is in `tracingplane/pubsub`
@@ -34,7 +50,16 @@ To check which Java process are running, use the `jps` command.  This is an easy
 
 ### Start HDFS
 
-Now start HDFS as normal.  You should expect to see messages in the output stream along the lines of the following:
+From the base directory for the Hadoop git repository, the built version of hadoop will be located in `hadoop-dist/target/hadoop-2.7.2`.  Within the build directory, `bin` contains various command line utilities, while `sbin` contains some useful scripts for starting and stopping processes.  Before starting HDFS, we must format its data dir:
+
+	${HADOOP_HOME}/bin/hdfs --config $HADOOP_CONF_DIR namenode -format
+
+Then start an HDFS NameNode and HDFS DataNode:
+
+    ${HADOOP_HOME}/sbin/hadoop-daemon.sh start namenode
+    ${HADOOP_HOME}/sbin/hadoop-daemon.sh start datanode
+
+You should expect to see messages in the output stream along the lines of the following:
 
 	Pivot Tracing initialized
 	Resource reporting executor started
@@ -44,3 +69,4 @@ Now start HDFS as normal.  You should expect to see messages in the output strea
 	/META-INF/lib/libthreadcputimer.dylib extracted to temporary file /var/folders/d3/38f0syys5yjcvynz8p4n3t4w0000gn/T/jni_file_2410736199844535966.dll
 
 Again, check which Java processes are running using the `jps` command.  In addition to `XTraceServer`, you should expect to see `NameNode` and `DataNode`
+For reference, HDFS runs a Web UI by default at [localhost:50070](http://localhost:50070).
