@@ -76,6 +76,13 @@ public class SOSPPaperExamplesQueries {
             "Select DNop.host, getloc.replicas, COUNT"
     }, "\n");
 
+    public static String Q8 = StringUtils.join(new String[]{
+            "From incr In DataNodeMetrics.incrBytesRead",
+            "Join getloc In MOSTRECENT(NN.GetBlockLocations) On getloc -> incr",
+            "GroupBy incr.host, getloc.src",
+            "Select incr.host, getloc.src, SUM(incr.delta)"
+    }, "\n");
+
     
     static {
         queries.put("Q1", Q1);
@@ -86,6 +93,7 @@ public class SOSPPaperExamplesQueries {
         queries.put("Q6", Q6);
         queries.put("Q7a", Q7a);
         queries.put("Q7", Q7);
+        queries.put("Q8", Q8);
     }
     
     public static void printQueries() throws PTQueryParserException, PTQueryException {
@@ -118,14 +126,14 @@ public class SOSPPaperExamplesQueries {
 //        for (String qId : queries.keySet()) {
 //            client.install(client.parse(qId, queries.get(qId)));
 //        }
-        String queryText = queries.get("Q7a");
+        String queryText = queries.get("Q8");
         System.out.println("Query: ");        
         System.out.println();
         System.out.println(queryText);
         System.out.println();
         System.out.println("============================================================");
         
-        PTQuery query = client.parse("Q7a", queryText);
+        PTQuery query = client.parse("Q8", queryText);
         System.out.println("Compiled query:");
         System.out.println();
         System.out.println(query);
