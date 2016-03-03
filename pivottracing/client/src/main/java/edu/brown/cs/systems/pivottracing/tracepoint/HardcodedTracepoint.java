@@ -17,6 +17,10 @@ public class HardcodedTracepoint implements Tracepoint {
         this.id = id;
         this.exports = Lists.newArrayList(exports);
     }
+    
+    public static HardcodedTracepoint get(String id, String... exports) {
+        return new HardcodedTracepoint(id, id, exports);
+    }
 
     @Override
     public String getName() {
