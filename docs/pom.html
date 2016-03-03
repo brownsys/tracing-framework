@@ -251,7 +251,140 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    <p>Code for Retro project, running on top of Brown University Tracing Framework</p>
+                    <h2 id="example-pomxml">Example pom.xml</h2>
+<p>The following example pom is a minimal pom for including Baggage, Retro, Pivot Tracing, and X-Trace instrumentation to a system.  It also applies the AspectJ instrumentation aspects for each project.  The pre-instrumented version of HDFS has these pom elements included.</p>
+<pre><code>&lt;project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"&gt;
+    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;
+    &lt;groupId&gt;com.my.organization&lt;/groupId&gt;
+    &lt;artifactId&gt;example-project&lt;/artifactId&gt;
+    &lt;packaging&gt;jar&lt;/packaging&gt;
+
+    &lt;name&gt;My Example Project&lt;/name&gt;
+
+    &lt;properties&gt;
+        &lt;aspectj.version&gt;1.7.3&lt;/aspectj.version&gt;
+        &lt;tracingplane.version&gt;4.0&lt;/tracingplane.version&gt;
+    &lt;/properties&gt;
+
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.aspectj&lt;/groupId&gt;
+            &lt;artifactId&gt;aspectjrt&lt;/artifactId&gt;
+            &lt;version&gt;${aspectj.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;tracingplane-common&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;xtrace-common&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;pivottracing-common&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;retro-common&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;tracingplane-client&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;xtrace-client&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;pivottracing-agent&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;retro-resources&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;retro-throttling&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;tracingplane-aspects&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;xtrace-aspects&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;pivottracing-aspects&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+            &lt;artifactId&gt;retro-aspects&lt;/artifactId&gt;
+            &lt;version&gt;${tracingplane.version}&lt;/version&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+
+    &lt;build&gt;
+        &lt;plugins&gt;
+            &lt;plugin&gt;
+                &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+                &lt;artifactId&gt;aspectj-maven-plugin&lt;/artifactId&gt;
+                &lt;version&gt;1.5&lt;/version&gt;
+                &lt;configuration&gt;
+                    &lt;aspectLibraries&gt;
+                        &lt;aspectLibrary&gt;
+                            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+                            &lt;artifactId&gt;tracingplane-aspects&lt;/artifactId&gt;
+                        &lt;/aspectLibrary&gt;
+                        &lt;aspectLibrary&gt;
+                            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+                            &lt;artifactId&gt;retro-aspects&lt;/artifactId&gt;
+                        &lt;/aspectLibrary&gt;
+                        &lt;aspectLibrary&gt;
+                            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+                            &lt;artifactId&gt;xtrace-aspects&lt;/artifactId&gt;
+                        &lt;/aspectLibrary&gt;
+                        &lt;aspectLibrary&gt;
+                            &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+                            &lt;artifactId&gt;pivottracing-aspects&lt;/artifactId&gt;
+                        &lt;/aspectLibrary&gt;
+                    &lt;/aspectLibraries&gt;
+                &lt;/configuration&gt;
+                &lt;executions&gt;
+                    &lt;execution&gt;
+                        &lt;goals&gt;
+                            &lt;goal&gt;compile&lt;/goal&gt;
+                        &lt;/goals&gt;
+                        &lt;configuration&gt;
+                            &lt;source&gt;1.7&lt;/source&gt;
+                            &lt;target&gt;1.7&lt;/target&gt;
+                            &lt;complianceLevel&gt;1.7&lt;/complianceLevel&gt;
+                            &lt;Xjoinpoints&gt;synchronization&lt;/Xjoinpoints&gt;
+                            &lt;showWeaveInfo&gt;false&lt;/showWeaveInfo&gt;
+                            &lt;verbose&gt;false&lt;/verbose&gt;
+                        &lt;/configuration&gt;
+                    &lt;/execution&gt;
+                &lt;/executions&gt;
+            &lt;/plugin&gt;
+        &lt;/plugins&gt;
+    &lt;/build&gt;
+&lt;/project&gt;</code></pre>
                 </section>
 
             </div>

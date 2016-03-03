@@ -106,6 +106,49 @@
                                                                             </ul>
                                 </li>
                                                             <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/pivottracing">                        
+                                                                        Pivot Tracing
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
+                                                    Client
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/tracepoints.html">
+                                                    Client: Tracepoints
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/queries.html">
+                                                    Client: Writing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/installing.html">
+                                                    Client: Installing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
+                                                    Agent
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
+                                                    Agent: Privileged Classes
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
+                                                    Examples
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
                             		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/xtrace">                        
                                                                         X-Trace
                                                                             </a>
@@ -180,32 +223,6 @@
                                                                             </ul>
                                 </li>
                                                             <li>
-                            		                                    Pivot Tracing
-                                    
-                                    <ul>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
-                                                    Client Library
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
-                                                    Pivot Tracing Agent
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
-                                                    Privileged Classes
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
-                                                    Examples
-                                                </a>
-                                            </li>
-                                                                            </ul>
-                                </li>
-                                                            <li>
                             		                                    Reference
                                     
                                     <ul>
@@ -220,8 +237,8 @@
                                                 </a>
                                             </li>
                                                                                     <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/test.html">
-                                                    Test Page
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pom.html">
+                                                    Example pom.xml
                                                 </a>
                                             </li>
                                                                             </ul>
@@ -234,7 +251,42 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    <p>Example new page added to docs</p>
+                    <h2 id="pivot-tracing-client-writing-queries">Pivot Tracing Client: Writing Queries</h2>
+<p>Pivot Tracing queries can refer to one or more tracepoints.  They can be written and parsed from a text representation or constructed using a declarative API.  Consider the example query:</p>
+<pre><code>From incr In DataNodeMetrics.incrBytesRead
+GroupBy incr.host
+Select incr.host, SUM(incr.delta)</code></pre>
+<p>The equivalent query using the declarative API is:</p>
+<pre><code>PTQuery q = PTQuery.From("incr", hdfs_datanode_incrBytesRead).GroupBy("incr.host").Sum("incr.delta");</code></pre>
+<p>or even more concisely:</p>
+<pre><code>PTQuery q = PTQuery.From(hdfs_datanode_incrBytesRead).GroupBy("host").Sum("delta");</code></pre>
+<p>The <code>PivotTracingClient</code> class provides the client API to Pivot Tracing.  Acquire an instance with:</p>
+<pre><code>PivotTracingClient pt = PivotTracingClient.newInstance();</code></pre>
+<p>To parse a query from text, the tracepoints must be first registered, then the query can be parsed:</p>
+<pre><code>String queryText = "From incr In DataNodeMetrics.incrBytesRead \n ...";
+
+pt.addTracepoint(hdfs_datanode_incrBytesRead);
+PTQuery q = pt.parse("q1", queryText);</code></pre>
+<p>Calling <code>q.Optimize()</code> will create an optimized query.  Optimization affects the number of tuples sent by Pivot Tracing in the baggage for evaluating happened-before join.</p>
+<p>The following declarative API functions are available:</p>
+<pre><code>_______________________________________________________________________________________________________________________
+..From(..)                |    
+..Where(..)               |  
+..Let(..)                 | 
+..HappenedBeforeJoin(..)  | 
+                          | .Select("a", "b", "c")                              // SELECT a, b, c
+                          | .GroupBy("c", "d", "e")                             // GROUPBY c, d, e
+                          | .Where("{} != 5", "d")                              // WHERE d != 5
+                          | .Let("x", "10 + {}", "d")                           // LET x = 10 + d
+                          | .HappenedBeforeJoin("q2", Q2)                       // JOIN q2 IN Q2 ON q2 -&gt; q
+                          | .HappenedBeforeJoin(Filter.MOSTRECENT, "q2", Q2)    // JOIN q2 IN MOSTRECENT(Q2) ON q2 -&gt; q
+_______________________________________________________________________________________________________________________
+..GroupBy(..)             | .Count()                                            // SELECT .., COUNT
+                          | .Sum("b")                                           // SELECT .., SUM(b)
+                          | .Aggregate(e, Agg.MIN)                              // SELECT .., MIN(e)
+_______________________________________________________________________________________________________________________</code></pre>
+<h4 id="let-and-where">Let and Where</h4>
+<p>Let and Where commands use replacement variables, because I didn't have time to parse expressions properly.  Occurrences of <code>{}</code> will be replaced by the corresponding positional variable, eg <code>.Where("{} != {}", "d", "e")</code> is logically equivalent to <code>d != e</code>.  If the variables are strings, you have to quote them, eg <code>.Where("\"{}\" != \"{}\"", "d", "e")</code>.  Ugly.  This is because, currently, I'm evaluating let and where expressions using Java's built-in javascript engine, and eval'ing a string.  Somebody... please... fix this.</p>
                 </section>
 
             </div>

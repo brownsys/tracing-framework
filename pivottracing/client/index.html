@@ -106,6 +106,49 @@
                                                                             </ul>
                                 </li>
                                                             <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/pivottracing">                        
+                                                                        Pivot Tracing
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
+                                                    Client
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/tracepoints.html">
+                                                    Client: Tracepoints
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/queries.html">
+                                                    Client: Writing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/installing.html">
+                                                    Client: Installing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
+                                                    Agent
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
+                                                    Agent: Privileged Classes
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
+                                                    Examples
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
                             		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/xtrace">                        
                                                                         X-Trace
                                                                             </a>
@@ -180,32 +223,6 @@
                                                                             </ul>
                                 </li>
                                                             <li>
-                            		                                    Pivot Tracing
-                                    
-                                    <ul>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
-                                                    Client Library
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
-                                                    Pivot Tracing Agent
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
-                                                    Privileged Classes
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
-                                                    Examples
-                                                </a>
-                                            </li>
-                                                                            </ul>
-                                </li>
-                                                            <li>
                             		                                    Reference
                                     
                                     <ul>
@@ -220,8 +237,8 @@
                                                 </a>
                                             </li>
                                                                                     <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/test.html">
-                                                    Test Page
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pom.html">
+                                                    Example pom.xml
                                                 </a>
                                             </li>
                                                                             </ul>
@@ -234,7 +251,24 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    
+                    <h2 id="pivot-tracing-client">Pivot Tracing Client</h2>
+<p>This project contains the client library for Pivot Tracing.  The client library provides APIs for defining tracepoints, constructing and parsing queries, compiling queries to advice, and installing queries by publishing them to the Pivot Tracing agents.</p>
+<p><strong>Tracepoints</strong> Pivot Tracing queries refer to <em>tracepoints</em>.  A tracepoint is a location in the application source code where instrumentation can run.  Pivot Tracing supports tracepoints for almost any point in code -- the entry or return of a function, or any specific line number.  For example, <code>DataNodeMetrics.incrBytesRead</code> refers to the following method:</p>
+<pre><code>void org.apache.hadoop.hdfs.server.datanode.metrics.DataNodeMetrics.incrBytesRead(int delta)</code></pre>
+<p><strong>Queries</strong> The main client interaction with Pivot Tracing is with the use of <em>queries</em>.  A query refers to variables present at tracepoints.  The following query causes each machine to aggregate the <code>delta</code> argument each time <code>incrBytesRead</code> is invoked, grouping by the host name:</p>
+<pre><code>From incr In DataNodeMetrics.incrBytesRead
+GroupBy incr.host
+Select incr.host, SUM(incr.delta)</code></pre>
+<p><strong>Installation</strong> The client library provides functions for installing queries and receiving query results.  It also provides tools for querying the state of currently-installed instrumentation</p>
+<p><strong>Configuration</strong> The client library supports the following configuration options:</p>
+<p>pivot-tracing {
+pubsub = {
+server = ${pubsub.server}
+commands_topic = &quot;PTcommands&quot;
+results_topic = &quot;PTresults&quot;
+status_topic = &quot;PTstatus&quot;
+}
+}</p>
                 </section>
 
             </div>

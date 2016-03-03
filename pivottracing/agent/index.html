@@ -106,6 +106,49 @@
                                                                             </ul>
                                 </li>
                                                             <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/pivottracing">                        
+                                                                        Pivot Tracing
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
+                                                    Client
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/tracepoints.html">
+                                                    Client: Tracepoints
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/queries.html">
+                                                    Client: Writing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/installing.html">
+                                                    Client: Installing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
+                                                    Agent
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
+                                                    Agent: Privileged Classes
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
+                                                    Examples
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
                             		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/xtrace">                        
                                                                         X-Trace
                                                                             </a>
@@ -180,32 +223,6 @@
                                                                             </ul>
                                 </li>
                                                             <li>
-                            		                                    Pivot Tracing
-                                    
-                                    <ul>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
-                                                    Client Library
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
-                                                    Pivot Tracing Agent
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
-                                                    Privileged Classes
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
-                                                    Examples
-                                                </a>
-                                            </li>
-                                                                            </ul>
-                                </li>
-                                                            <li>
                             		                                    Reference
                                     
                                     <ul>
@@ -220,8 +237,8 @@
                                                 </a>
                                             </li>
                                                                                     <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/test.html">
-                                                    Test Page
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pom.html">
+                                                    Example pom.xml
                                                 </a>
                                             </li>
                                                                             </ul>
@@ -234,7 +251,52 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    
+                    <h2 id="pivot-tracing---agent">Pivot Tracing - Agent</h2>
+<p>The Pivot Tracing Agent is a daemon that runs inside all Pivot Tracing-enabled processes.  The agent receives commands to install queries, and publishes query results for all installed queries.  For example, the pre-instrumented version of HDFS is already configured to start a Pivot Tracing agent when the NameNode and DataNode processes start up.</p>
+<p>To add a pivot tracing agent to your own project use the <code>pivottracing-agent</code> dependency:</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+    &lt;artifactId&gt;pivottracing-agent&lt;/artifactId&gt;
+    &lt;version&gt;4.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+<p>The agent must be initialized when your process starts up, in order to connect to the pubsub server and listen for incoming commands.</p>
+<pre><code>PivotTracing.initialize();</code></pre>
+<p>If you are using any of the AspectJ automatic instrumentation in your projects, the <code>PivotTracingInit.aj</code> aspect in <code>pivottracing/aspects</code> will automatically add a call to <code>PivotTracing.initialize()</code> to all main methods.  The <a href="../../docs/pom.html">example pom.xml</a> demonstrates how to apply the automatic instrumentation.</p>
+<h4 id="baggage">Baggage</h4>
+<p>The Pivot Tracing Agent depends on Baggage instrumentation being present in order to evaluate happened-before joins.  If baggage is not present, or if it is disabled by setting <code>pivot-tracing.agent.use_baggage=false</code>, queries will still be invoked.  However, any queries that try to UNPACK tuples from the Baggage will receive no tuples, and thereby produce no output.  Single-tracepoint queries will continue to function without issue.</p>
+<h4 id="dynamic-instrumentation">Dynamic Instrumentation</h4>
+<p>The Pivot Tracing Agent uses the Tracing Plane's <a href="../../tracingplane/dynamic">dynamic instrumentation</a> library for rewriting and reloading classes to install queries.  The default JavaAgent based instrumentation should work for most JVMs.  However, if you find that on your particular platform it does not work, try adding the following command line arguments to use JDWP-based instrumentation instead:</p>
+<pre><code>-Ddynamic-instrumentation.use_jdwp="true" -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0</code></pre>
+<p>Dynamic Instrumentation can be disabled by setting <code>pivot-tracing.agent.use_dynamic=false</code>.  Queries based on dynamic instrumentation will no longer be invoked.  However, you will still be able to invoke queries that use hardcoded tracepoints.</p>
+<h4 id="hardcoded-tracepoints">Hardcoded Tracepoints</h4>
+<p>If you do not wish to use dynamic instrumentation for your queries, or if there are certain tracepoints that are common and you do not wish to incur class reload overheads, you may opt to use hardcoded tracepoints instead.  A hardcoded tracepoint must be registered with Pivot Tracing when the process starts up by invoking <code>PivotTracing.registerHardcodedTracepoint(String id, String... exports)</code>.  This function requires a unique ID for the tracepoint, along with variable names that the tracepoint exports.  The method returns a HardcodedTracepoint instance that should be saved for use later.  You must manually call its <code>Advise(Object... exports)</code> method any time it should be invoked, passing the variables corresponding to the configured exports.  The following shows example usage:</p>
+<pre><code>class MyClass {
+    private static final HardcodedTracepoint TP_MYMETHOD_ENTRY = PivotTracing.registerHardcodedTracepoint("myMethod_entry", "a", "b");
+    private static final HardcodedTracepoint TP_MYMETHOD_EXIT = PivotTracing.registerHardcodedTracepoint("myMethod_entry", "a", "b", "ret");
+
+    public void MyMethod(String a, long b) {
+        TP_MYMETHOD_ENTRY.Advise(a, b);
+        ... // method does things
+        String retVal = ...
+        ...
+        TP_MYMETHOD_EXIT.Advise(a, b, retVal);
+    }
+}</code></pre>
+<p>Internally, the call to Advise will do nothing if no queries have been installed at that tracepoint.  If a query is installed for the tracepoint, the appropriate arguments will be passed to the query's advice.  In the client library, to write a query at this tracepoint, invoke the following:</p>
+<pre><code>Tracepoint t = HardcodedTracepoint.get("myMethod_entry", "a", "b");
+PTQuery.From(t).Select(..);</code></pre>
+<h4 id="query-results-aggregation">Query Results Aggregation</h4>
+<p>Query results are aggregated locally within a process rather than being published immediately.  The default reporting interval is 1 second.  By default, if a query has no results, it does not send a report, but this can be disabled.</p>
+<h4 id="configuration">Configuration</h4>
+<p>The Pivot Tracing Agent uses the following default configuration values:</p>
+<pre><code>pivot-tracing {
+    agent = {
+        use_baggage = true          // Regardless of whether the system is baggage enabled or not, setting to false will disable using it
+        use_dynamic = true          // Should the agent use dynamic instrumentation?
+        report_interval_ms = 1000   // Report every 1 second
+        emit_if_no_results = false  // If no output tuples, should we emit an empty message anyway
+    }
+}</code></pre>
                 </section>
 
             </div>

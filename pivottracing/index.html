@@ -251,7 +251,11 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    <p>Code for Retro project, running on top of Brown University Tracing Framework</p>
+                    <h2 id="pivot-tracing">Pivot Tracing</h2>
+<p>Pivot Tracing is a monitoring framework for distributed systems that can seamlessly correlate statistics from across applications, components, and machines at runtime without needing to change or redeploy system code.  Users can define and install monitoring queries on-the-fly to collect arbitrary statistics from one point in the system while being able to select, filter, and group by events meaningful at other points in the system.</p>
+<p>Pivot Tracing does not correlate cross-component events using expensive global aggregations, nor does it perform offline analysis.  Instead, Pivot Tracing directly correlates events as they happen by piggybacking metadata alongside requests as they execute -- even across component and machine boundaries.</p>
+<p>For more information on Pivot Tracing, check out the research paper from <a href="http://pivottracing.io/mace15pivot.pdf">SOSP '15</a> (Best Paper Award)</p>
+<p>Head over to the <a href="http://brownsys.github.io/tracing-framework/docs/tutorials.html">tutorials</a> section to get started with Pivot Tracing.</p>
                 </section>
 
             </div>

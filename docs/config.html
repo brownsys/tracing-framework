@@ -106,6 +106,49 @@
                                                                             </ul>
                                 </li>
                                                             <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/pivottracing">                        
+                                                                        Pivot Tracing
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
+                                                    Client
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/tracepoints.html">
+                                                    Client: Tracepoints
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/queries.html">
+                                                    Client: Writing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/installing.html">
+                                                    Client: Installing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
+                                                    Agent
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
+                                                    Agent: Privileged Classes
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
+                                                    Examples
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
                             		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/xtrace">                        
                                                                         X-Trace
                                                                             </a>
@@ -180,32 +223,6 @@
                                                                             </ul>
                                 </li>
                                                             <li>
-                            		                                    Pivot Tracing
-                                    
-                                    <ul>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
-                                                    Client Library
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
-                                                    Pivot Tracing Agent
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
-                                                    Privileged Classes
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
-                                                    Examples
-                                                </a>
-                                            </li>
-                                                                            </ul>
-                                </li>
-                                                            <li>
                             		                                    Reference
                                     
                                     <ul>
@@ -220,8 +237,8 @@
                                                 </a>
                                             </li>
                                                                                     <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/test.html">
-                                                    Test Page
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pom.html">
+                                                    Example pom.xml
                                                 </a>
                                             </li>
                                                                             </ul>
@@ -237,12 +254,13 @@
                     <h1 id="configuration">Configuration</h1>
 <p>All of the tracing framework projects use the <a href="https://github.com/typesafehub/config">Typesafe Config</a> for configuration.</p>
 <p>Each project has a few configuration values you can set, defined in per-project <code>reference.conf</code> files located in the <code>src/main/resources</code> folder.  The full configuration is listed below.</p>
-<p>To override a configuration value, create a file <code>application.conf</code> and place it somewhere on the classpath (for example, co-locate it with your usual Hadoop configuration files).  Anything specified in the application.conf file will override default configuration values.</p>
+<p>To override a configuration value, create a file <code>application.conf</code> and place it somewhere on the classpath (for example, co-locate it with your usual Hadoop configuration files).  Anything specified in the application.conf file will override default configuration values.  One way you can do this with Hadoop is to set the <code>HADOOP_CLASSPATH</code> environment variable.</p>
 <p>The two configuration options that are particularly relevant are:</p>
 <ul>
 <li><code>xstore.server.datastore.dir</code> specifies where the X-Trace server should persist the reports it receives (if you wish to use X-Trace).  By default, it will create a folder in the directory where X-Trace is started.  Consider setting this to something more permanent.  This configuration value is only necessary on the machine that runs the X-Trace server</li>
 <li><code>pubsub.server.hostname</code> specifies the hostname of the machine running the pub sub server.  All projects use pubsub for communication and must have the correct value for this.  By default, this is the local host, which is fine for a single-machine set up or just trying things out.</li>
 </ul>
+<p>Most of the executables included in the tracing framework are built using the appassembler maven plugin.  The easiest way to override the configuration for these executables is to set the <code>CLASSPATH_PREFIX</code> variable to the folder containing your application.conf, eg <code>CLASSPATH_PREFIX=C:/xtraceconfig</code> or <code>CLASSPATH_PREFIX=/home/jon/xtraceconfig</code>.  (Note: do not add any trailing slashes, dots, or stars.  Java classpath is finnicky).  The appassembler plugin appends the value of this environment variable to its classpath.</p>
 <p>The following are all configurations:</p>
 <pre><code>// Dynamic Instrumentation Config
 dynamic-instrumentation {
@@ -270,6 +288,7 @@ pivot-tracing {
         use_baggage = true          // Regardless of whether the system is baggage enabled or not, setting to false will disable using it
         use_dynamic = true          // Should the agent use dynamic instrumentation?
         report_interval_ms = 1000   // Report every 1 second
+        emit_if_no_results = false  // If no output tuples, should we emit an empty message anyway
     }
 }
 

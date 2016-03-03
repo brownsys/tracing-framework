@@ -251,7 +251,59 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    <p>Code for Retro project, running on top of Brown University Tracing Framework</p>
+                    <h2 id="pivot-tracing-client-tracepoints">Pivot Tracing Client: Tracepoints</h2>
+<p>Tracepoints typically correspond to method invocations, and can be uniquely identified by their method signature.  For example, the <code>DataNodeMetrics.incrBytesRead</code> tracepoint specifically refers to the method:</p>
+<pre><code>void org.apache.hadoop.hdfs.server.datanode.metrics.DataNodeMetrics.incrBytesRead(int delta)</code></pre>
+<p>The <code>MethodTracepoint</code> class represents such a tracepoint.  To create a tracepoint for this method, we can invoke the static API:</p>
+<pre><code>MethodTracepoint hdfs_datanode_incrBytesRead = Tracepoints.method( "org.apache.hadoop.hdfs.server.datanode.metrics.DataNodeMetrics", "incrBytesRead", "int" );</code></pre>
+<p>This is shorthand for the following:</p>
+<pre><code>MethodTracepoint hdfs_datanode_incrBytesRead = new MethodTracepoint(
+    "DataNodeMetrics.incrBytesRead",                                  // name for the tracepoint
+    Where.ENTRY,                                                      // where in the method
+    "org.apache.hadoop.hdfs.server.datanode.metrics.DataNodeMetrics", // class name
+    "incrBytesRead",                                                  // method name
+    "int"                                                             // method parameter types
+);</code></pre>
+<h4 id="exporting-variables">Exporting variables</h4>
+<p>Suppose we want to write a query that refers to the <code>delta</code> parameter of <code>incrBytesRead</code>.  When defining a tracepoint, we must explicitly export any variables that we want to use in a query like this.  To do this, we call the <code>addExport</code> method:</p>
+<pre><code>hdfs_datanode_incrBytesRead.addExport("delta", "delta");</code></pre>
+<p>This defines a <em>query variable</em> called <code>delta</code>, whose value is derived from the <em>Java literal</em> delta.  </p>
+<h4 id="default-exports">Default exports</h4>
+<p>Tracepoints export some variables by default, such as hostname, timestamp, etc.  They are equivalent to the following:</p>
+<pre><code>hdfs_datanode_incrBytesRead.addExport( "host",       "edu.brown.cs.systems.tracing.Utils.getHost()"        );
+hdfs_datanode_incrBytesRead.addExport( "timestamp",  "System.currentTimeMillis()"                          );
+hdfs_datanode_incrBytesRead.addExport( "cpu",        "edu.brown.cs.systems.clockcycles.CPUCycles.get()"    );
+hdfs_datanode_incrBytesRead.addExport( "threadId",   "Thread.currentThread().getId()"                      );
+hdfs_datanode_incrBytesRead.addExport( "procId",     "edu.brown.cs.systems.tracing.Utils.getProcessID()"   );
+hdfs_datanode_incrBytesRead.addExport( "procName",   "edu.brown.cs.systems.tracing.Utils.getProcessName()" );</code></pre>
+<p><em>(Be aware that this is research code, and we don't sanitize these Java literals, so as-is this is a serious security vulnerability)</em></p>
+<h4 id="special-variables">Special Variables</h4>
+<p>In addition the following Java literals can be used when adding a tracepoint export</p>
+<ul>
+<li><code>$0</code> takes the value of <code>this</code></li>
+<li><code>$1, $2, $3, ...</code> take the values of the corresponding method arguments (and of course, they can also be referenced by name)</li>
+<li><code>$_</code> takes the method return value if the tracepoint uses <code>Where.RETURN</code>.</li>
+</ul>
+<p>See <a href="http://jboss-javassist.github.io/javassist/tutorial/tutorial2.html">this</a> Javassist tutorial for more information on available variables.</p>
+<h4 id="arrays-and-collections">Arrays and Collections</h4>
+<p>Pivot Tracing also provides handling for array and Collection variables.  For example, suppose we have the following class:</p>
+<pre><code>class Users {
+    Collection&lt;String&gt; activeUsers = Lists.newArrayList("Jon", "Jeff", "George");
+    public void ping() {
+    }
+}</code></pre>
+<p>Suppose <code>ping()</code> is called at a regular interval, and <code>activeUsers</code> is changing, and we want a query that keeps track of how often each user is in active users.  Consider the following query:</p>
+<pre><code>FROM ping in Example.Ping
+GROUPBY ping.activeUser
+SELECT ping.activeUser, COUNT</code></pre>
+<p>Conceptually, each time <code>ping()</code> is invoked, we want to treat the invocation as multiple tuples, one tuple for each activeUser in the activeUsers collection.  Pivot Tracing tracepoints provice multi-exports to support collections and arrays:</p>
+<pre><code>MethodTracepoint example_ping = Tracepoints.method("Users", "ping");
+example_ping.addMultiExport("activeUser", "activeUsers", "String");</code></pre>
+<p>Pivot Tracing will interpret the <code>activeUsers</code> variable as a collection or array, and pass each element to the configured query individually.</p>
+<h4 id="hardcoded-tracepoints">Hardcoded Tracepoints</h4>
+<p>Some systems can hard-code tracepoints, rather than relying on dynamic instrumentation.  A hardcoded tracepoint has a unique ID, and exports zero or more variables.  The following call will get a hardcoded tracepoint called &quot;myMethod_entry&quot;.</p>
+<pre><code>Tracepoint t = HardcodedTracepoint.get("myMethod_entry", "a", "b");</code></pre>
+<p>See <a href="../../pivottracing/agent">Pivot Tracing Agent</a> for more details on hardcoded tracepoints.</p>
                 </section>
 
             </div>

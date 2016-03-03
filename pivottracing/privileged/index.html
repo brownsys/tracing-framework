@@ -106,6 +106,49 @@
                                                                             </ul>
                                 </li>
                                                             <li>
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/pivottracing">                        
+                                                                        Pivot Tracing
+                                                                            </a>
+                                    
+                                    <ul>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
+                                                    Client
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/tracepoints.html">
+                                                    Client: Tracepoints
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/queries.html">
+                                                    Client: Writing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pivottracing/installing.html">
+                                                    Client: Installing Queries
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
+                                                    Agent
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
+                                                    Agent: Privileged Classes
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
+                                                    Examples
+                                                </a>
+                                            </li>
+                                                                            </ul>
+                                </li>
+                                                            <li>
                             		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/xtrace">                        
                                                                         X-Trace
                                                                             </a>
@@ -180,32 +223,6 @@
                                                                             </ul>
                                 </li>
                                                             <li>
-                            		                                    Pivot Tracing
-                                    
-                                    <ul>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/client">
-                                                    Client Library
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/agent">
-                                                    Pivot Tracing Agent
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/privileged">
-                                                    Privileged Classes
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/pivottracing/test">
-                                                    Examples
-                                                </a>
-                                            </li>
-                                                                            </ul>
-                                </li>
-                                                            <li>
                             		                                    Reference
                                     
                                     <ul>
@@ -220,8 +237,8 @@
                                                 </a>
                                             </li>
                                                                                     <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/test.html">
-                                                    Test Page
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/pom.html">
+                                                    Example pom.xml
                                                 </a>
                                             </li>
                                                                             </ul>
@@ -234,7 +251,11 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    
+                    <h2 id="pivot-tracing---privileged-agent">Pivot Tracing - Privileged Agent</h2>
+<p>Under normal circumstances, Pivot Tracing cannot instrument privileged Java classes (eg, classes that are part of the Java standard library), because Pivot Tracing is unprivileged.  While it is actually allowed to rewrite and reload privileged Java classes, it is invalid for a privileged class to directly invoke code on a non-privileged class or interface.  If this occurs, you'll see a <code>NoClassDefFoundError</code>.</p>
+<p>The privileged agent provides a way to instrument privileged classes.  To instrument privileged classes, you must add the Pivot Tracing Privileged Jar to the boot classpath of your JVM, ie, run the JVM with the following command:</p>
+<pre><code>-Xbootclasspath/p:${path.to.edu.brown.cs.systems:pivottracing-privileged:jar}</code></pre>
+<p>This will enable privileged classes to invoke advice by proxying the call through a privileged interface.  However, the privileged advice may be unable to access some unprivileged variables (not fundamental, just not currently supported).</p>
                 </section>
 
             </div>
