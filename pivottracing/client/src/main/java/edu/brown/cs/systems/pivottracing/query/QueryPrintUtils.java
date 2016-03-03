@@ -69,7 +69,7 @@ public class QueryPrintUtils {
         // GroupBy...
         if (q instanceof PTQuery_GroupBy) {
             PTQuery_GroupBy qgb = (PTQuery_GroupBy) q;
-            boolean pack = "".equals(nameForQuery);
+            boolean pack = !"".equals(nameForQuery);
             b.append(String.format("\nGroupBy %s", StringUtils.join(namesFor(qgb, qgb.outputs(pack)), ", ")));
             b.append(String.format("\nSelect %s", StringUtils.join(namesFor(qgb, Iterables.concat(qgb.outputs(pack), qgb.aggregates(pack))), ", ")));
         }
