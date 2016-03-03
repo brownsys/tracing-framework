@@ -4,12 +4,14 @@ All of the tracing framework projects use the [Typesafe Config](https://github.c
 
 Each project has a few configuration values you can set, defined in per-project `reference.conf` files located in the `src/main/resources` folder.  The full configuration is listed below.
 
-To override a configuration value, create a file `application.conf` and place it somewhere on the classpath (for example, co-locate it with your usual Hadoop configuration files).  Anything specified in the application.conf file will override default configuration values.
+To override a configuration value, create a file `application.conf` and place it somewhere on the classpath (for example, co-locate it with your usual Hadoop configuration files).  Anything specified in the application.conf file will override default configuration values.  One way you can do this with Hadoop is to set the `HADOOP_CLASSPATH` environment variable.
 
 The two configuration options that are particularly relevant are:
 
  * `xstore.server.datastore.dir` specifies where the X-Trace server should persist the reports it receives (if you wish to use X-Trace).  By default, it will create a folder in the directory where X-Trace is started.  Consider setting this to something more permanent.  This configuration value is only necessary on the machine that runs the X-Trace server
  * `pubsub.server.hostname` specifies the hostname of the machine running the pub sub server.  All projects use pubsub for communication and must have the correct value for this.  By default, this is the local host, which is fine for a single-machine set up or just trying things out.
+
+Most of the executables included in the tracing framework are built using the appassembler maven plugin.  The easiest way to override the configuration for these executables is to set the `CLASSPATH_PREFIX` variable to the folder containing your application.conf, eg `CLASSPATH_PREFIX=C:/xtraceconfig` or `CLASSPATH_PREFIX=/home/jon/xtraceconfig`.  (Note: do not add any trailing slashes, dots, or stars.  Java classpath is finnicky).  The appassembler plugin appends the value of this environment variable to its classpath.
 
 The following are all configurations:
 
@@ -39,6 +41,7 @@ The following are all configurations:
 			use_baggage = true			// Regardless of whether the system is baggage enabled or not, setting to false will disable using it
 			use_dynamic = true			// Should the agent use dynamic instrumentation?
 			report_interval_ms = 1000   // Report every 1 second
+		    emit_if_no_results = false	// If no output tuples, should we emit an empty message anyway
 		}
 	}
 

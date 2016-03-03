@@ -51,6 +51,31 @@ menu:
         dynamic:
           text: Dynamic Instrumentation
           url: tracingplane/dynamic
+    pivottracing:
+      section: Pivot Tracing
+      url: pivottracing
+      items: 
+        client:
+          text: Client
+          url: pivottracing/client
+        tracepoints:
+          text: Client: Tracepoints
+          url: docs/pivottracing/tracepoints.html
+        queries:
+          text: Client: Writing Queries
+          url: docs/pivottracing/queries.html
+        installing:
+          text: Client: Installing Queries
+          url: docs/pivottracing/installing.html
+        agent:
+          text: Agent
+          url: pivottracing/agent
+        privileged:
+          text: Agent: Privileged Classes
+          url: pivottracing/privileged
+        examples:
+          text: Examples
+          url: pivottracing/test
     xtrace:
       section: X-Trace
       url: xtrace
@@ -94,21 +119,6 @@ menu:
           buildoptions:
             text: Instrumentation for Locks
             url: docs/retro/lockinstrumentation.html
-    pivottracing:
-      section: Pivot Tracing
-      items:
-        client:
-          text: Client Library
-          url: pivottracing/client
-        agent:
-          text: Pivot Tracing Agent
-          url: pivottracing/agent
-        privileged:
-          text: Privileged Classes
-          url: pivottracing/privileged
-        examples:
-          text: Examples
-          url: pivottracing/test
     reference:
       section: Reference
       items:
@@ -118,6 +128,6 @@ menu:
         running:
           text: Tools and Executables
           url: docs/tools.html
-        test:
-          text: Test Page
-          url: docs/test.html
+        pom:
+          text: Example pom.xml
+          url: docs/pom.html
