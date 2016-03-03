@@ -14,43 +14,24 @@ title: Brownsys Tracing Framework Documentation
 menu:
   sections:
     main:
-      section: Overview
+      section: Home
       url: 
-      items:
-        tracingplane:
-          text: TracingPlane
-          url: docs/projects/tracingplane.html
-        xtrace:
-          text: X-Trace
-          url: docs/projects/xtrace.html
-        retro:
-          text: Retro
-          url: docs/projects/retro.html
-        pivottracing:
-          text: Pivot Tracing
-          url: docs/projects/pivottracing.html
     gettingstarted:
       section: Tutorials
-      url: 
+      url: docs/tutorials.html
       items:
+        prerequisites:
+          text: Pre-requisites
+          url: docs/tutorials/prerequisites.html
         gettingstarted:
-          text: Getting Started
+          text: Getting Started: HDFS
           url: docs/tutorials/gettingstarted.html
-        xtrace:
-          text: Using X-Trace
-          url: docs/tutorials/xtrace.html
-        retro:
-          text: Using Retro
-          url: docs/tutorials/retro.html
         pivottracing:
-          text: Using PivotTracing
+          text: Getting Started: Pivot Tracing
           url: docs/tutorials/pivottracing.html
         baggage:
           text: Adding Baggage To Your System
           url: docs/tutorials/baggage.html
-        automatic:
-          text: Using Automatic Instrumentation
-          url:  docs/tutorials/aspects.html
         usingbaggage:
           text: Using Baggage Yourself
           url: docs/tutorials/tracingapplication.html
