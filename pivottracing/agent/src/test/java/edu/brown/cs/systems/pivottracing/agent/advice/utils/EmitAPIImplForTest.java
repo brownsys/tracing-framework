@@ -5,7 +5,7 @@ import edu.brown.cs.systems.pivottracing.agent.advice.output.EmitAPIImpl;
 public class EmitAPIImplForTest extends EmitAPIImpl {
 
     public EmitAPIImplForTest(int reportInterval, String resultsTopic) {
-        super(reportInterval, resultsTopic);
+        super(reportInterval, resultsTopic, true);
         // TODO Auto-generated constructor stub
     }
 //    

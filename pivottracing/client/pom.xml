@@ -84,6 +84,10 @@
                             <mainClass>edu.brown.cs.systems.pivottracing.tools.UninstallAll</mainClass>
                             <id>uninstall-all-queries</id>
                         </program>
+                        <program>
+                            <mainClass>edu.brown.cs.systems.pivottracing.examples.SOSPPaperExamplesQueries</mainClass>
+                            <id>example-hdfs-query</id>
+                        </program>
                     </programs>
                 </configuration>
             </plugin>

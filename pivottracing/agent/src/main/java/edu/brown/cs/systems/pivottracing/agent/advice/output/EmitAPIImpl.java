@@ -25,10 +25,12 @@ public class EmitAPIImpl implements EmitAPI, Runnable {
     final Set<EmitImpl> emits = Sets.newCopyOnWriteArraySet(); // Active emits that haven't been destroyed yet
     public final long reportInterval;
     public final String reportsTopic;
+    public final boolean emitIfNoResults;
 
-    public EmitAPIImpl(long reportInterval, String reportsTopic) {
+    public EmitAPIImpl(long reportInterval, String reportsTopic, boolean emitIfNoResults) {
         this.reportInterval = reportInterval;
         this.reportsTopic = reportsTopic;
+        this.emitIfNoResults = emitIfNoResults;
         exec.scheduleAtFixedRate(this, reportInterval, reportInterval, TimeUnit.MILLISECONDS);
     }
 
@@ -57,7 +59,10 @@ public class EmitAPIImpl implements EmitAPI, Runnable {
         long timestamp = System.currentTimeMillis();
         for (EmitImpl emit : emits) {
             try {
-                PubSub.publish(reportsTopic, emit.getResults(agentInfo, timestamp));
+                QueryResults results = emit.getResults(agentInfo, timestamp);
+                if (emitIfNoResults || results.getTupleCount() > 0 || results.getGroupCount() > 0) {
+                    PubSub.publish(reportsTopic, results);
+                }
             } catch (Throwable t) {
                 log.warn("Unable to publish query results", t);
             }

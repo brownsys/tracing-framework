@@ -18,7 +18,7 @@ public class TestEmitAPIImpl extends TestCase {
         ByteString out1 = ByteString.copyFromUtf8("output query 1");
         EmitSpec emitspec1 = EmitSpec.newBuilder().setOutputId(out1).build();
 
-        EmitAPIImpl impl = new EmitAPIImpl(1000, "topic");
+        EmitAPIImpl impl = new EmitAPIImpl(1000, "topic", true);
         try {
             Emit created = impl.create(emitspec1);
             fail();
@@ -33,7 +33,7 @@ public class TestEmitAPIImpl extends TestCase {
         TupleSpec tspec1 = TupleSpec.newBuilder().addVar("a").addVar("b").build();
         EmitSpec emitspec1 = EmitSpec.newBuilder().setOutputId(out1).setTupleSpec(tspec1).build();
 
-        EmitAPIImpl impl = new EmitAPIImpl(1000, "topic");
+        EmitAPIImpl impl = new EmitAPIImpl(1000, "topic", true);
         
         assertEquals(0, impl.emits.size());
         Emit created = impl.create(emitspec1);

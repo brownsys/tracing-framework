@@ -37,12 +37,13 @@ public class PivotTracing {
         Config config = ConfigFactory.load();
         boolean useBaggage = config.getBoolean("pivot-tracing.agent.use_baggage");
         boolean useDynamic = config.getBoolean("pivot-tracing.agent.use_dynamic");
+        boolean emitIfNoResults = config.getBoolean("pivot-tracing.agent.emit_if_no_results");
         String resultsTopic = config.getString("pivot-tracing.pubsub.results_topic");
         int reportInterval = config.getInt("pivot-tracing.agent.report_interval_ms");
             
         // Create APIs
         BaggageAPI baggageApi = useBaggage ? new BaggageAPIImpl() : new BaggageAPIDisabled();
-        EmitAPI emitApi = new EmitAPIImpl(reportInterval, resultsTopic);
+        EmitAPI emitApi = new EmitAPIImpl(reportInterval, resultsTopic, emitIfNoResults);
         DynamicManager dynamic = useDynamic ? DynamicInstrumentation.get() : null;
         
         // Create the agent and register it with the privileged proxy
