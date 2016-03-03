@@ -38,66 +38,36 @@
                         <ul>
                                                             <li>
                             		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/">                        
-                                                                        Overview
+                                                                        Home
                                                                             </a>
                                     
                                     <ul>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/tracingplane.html">
-                                                    TracingPlane
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/xtrace.html">
-                                                    X-Trace
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/retro.html">
-                                                    Retro
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/pivottracing.html">
-                                                    Pivot Tracing
-                                                </a>
-                                            </li>
                                                                             </ul>
                                 </li>
                                                             <li>
-                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/">                        
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/docs/tutorials.html">                        
                                                                         Tutorials
                                                                             </a>
                                     
                                     <ul>
                                                                                     <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/prerequisites.html">
+                                                    Pre-requisites
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
                                                 <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/gettingstarted.html">
-                                                    Getting Started
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/xtrace.html">
-                                                    Using X-Trace
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/retro.html">
-                                                    Using Retro
+                                                    Getting Started: HDFS
                                                 </a>
                                             </li>
                                                                                     <li class="">
                                                 <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/pivottracing.html">
-                                                    Using PivotTracing
+                                                    Getting Started: Pivot Tracing
                                                 </a>
                                             </li>
                                                                                     <li class="">
                                                 <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/baggage.html">
                                                     Adding Baggage To Your System
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/aspects.html">
-                                                    Using Automatic Instrumentation
                                                 </a>
                                             </li>
                                                                                     <li class="">
@@ -265,14 +235,25 @@
 
                 <section id="content" class="col-sm-8 col-lg-9">
                     <h1 id="brown-university-tracing-framework">Brown University Tracing Framework</h1>
-<p><a href="https://brownsys.github.io/tracing-framework">https://brownsys.github.io/tracing-framework</a></p>
-<p>This repository contains multiple projects from the Brown University systems research group, such as X-Trace, Retro, and Pivot Tracing</p>
+<p>Welcome to the Brown University Tracing Framework repository.  This repository contains multiple projects from the Brown University systems research group, such as X-Trace, Retro, and Pivot Tracing.</p>
+<p>Full documentation is available at <a href="https://brownsys.github.io/tracing-framework">https://brownsys.github.io/tracing-framework</a></p>
+<p>The tracing framework comprises four main projects:</p>
+<p><strong>Tracing Plane</strong> is the underlying instrumentation library that the other projects are built on.  The Tracing Plane provides a generic end-to-end metadata propagation primitive called <em>Baggage</em>, that lets you dynamically propagate key-value pairs along the execution path of a request.  Baggage provides a primitive similar to thread local variables, but instead at the granularity of a request, as it traverses process, machine, and application boundaries.</p>
+<p><strong>Pivot Tracing</strong> is a dynamic monitoring framework for distributed systems.  Users can write high-level monitoring queries that are compiled down into instrumentation and automatically installed into live, running systems.  Pivot Tracing uses the Tracing Plane's Baggage primitive for correlating statistics from multiple places in the system.</p>
+<p><strong>X-Trace</strong> is a distributed causal logging framework.  Instead of logging to per-process and per-machine files, X-Trace collects logged messages centrally.  X-Trace uses the Tracing Plane's Baggage primitive to pass identifiers through the system, enabling causally related logging statements to be tied together.  X-Trace can automatically hook in to existing log4j/commons loggers.</p>
+<p><strong>Retro</strong> is a fine-grained resource consumption, attribution, and actuation library.  Retro instruments both system- and application-level resources, such as disk, network, cpu, locks, and queues.  Retro aggregates consumption statistics, broken down according to the high-level tenant consuming the resouce.  Retro provides hooks for throttling the requests of individual tenants.  Retro reports measurements globally, enabling centralized resource management policies that react to aggressive resource consumption by throttling the responsible tenants.  Retro uses the Tracing Plane's Baggage primitive to propagate tenant identifiers.</p>
+<h4 id="instrumented-systems">Instrumented Systems</h4>
 <p>These projects are all instrumentation libraries.  They are intended for use with a new or existing system.  We also have some pre-instrumented forks of some well known systems:</p>
 <ul>
-<li><a href="https://github.com/brownsys/hadoop/tree/brownsys-pivottracing-2.7.2">HDFS, Hadoop MapReduce, YARN version 2.7.2</a></li>
+<li><a href="https://github.com/brownsys/hadoop/tree/brownsys-pivottracing-2.7.2">HDFS 2.7.2</a></li>
+<li>Apache YARN 2.7.2 (<em>coming soon</em>)</li>
+<li>Hadoop MapReduce 2.7.2 (<em>coming soon</em>)</li>
 <li>HBase (<em>coming soon</em>)</li>
 </ul>
-<p>This documentation is a work in progress.  For questions, please use the <a href="https://groups.google.com/forum/#!forum/pivot-tracing-users">pivot-tracing-users</a> Google group.</p>
+<p>[Note: we are currently porting instrumentation for these systems to the latest versions for release.  Check back soon]</p>
+<h4 id="getting-started">Getting Started</h4>
+<p>Head over to the <a href="docs/tutorials.html">tutorials</a> section to begin!  </p>
+<p><em>Note: This documentation is a work in progress.  For questions, please use the <a href="https://groups.google.com/forum/#!forum/pivot-tracing-users">pivot-tracing-users</a> Google group.</em></p>
                 </section>
 
             </div>

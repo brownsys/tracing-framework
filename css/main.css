@@ -36,6 +36,11 @@ body {
     font-weight: 200;
 }
 
+#content h4 {
+    font-size: 20px;
+    font-weight: 200;
+}
+
 #sidebar .sectionlink {
     color: #666666;
 }

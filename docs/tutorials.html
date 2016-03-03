@@ -234,12 +234,14 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    <h3 id="lock-instrumentation">Lock Instrumentation</h3>
-<p>Retro has the ability to instrument locks in Java, including regular <code>ReadWriteLock</code> and monitor locks (eg, use of the <code>synchronized</code> keyword).  However, due to the prevalent use of monitor locks in many Java applications, and because lock instrumentation can be delicate, it is disabled by default except for a few specially selected HDFS locks.</p>
-<p>To enable lock instrumentation, build the <code>retro/aspects</code> project with the <code>-Plocks</code> flag:</p>
-<pre><code>mvn clean package install -Plocks</code></pre>
-<p>This will instrument any <code>java.util.concurrent.lock.Lock</code> and any use of the <code>synchronized</code> keyword.</p>
-<p>This should be used carefully.  Most locks should not be instrumented, only those that that are bottlenecks in the system.  Our recommendation is to enable all lock instrumentation so that you can run the system and identify the subset of important locks.  Then extend Retro to instrument only those locks.  See the <code>XHDFS.aj</code> aspect in <code>retro/aspects</code> for example usage in HDFS.</p>
+                    <h2 id="tutorials">Tutorials</h2>
+<p>This section contains the following tutorials:</p>
+<p><strong>Pre-requisites</strong> (<a href="tutorials/prerequisites.html">link</a>) This optional section steps over installing pre-requisites.  If you already have these installed, you may skip this.
+The tracing framework requires Java 7, <a href="https://maven.apache.org/download.cgi">Maven 3</a>, <a href="https://github.com/google/protobuf/releases/tag/v2.5.0">Protocol Buffers 2.5</a>, <a href="https://eclipse.org/aspectj/downloads.php">AspectJ</a>.</p>
+<p><strong>Getting Started: HDFS</strong> (<a href="tutorials/gettingstarted.html">link</a>) In this tutorial, we will download and install a modified version of HDFS 2.7.2 that has already been instrumented to add Baggage.</p>
+<p><strong>Getting Started: Pivot Tracing</strong> (<a href="tutorials/pivottracing.html">link</a>) In this tutorial we will dynamically install a Pivot Tracing query into HDFS as it is running.</p>
+<p><strong>Adding Baggage To Your System</strong> (<a href="tutorials/baggage.html">link</a>) In this tutorial we will discuss how to add Baggage to a new system (Baggage is a pre-requisite to X-Trace, Retro, and Pivot Tracing).  We will discuss some of the automatic instrumentation that makes it easy to add Baggage.</p>
+<p><strong>Using Baggage Yourself</strong> (<a href="tutorials/tracingapplication.html">link</a>) In this tutorial we will discuss how you can use Baggage in an already-instrumented system.  We will discuss the BaggageContents API and give some examples of how to use it.</p>
                 </section>
 
             </div>

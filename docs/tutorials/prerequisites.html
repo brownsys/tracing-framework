@@ -234,12 +234,85 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    <h3 id="lock-instrumentation">Lock Instrumentation</h3>
-<p>Retro has the ability to instrument locks in Java, including regular <code>ReadWriteLock</code> and monitor locks (eg, use of the <code>synchronized</code> keyword).  However, due to the prevalent use of monitor locks in many Java applications, and because lock instrumentation can be delicate, it is disabled by default except for a few specially selected HDFS locks.</p>
-<p>To enable lock instrumentation, build the <code>retro/aspects</code> project with the <code>-Plocks</code> flag:</p>
-<pre><code>mvn clean package install -Plocks</code></pre>
-<p>This will instrument any <code>java.util.concurrent.lock.Lock</code> and any use of the <code>synchronized</code> keyword.</p>
-<p>This should be used carefully.  Most locks should not be instrumented, only those that that are bottlenecks in the system.  Our recommendation is to enable all lock instrumentation so that you can run the system and identify the subset of important locks.  Then extend Retro to instrument only those locks.  See the <code>XHDFS.aj</code> aspect in <code>retro/aspects</code> for example usage in HDFS.</p>
+                    <h2 id="prerequisites">Prerequisites</h2>
+<p>This section steps over installing pre-requisites.  If you already have these installed, you may skip this.
+The tracing framework requires:</p>
+<ul>
+<li>Java 7</li>
+<li><a href="https://maven.apache.org/download.cgi">Maven 3</a></li>
+<li><a href="https://github.com/google/protobuf/releases/tag/v2.5.0">Protocol Buffers 2.5</a></li>
+<li><a href="https://eclipse.org/aspectj/downloads.php">AspectJ</a></li>
+</ul>
+<h2 id="java-7---windows">Java 7 - Windows</h2>
+<ol>
+<li>Download and install the latest Java 1.7 JDK from <a href="http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html">Oracle</a>. </li>
+<li>Set <code>JAVA_HOME</code> environment variable to the folder that the JDK is contained within (e.g. <code>C:\java\jdk1.7.0_40</code>).</li>
+<li>Add the <code>JAVA_HOME/bin</code> folder to your path, i.e. <code>%JAVA_HOME%\bin</code>.</li>
+</ol>
+<p>If successful, after restarting, invoking <code>java -version</code> from the command line should report the version of Java that you downloaded.</p>
+<h2 id="java-7---linux">Java 7 - Linux</h2>
+<ol>
+<li>
+<p>Install OpenJDK 7</p>
+<pre><code>apt-get install openjdk-7-jre openjdk-7-jdk</code></pre>
+</li>
+<li>
+<p>Set the correct Java version</p>
+<pre><code>update-java-alternatives -s java-1.7.0-openjdk-amd64</code></pre>
+</li>
+<li>Set the <code>JAVA_HOME</code> environment variable to point to <code>/usr/lib/jvm/java-7-openjdk-amd64</code></li>
+</ol>
+<p>If you wish to use the Oracle JDK instead of OpenJDK, use the following commands:</p>
+<pre><code>apt-get install python-software-properties
+add-apt-repository ppa:webupd8team/java
+apt-get update
+apt-get install oracle-java7-installer
+update-java-alternatives -s java-7-oracle</code></pre>
+<p>If successful, after restarting, invoking <code>java -version</code> from the command line should report the version of Java that you downloaded.</p>
+<h2 id="maven-3---windows">Maven 3 - Windows</h2>
+<ol>
+<li>Download and install the latest version of <a href="http://maven.apache.org/download.cgi">Maven</a>.  Extract to a folder somewhere on your computer.  </li>
+<li>Set the <code>M2_HOME</code> environment to the folder containing Maven (e.g. <code>C:\maven\apache-maven-3.1.0</code>).</li>
+<li>Add the <code>M2_HOME/bin</code> folder to your path, i.e. <code>%M2_HOME%\bin</code>.</li>
+<li>Choose a folder for Maven to use as a repository.  Set the <code>M2_REPO</code> to this folder.  By default, it is a folder called '.m2' in your home directory.</li>
+</ol>
+<p>If successful, after restarting, you should be able to invoke the <code>mvn</code> command from the command line.</p>
+<h2 id="maven-3---linux">Maven 3 - Linux</h2>
+<pre><code>apt-get install maven</code></pre>
+<h2 id="protobuf-25---windows">Protobuf 2.5 - Windows</h2>
+<ol>
+<li>Download the version 2.5 of the <a href="https://github.com/google/protobuf/releases/tag/v2.5.0">Protocol Buffers compiler</a>.  Place the executable in a folder somewhere on your computer.</li>
+<li>Add the folder to your path</li>
+</ol>
+<p>If successful, after restarting, you should be able to invoke the <code>protoc</code> command from the command line.  (It will say 'Missing input file')</p>
+<h2 id="protobuf-25---linux">Protobuf 2.5 - Linux</h2>
+<pre><code>apt-get install protobuf-compiler</code></pre>
+<p>Depending on your version of Linux, the version of protocol buffers provided by apt is 2.4 instead of the 2.5 required by hadoop.  Check protobuf version with <code>protoc --version</code>.   If it is not 2.5 or higher, execute the following steps to install the newer version</p>
+<pre><code>apt-get -y remove protobuf-compiler
+curl -# -O https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.gz
+gunzip protobuf-2.5.0.tar.gz
+tar -xvf protobuf-2.5.0.tar
+cd protobuf-2.5.0
+./configure --prefix=/usr
+make
+make install</code></pre>
+<h2 id="aspectj---windows--linux">AspectJ - Windows / Linux</h2>
+<ol>
+<li>Download the latest stable release of <a href="https://eclipse.org/aspectj/downloads.php">AspectJ</a></li>
+<li>Install AspectJ by invoking <code>java -jar aspectj-1.7.3.jar</code> (replacing 1.7.3 with the version you downloaded)</li>
+<li>Windows: Add the bin folder to your path</li>
+</ol>
+<p>If successful, after restarting, you should be able to invoke the <code>ajc</code> command from the command line.</p>
+<h2 id="ant---windows">Ant - Windows</h2>
+<p>Ant is only a pre-requisite for ZooKeeper</p>
+<ol>
+<li>Download the latest release of <a href="http://ant.apache.org/bindownload.cgi">Ant</a></li>
+<li>Add the bin folder to your path</li>
+</ol>
+<p>If successful, after restarting, you should be able to invoke the 'ant' command from the command line.</p>
+<h2 id="ant---linux">Ant - Linux</h2>
+<p>Ant is only a pre-requisite for ZooKeeper</p>
+<p><code>apt-get install ant</code></p>
                 </section>
 
             </div>

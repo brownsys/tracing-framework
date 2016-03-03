@@ -38,66 +38,36 @@
                         <ul>
                                                             <li>
                             		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/">                        
-                                                                        Overview
+                                                                        Home
                                                                             </a>
                                     
                                     <ul>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/tracingplane.html">
-                                                    TracingPlane
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/xtrace.html">
-                                                    X-Trace
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/retro.html">
-                                                    Retro
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/projects/pivottracing.html">
-                                                    Pivot Tracing
-                                                </a>
-                                            </li>
                                                                             </ul>
                                 </li>
                                                             <li>
-                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/">                        
+                            		                                        <a class="sectionlink" href="http://brownsys.github.io/tracing-framework/docs/tutorials.html">                        
                                                                         Tutorials
                                                                             </a>
                                     
                                     <ul>
                                                                                     <li class="">
+                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/prerequisites.html">
+                                                    Pre-requisites
+                                                </a>
+                                            </li>
+                                                                                    <li class="">
                                                 <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/gettingstarted.html">
-                                                    Getting Started
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/xtrace.html">
-                                                    Using X-Trace
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/retro.html">
-                                                    Using Retro
+                                                    Getting Started: HDFS
                                                 </a>
                                             </li>
                                                                                     <li class="">
                                                 <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/pivottracing.html">
-                                                    Using PivotTracing
+                                                    Getting Started: Pivot Tracing
                                                 </a>
                                             </li>
                                                                                     <li class="">
                                                 <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/baggage.html">
                                                     Adding Baggage To Your System
-                                                </a>
-                                            </li>
-                                                                                    <li class="">
-                                                <a class="pagelink" href="http://brownsys.github.io/tracing-framework/docs/tutorials/aspects.html">
-                                                    Using Automatic Instrumentation
                                                 </a>
                                             </li>
                                                                                     <li class="">
@@ -264,25 +234,23 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-9">
-                    <h1 id="getting-started">Getting Started</h1>
+                    <h1 id="getting-started-hdfs">Getting Started: HDFS</h1>
 <p>This section describes how to get started with a pre-instrumented version of HDFS that has all of the instrumentation libraries added to it.  We will run a version of Hadoop 2.7.2 instrumented with Baggage, and run an example X-Trace, Retro, and Pivot Tracing application.</p>
-<h3 id="prerequisites">Prerequisites</h3>
-<p>The tracing framework requires:</p>
-<ul>
-<li><a href="https://maven.apache.org/download.cgi">Maven 3</a></li>
-<li><a href="https://github.com/google/protobuf/releases/tag/v2.5.0">Protocol Buffers 2.5</a></li>
-<li><a href="https://eclipse.org/aspectj/downloads.php">AspectJ</a></li>
-</ul>
-<p>After cloning the <a href="https://github.com/brownsys/tracing-framework">git repository</a>, build and install with the following command:</p>
+<p>Clone the <a href="https://github.com/brownsys/tracing-framework">git repository</a></p>
+<pre><code>git clone git@github.com:brownsys/tracing-framework.git</code></pre>
+<p>From the directory you cloned into, build and install with the following command:</p>
 <pre><code>mvn clean package install -DskipTests</code></pre>
-<p>Next, download our <a href="https://github.com/brownsys/hadoop">pre-instrumented fork of Hadoop 2.7.2</a> (use branch <code>brownsys-pivottracing-2.7.2</code>)</p>
-<p>Build and install Hadoop using the normal approach:</p>
-<pre><code>mvn clean package install -Pdist -DskipTests -Dmaven.javadoc="skip"</code></pre>
-<p>If you encounter any problems while building, try building the non-instrumented version of Hadoop (branch-2.7.2) to determine whether it is a Hadoop build issue or an instrumentation issue.</p>
+<p>Next, download our <a href="https://github.com/brownsys/hadoop">pre-instrumented fork of Hadoop 2.7.2</a></p>
+<pre><code>git clone git@github.com:brownsys/hadoop.git</code></pre>
+<p>We want to use branch <code>brownsys-pivottracing-2.7.2</code>, which should be the default branch.</p>
+<p>Build and install Hadoop using the following command:</p>
+<pre><code>mvn clean package install -Pdist -DskipTests -Dmaven.javadoc.skip="true"</code></pre>
+<p>If you encounter any problems while building, try building the non-instrumented branch <code>branch-2.7.2</code>.  This will determine whether it is a Hadoop build issue, or a problem with our extra instrumentation.</p>
 <h3 id="running-pubsub">Running PubSub</h3>
-<p>All of the instrumentation libraries use a pub sub system to communicate.  Agents running in the instrumented Hadoop will receive commands over pubsub, and send their output back over the pubsub.</p>
+<p>All of the instrumentation libraries use a pub sub system to communicate.  Agents running in the instrumented Hadoop will receive commands over pubsub, and send their output back over the pubsub.  The pubsub project is in <code>tracingplane/pubsub</code></p>
 <p>The following command will start an X-Trace server which also includes a pub sub server:</p>
 <pre><code>tracingplane/pubsub/target/appassembler/bin/server</code></pre>
+<p>To check which Java process are running, use the <code>jps</code> command.  This is an easy way to check if something has crashed.  You should expect to see a process called <code>XTraceServer</code>.</p>
 <h3 id="start-hdfs">Start HDFS</h3>
 <p>Now start HDFS as normal.  You should expect to see messages in the output stream along the lines of the following:</p>
 <pre><code>Pivot Tracing initialized
@@ -291,7 +259,7 @@ ZmqReporter: QUEUE-disk -&gt; queue
 ZmqReporter: DISK- -&gt; disk
 ZmqReporter: CPU- -&gt; cpu
 /META-INF/lib/libthreadcputimer.dylib extracted to temporary file /var/folders/d3/38f0syys5yjcvynz8p4n3t4w0000gn/T/jni_file_2410736199844535966.dll</code></pre>
-<h3 id="">...</h3>
+<p>Again, check which Java processes are running using the <code>jps</code> command.  In addition to <code>XTraceServer</code>, you should expect to see <code>NameNode</code> and <code>DataNode</code></p>
                 </section>
 
             </div>
