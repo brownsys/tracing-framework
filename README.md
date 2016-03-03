@@ -4,6 +4,12 @@ Welcome to the Brown University Tracing Framework repository.  This repository c
 
 Full documentation is available at https://brownsys.github.io/tracing-framework
 
+#### Getting Started
+
+Head over to the [tutorials](http://brownsys.github.io/tracing-framework/docs/tutorials.html) section to begin!  
+
+#### Projects Overview
+
 The tracing framework comprises four main projects:
 
 **Tracing Plane** is the underlying instrumentation library that the other projects are built on.  The Tracing Plane provides a generic end-to-end metadata propagation primitive called *Baggage*, that lets you dynamically propagate key-value pairs along the execution path of a request.  Baggage provides a primitive similar to thread local variables, but instead at the granularity of a request, as it traverses process, machine, and application boundaries.
@@ -23,9 +29,5 @@ These projects are all instrumentation libraries.  They are intended for use wit
 * HBase (*coming soon*)
 
 [Note: we are currently porting instrumentation for these systems to the latest versions for release.  Check back soon]
-
-#### Getting Started
-
-Head over to the [tutorials](docs/tutorials.html) section to begin!  
 
 *Note: This documentation is a work in progress.  For questions, please use the [pivot-tracing-users](https://groups.google.com/forum/#!forum/pivot-tracing-users) Google group.*
