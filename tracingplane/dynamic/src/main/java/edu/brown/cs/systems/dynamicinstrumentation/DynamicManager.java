@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -16,6 +17,7 @@ import javassist.CannotCompileException;
 public class DynamicManager {
     
     public final Agent agent;
+    public final Collection<Throwable> problems = Lists.newArrayList();
     public final ChangeSet pending = new ChangeSet();
     public final Multimap<String, DynamicModification> installed = HashMultimap.create();
     
@@ -71,7 +73,8 @@ public class DynamicManager {
     
     public void install() throws CannotCompileException, UnmodifiableClassException {
         if (agent != null) {
-            agent.install(pending.changes());
+            problems.clear();
+            agent.install(pending.changes(), problems);
             pending.persist();
         }
     }

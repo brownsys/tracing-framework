@@ -2,14 +2,18 @@ package edu.brown.cs.systems.pivottracing.agent;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.spi.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 
 import edu.brown.cs.systems.dynamicinstrumentation.DynamicManager;

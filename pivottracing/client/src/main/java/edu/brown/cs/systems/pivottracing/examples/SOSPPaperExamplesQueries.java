@@ -117,7 +117,7 @@ public class SOSPPaperExamplesQueries {
 //        for (String qId : queries.keySet()) {
 //            client.install(client.parse(qId, queries.get(qId)));
 //        }
-        client.install(client.parse("Q7a", queries.get("Q7a")));
+        client.install(client.parse("Q7", queries.get("Q7")));
     }
     
 

@@ -72,6 +72,7 @@ public class WeaveManager {
         if (agent.dynamic != null) {
             try {
                 agent.dynamic.install();
+                problems.addAll(agent.dynamic.problems);
             } catch (Throwable t) {
                 log.warn("Unable to install modified classes", t);
                 problems.add(t);
@@ -85,7 +86,7 @@ public class WeaveManager {
     
     public synchronized Collection<Throwable> problems() {
         try {
-            return Lists.newArrayList(problems); 
+            return Lists.<Throwable>newArrayList(problems); 
         } finally {
             problems.clear();
         }

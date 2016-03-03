@@ -68,8 +68,14 @@ public abstract class Agent {
     /** Install the provided modifications.  If a class is unknown, its modification is ignored, but if the provided modifications
      * cannot compile then exceptions will be thrown */
     public void install(Map<String, Collection<DynamicModification>> modifications) throws CannotCompileException, UnmodifiableClassException {
+        install(modifications, Lists.<Throwable>newArrayList());
+    }
+
+    /** Install the provided modifications.  If a class is unknown, its modification is ignored, but if the provided modifications
+     * cannot compile then exceptions will be thrown */
+    public void install(Map<String, Collection<DynamicModification>> modifications, Collection<Throwable> problems) throws CannotCompileException, UnmodifiableClassException {
         Installation i = new Installation();
-        i.modifyAll(modifications);
+        i.modifyAll(modifications, problems);
         if (!i.reloadMap.isEmpty()) {
             log.info("Reloading {} classes: {}", modifications.size(), modifications.keySet());
             reload(i.reloadMap);
@@ -127,19 +133,22 @@ public abstract class Agent {
         /** Apply several modifications to multiple classes. If the specified class cannot be found or loaded for some
          * reason, it is ignore. If the class can be loaded but the provided modifications can't compile, an exception
          * will be thrown */
-        public void modifyAll(Map<String, Collection<DynamicModification>> modifications) throws CannotCompileException {
+        public void modifyAll(Map<String, Collection<DynamicModification>> modifications, Collection<Throwable> problems) throws CannotCompileException {
             for (String className : modifications.keySet()) {
                 try {
                     modify(className, modifications.get(className));
                 } catch (NotFoundException e) {
                     // If a class is not found, we continue modifying the other classes
                     log.warn("Unable to modify " + className, e);
+                    problems.add(e);
                 } catch (ClassNotFoundException e) {
                     // If a class is not found, we continue modifying the other classes
                     log.warn("Unable to modify " + className, e);
+                    problems.add(e);
                 } catch (IOException e) {
                     // If a class cannot be loaded from file, we continue modifying the other classes
                     log.warn("Unable to modify " + className, e);
+                    problems.add(e);
                 }
             }
         }
