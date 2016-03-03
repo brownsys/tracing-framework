@@ -13,6 +13,7 @@ import edu.brown.cs.systems.pivottracing.PivotTracingClient;
 import edu.brown.cs.systems.pivottracing.query.Components.PTQueryException;
 import edu.brown.cs.systems.pivottracing.query.PTQuery;
 import edu.brown.cs.systems.pivottracing.query.Parser.PTQueryParserException;
+import edu.brown.cs.systems.pubsub.PubSub;
 import edu.brown.cs.systems.pivottracing.query.QueryAdvice;
 
 public class SOSPPaperExamplesQueries {
@@ -112,12 +113,44 @@ public class SOSPPaperExamplesQueries {
         }
     }
     
-    public static void main(String[] args) throws PTQueryParserException, PTQueryException {
+    public static void main(String[] args) throws PTQueryParserException, PTQueryException, InterruptedException {
         PivotTracingClient client = SOSPPaperExamplesTracepoints.client();
 //        for (String qId : queries.keySet()) {
 //            client.install(client.parse(qId, queries.get(qId)));
 //        }
-        client.install(client.parse("Q7", queries.get("Q7")));
+        String queryText = queries.get("Q7a");
+        System.out.println("Query: ");        
+        System.out.println();
+        System.out.println(queryText);
+        System.out.println();
+        System.out.println("============================================================");
+        
+        PTQuery query = client.parse("Q7a", queryText);
+        System.out.println("Compiled query:");
+        System.out.println();
+        System.out.println(query);
+        System.out.println();
+        System.out.println("============================================================");
+        
+        query = query.Optimize();
+        System.out.println("Optimized query:");
+        System.out.println();
+        System.out.println(query);
+        System.out.println();
+        System.out.println("============================================================");
+
+        QueryAdvice advice = client.generateAdvice(query);
+        System.out.println("Query advice:");
+        System.out.println();
+        System.out.println(advice);
+        System.out.println();
+        System.out.println("============================================================");
+        
+        client.install(query);
+        if (PubSub.awaitFlush(1000)) {
+            System.out.println("Query sent to agents");
+        }
+        PubSub.close();
     }
     
 
