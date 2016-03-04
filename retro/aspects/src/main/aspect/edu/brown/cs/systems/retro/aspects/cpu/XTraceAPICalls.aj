@@ -24,16 +24,6 @@ public aspect XTraceAPICalls {
         Execution.CPU.finished(thisJoinPointStaticPart);
     }
 
-    /** Whenever an XTraceContext is joined, it might be the case that this is equivalent to setThreadContext */
-    before(): call(void Baggage.join(..)) {
-        Execution.CPU.finished(thisJoinPointStaticPart);
-    }
-
-    /** Whenever an XTraceContext is joined, it might be the case that this is equivalent to setThreadContext */
-    after(): call(void Baggage.join(..)) {
-        Execution.CPU.starting(thisJoinPointStaticPart);
-    }
-
     before(): call(void ThrottlingPoint+.throttle()) {
         CPUTracking.finishTracking(); // finish and log current cycles
     }
