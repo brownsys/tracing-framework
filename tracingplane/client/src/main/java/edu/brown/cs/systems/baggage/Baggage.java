@@ -53,6 +53,16 @@ public class Baggage {
         current.set(impl);
     }
 
+    /** Swap the thread's current baggage, replacing it with the provided baggage. If the provided baggage is null, this
+     * call is equivalent to {@link Discard()}. Returns the baggage that was previously the thread's current baggage.
+     * @param baggage The baggage to set as the thread's current baggage
+     * @return The previous current baggage */
+    public static DetachedBaggage swap(DetachedBaggage baggage) {
+        BaggageImpl prev = current.get();
+        start(baggage);
+        return DetachedBaggage.wrap(prev);
+    }
+
     /** Discards the thread's current baggage. Deserializes the provided bytes. Attaches the deserialized baggage to
      * this thread. If the provided bytes aren't valid, this call has equivalent behavior to {@link Discard()}. It is
      * strongly advised not to attach the same bytes multiple times. Instead, call the {@link duplicateContents()}

@@ -8,31 +8,31 @@ import edu.brown.cs.systems.baggage.Baggage;
  * Propagates metadata to new threads. This class does NOT get the
  * XTraceRunnable interface extension
  */
-public class InstrumentedThread extends Thread {
+public class WrappedThread extends Thread {
 
     private final BaggageAdded t2;
 
-    public InstrumentedThread(Runnable t1, BaggageAdded t2) {
+    public WrappedThread(Runnable t1, BaggageAdded t2) {
         super(t1);
         this.t2 = t2;
     }
 
-    public InstrumentedThread(Runnable t1, BaggageAdded t2, String name) {
+    public WrappedThread(Runnable t1, BaggageAdded t2, String name) {
         super(t1, name);
         this.t2 = t2;
     }
 
-    public InstrumentedThread(ThreadGroup group, Runnable t1, BaggageAdded t2) {
+    public WrappedThread(ThreadGroup group, Runnable t1, BaggageAdded t2) {
         super(group, t1);
         this.t2 = t2;
     }
 
-    public InstrumentedThread(ThreadGroup group, Runnable t1, BaggageAdded t2, String name) {
+    public WrappedThread(ThreadGroup group, Runnable t1, BaggageAdded t2, String name) {
         super(group, t1, name);
         this.t2 = t2;
     }
 
-    public InstrumentedThread(ThreadGroup group, Runnable t1, BaggageAdded t2, String name, long stackSize) {
+    public WrappedThread(ThreadGroup group, Runnable t1, BaggageAdded t2, String name, long stackSize) {
         super(group, t1, name, stackSize);
         this.t2 = t2;
     }
@@ -43,8 +43,8 @@ public class InstrumentedThread extends Thread {
      * runnable itself
      */
     public static void join(Thread t) {
-        if (t instanceof InstrumentedThread) {
-            Baggage.join(((InstrumentedThread) t).t2.getSavedBaggage());
+        if (t instanceof WrappedThread) {
+            Baggage.join(((WrappedThread) t).t2.getSavedBaggage());
         } else if (t instanceof BaggageAdded) {
             Baggage.join(((BaggageAdded) t).getSavedBaggage());
         } else {

@@ -12,7 +12,9 @@ public aspect BaggageAddedImpl {
     }
     
     public DetachedBaggage BaggageAdded.getSavedBaggage() {
-        return baggageAddedSavedBaggage;
+        DetachedBaggage saved = baggageAddedSavedBaggage;
+        baggageAddedSavedBaggage = null;
+        return saved;
     }
     
     public void BaggageAdded.discardSavedBaggage() {

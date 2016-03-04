@@ -12,7 +12,7 @@ public aspect Threads {
 
     Object around(Runnable target): args(target) && call(Thread.new(Runnable+)) {
         if (target instanceof BaggageAdded) {
-            return new InstrumentedThread(target, (BaggageAdded) target);
+            return new WrappedThread(target, (BaggageAdded) target);
         } else {
             return proceed(target);
         }
@@ -20,7 +20,7 @@ public aspect Threads {
 
     Object around(Runnable target, String name): args(target, name) && call(Thread.new(Runnable+, String+)) {
         if (target instanceof BaggageAdded) {
-            return new InstrumentedThread(target, (BaggageAdded) target, name);
+            return new WrappedThread(target, (BaggageAdded) target, name);
         } else {
             return proceed(target, name);
         }
@@ -28,7 +28,7 @@ public aspect Threads {
 
     Object around(ThreadGroup group, Runnable target): args(group, target) && call(Thread.new(ThreadGroup+, Runnable+)) {
         if (target instanceof BaggageAdded) {
-            return new InstrumentedThread(group, target, (BaggageAdded) target);
+            return new WrappedThread(group, target, (BaggageAdded) target);
         } else {
             return proceed(group, target);
         }
@@ -36,7 +36,7 @@ public aspect Threads {
 
     Object around(ThreadGroup group, Runnable target, String name): args(group, target, name) && call(Thread.new(ThreadGroup+, Runnable+, String+)) {
         if (target instanceof BaggageAdded) {
-            return new InstrumentedThread(group, target, (BaggageAdded) target, name);
+            return new WrappedThread(group, target, (BaggageAdded) target, name);
         } else {
             return proceed(group, target, name);
         }
@@ -44,7 +44,7 @@ public aspect Threads {
 
     Object around(ThreadGroup group, Runnable target, String name, long stackSize): args(group, target, name, stackSize) && call(Thread.new(ThreadGroup+, Runnable+, String+, long)) {
         if (target instanceof BaggageAdded) {
-            return new InstrumentedThread(group, target, (BaggageAdded) target, name, stackSize);
+            return new WrappedThread(group, target, (BaggageAdded) target, name, stackSize);
         } else {
             return proceed(group, target, name, stackSize);
         }
@@ -54,7 +54,7 @@ public aspect Threads {
         proceed(t);
         try {
             XTraceReport.entering(thisJoinPointStaticPart);
-            InstrumentedThread.join(t);
+            WrappedThread.join(t);
         } finally {
             XTraceReport.left(thisJoinPointStaticPart);
         }
