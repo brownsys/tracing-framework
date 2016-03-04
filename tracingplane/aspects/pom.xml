@@ -65,8 +65,6 @@
                             <basedir>${basedir}/src/main/java</basedir>
                             <includes>
                                 <include>edu/brown/cs/systems/tracing/aspects/BaggageAdded.java</include>
-                                <include>edu/brown/cs/systems/tracing/aspects/WrappedFuture.java</include>
-                                <include>edu/brown/cs/systems/tracing/aspects/WrappedThread.java</include>
                             </includes>
                         </source>
                     </sources>

@@ -2,6 +2,7 @@ package edu.brown.cs.systems.tracing.aspects;
 
 import java.util.concurrent.Future;
 
+import edu.brown.cs.systems.baggage.Baggage;
 import edu.brown.cs.systems.xtrace.reporting.XTraceReport;
 
 /**
@@ -15,7 +16,7 @@ public aspect Futures {
     after(Future f): target(f) && call(* Future+.get(..)) {
         try {
             XTraceReport.entering(thisJoinPointStaticPart);
-            WrappedFuture.join(f);
+            Baggage.join(WrappedFuture.getSavedBaggage(f));
         } finally {
             XTraceReport.left(thisJoinPointStaticPart);
         }

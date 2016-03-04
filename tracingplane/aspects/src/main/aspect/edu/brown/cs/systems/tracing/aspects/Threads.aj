@@ -1,5 +1,6 @@
 package edu.brown.cs.systems.tracing.aspects;
 
+import edu.brown.cs.systems.baggage.Baggage;
 import edu.brown.cs.systems.xtrace.reporting.XTraceReport;
 
 /**
@@ -53,7 +54,7 @@ public aspect Threads {
     after(Thread t): target(t) && call(void Thread+.join(..)) {
         try {
             XTraceReport.entering(thisJoinPointStaticPart);
-            WrappedThread.join(t);
+            Baggage.join(WrappedThread.getSavedBaggage(t));
         } finally {
             XTraceReport.left(thisJoinPointStaticPart);
         }

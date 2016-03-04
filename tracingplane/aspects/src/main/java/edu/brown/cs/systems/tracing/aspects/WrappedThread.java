@@ -2,7 +2,7 @@ package edu.brown.cs.systems.tracing.aspects;
 
 import java.lang.reflect.Field;
 
-import edu.brown.cs.systems.baggage.Baggage;
+import edu.brown.cs.systems.baggage.DetachedBaggage;
 
 /**
  * Propagates metadata to new threads. This class does NOT get the
@@ -37,28 +37,25 @@ public class WrappedThread extends Thread {
         this.t2 = t2;
     }
 
-    /**
-     * Joins the specified thread, which could be a thread wrapper, could be a
-     * regular thread wrapping an xtrace runnable, and could be an xtrace
-     * runnable itself
-     */
-    public static void join(Thread t) {
+    /** Attempts to get saved baggage from a thread */
+    public static DetachedBaggage getSavedBaggage(Thread t) {
         if (t instanceof WrappedThread) {
-            Baggage.join(((WrappedThread) t).t2.getSavedBaggage());
+            return ((WrappedThread) t).t2.getSavedBaggage();
         } else if (t instanceof BaggageAdded) {
-            Baggage.join(((BaggageAdded) t).getSavedBaggage());
+            return ((BaggageAdded) t).getSavedBaggage();
         } else {
             try {
                 Field runnableField = Thread.class.getDeclaredField("target");
                 runnableField.setAccessible(true);
                 Runnable target = (Runnable) runnableField.get(t);
                 if (target != null && target instanceof BaggageAdded) {
-                    Baggage.join(((BaggageAdded) target).getSavedBaggage());
+                    return ((BaggageAdded) target).getSavedBaggage();
                 }
             } catch (Exception e) {
                 // swallow exceptions
             }
         }
+        return null;
     }
 
 }
