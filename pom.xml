@@ -153,6 +153,7 @@
                         <source>1.7</source>
                         <target>1.7</target>
                         <complianceLevel>1.7</complianceLevel>
+						<Xlint>adviceDidNotMatch=ignore,typeNotExposedToWeaver=ignore,uncheckedAdviceConversion=ignore,invalidAbsoluteTypeName=ignore</Xlint>
                         <!-- <showWeaveInfo>true</showWeaveInfo> -->
                     </configuration>
                 </plugin>
