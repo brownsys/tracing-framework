@@ -234,7 +234,7 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <ajdtVersion>1.8</ajdtVersion>
+                        <ajdtVersion>1.8.7</ajdtVersion>
                     </configuration>
                 </plugin>
                 <plugin>
