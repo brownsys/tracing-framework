@@ -27,7 +27,7 @@
         <commons.io.version>2.4</commons.io.version>
         <apache.collections.version>4.1</apache.collections.version>
         <jsonsmart.version>2.2</jsonsmart.version>
-        <aspectj.version>1.8.8</aspectj.version>
+        <aspectj.version>1.8.7</aspectj.version>
         <javassist.version>3.18.1-GA</javassist.version>
         <junit.version>4.12</junit.version>
         <commons.logging.version>1.1</commons.logging.version>
@@ -158,14 +158,6 @@
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-eclipse-plugin</artifactId>
-                    <version>2.9</version>
-                    <configuration>
-                        <ajdtVersion>1.8</ajdtVersion>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>3.3</version>
                     <configuration>
@@ -240,6 +232,9 @@
                             </goals>
                         </execution>
                     </executions>
+                    <configuration>
+                        <ajdtVersion>1.8</ajdtVersion>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

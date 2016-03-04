@@ -12,8 +12,8 @@ public class Slf4jLoggerWrapper implements Logger {
 
     private static ThreadLocal<JoinPoint.StaticPart> logSources = new ThreadLocal<JoinPoint.StaticPart>();
 
-    public final Logger logger;
-    public final XTraceLogger xtrace;
+    public Logger logger;
+    public XTraceLogger xtrace;
 
     public Slf4jLoggerWrapper(Logger logger, XTraceLogger xtrace) {
         this.logger = logger;
