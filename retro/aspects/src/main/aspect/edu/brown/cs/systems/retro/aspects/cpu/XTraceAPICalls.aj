@@ -11,13 +11,12 @@ import edu.brown.cs.systems.retro.throttling.ThrottlingPoint;
  * @author jon */
 public aspect XTraceAPICalls {
 
-    Object around(): call(void Baggage.start(..)) || call(DetachedBaggage Baggage.swap(..)) {
+    before(): call(void Baggage.start(..)) || call(DetachedBaggage Baggage.swap(..)) {
         Execution.CPU.finished(thisJoinPointStaticPart);
-        try {
-            return proceed();
-        } finally {
-            Execution.CPU.starting(thisJoinPointStaticPart);
-        }
+    }
+
+    after(): call(void Baggage.start(..)) || call(DetachedBaggage Baggage.swap(..)) {
+        Execution.CPU.starting(thisJoinPointStaticPart);
     }
 
     /** Whenever the XTraceContext is cleared, log an event to indicate the end of CPU processing bounds */
@@ -26,13 +25,13 @@ public aspect XTraceAPICalls {
     }
 
     /** Whenever an XTraceContext is joined, it might be the case that this is equivalent to setThreadContext */
-    void around(): call(void Baggage.join(..)) {
+    before(): call(void Baggage.join(..)) {
         Execution.CPU.finished(thisJoinPointStaticPart);
-        try {
-            proceed();
-        } finally {
-            Execution.CPU.starting(thisJoinPointStaticPart);
-        }
+    }
+
+    /** Whenever an XTraceContext is joined, it might be the case that this is equivalent to setThreadContext */
+    after(): call(void Baggage.join(..)) {
+        Execution.CPU.starting(thisJoinPointStaticPart);
     }
 
     before(): call(void ThrottlingPoint+.throttle()) {
