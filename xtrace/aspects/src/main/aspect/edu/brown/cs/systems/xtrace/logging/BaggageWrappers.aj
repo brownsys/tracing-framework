@@ -18,6 +18,14 @@ public aspect BaggageWrappers {
     after(): call(void Baggage.start()) && if(xtrace.valid()) {
         xtrace.log(thisJoinPointStaticPart, "Baggage started");
     }
+
+    before(): call(DetachedBaggage Baggage.swap(..)) && if(xtrace.valid()) {
+        xtrace.log(thisJoinPointStaticPart, "Detaching current baggage with Baggage.swap()");
+    }
+    
+    after(): call(DetachedBaggage Baggage.swap(..)) && if(xtrace.valid()) {
+        xtrace.log(thisJoinPointStaticPart, "Baggage started");
+    }
     
     before(): call(void Baggage.discard()) && if(xtrace.valid()) {
         xtrace.log(thisJoinPointStaticPart, "Discarding baggage with Baggage.discard()");

@@ -1,6 +1,7 @@
 package edu.brown.cs.systems.retro.aspects.cpu;
 
 import java.nio.channels.Selector;
+import java.util.concurrent.Future;
 import java.util.concurrent.locks.Condition;
 
 import edu.brown.cs.systems.retro.resources.Execution;
@@ -10,7 +11,8 @@ public aspect Sleeping {
   public pointcut AllMethods(): call(* Thread+.sleep(..)) ||
                                 call(* Object+.wait(..)) ||
                                 call(* Condition+.await*(..)) ||
-                                call(* Selector+.select(..));
+                                call(* Selector+.select(..)) ||
+                                call(* Future+.get(..));
   
   /**
    * Log whenever a thread sleeps or waits

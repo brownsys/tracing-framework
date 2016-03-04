@@ -1,6 +1,7 @@
 package edu.brown.cs.systems.retro.aspects.cpu;
 
 import edu.brown.cs.systems.baggage.Baggage;
+import edu.brown.cs.systems.baggage.DetachedBaggage;
 import edu.brown.cs.systems.retro.resources.CPUTracking;
 import edu.brown.cs.systems.retro.resources.Execution;
 import edu.brown.cs.systems.retro.throttling.ThrottlingPoint;
@@ -10,10 +11,10 @@ import edu.brown.cs.systems.retro.throttling.ThrottlingPoint;
  * @author jon */
 public aspect XTraceAPICalls {
 
-    void around(): call(void Baggage.start(..)) {
+    Object around(): call(void Baggage.start(..)) || call(DetachedBaggage Baggage.swap(..)) {
         Execution.CPU.finished(thisJoinPointStaticPart);
         try {
-            proceed();
+            return proceed();
         } finally {
             Execution.CPU.starting(thisJoinPointStaticPart);
         }
