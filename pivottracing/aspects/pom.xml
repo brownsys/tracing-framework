@@ -34,7 +34,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
-                <version>1.5</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -45,10 +44,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
-                    <complianceLevel>1.7</complianceLevel>
-                    <!--  <showWeaveInfo>true</showWeaveInfo>  -->
                     <sources>
                         <source>
                             <basedir>${basedir}/src/main/aspect</basedir>
@@ -64,10 +59,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-eclipse-plugin</artifactId>
-                <version>2.9</version>
-                <configuration>
-                    <ajdtVersion>1.5</ajdtVersion>
-                </configuration>
             </plugin>
         </plugins>
     </build>
