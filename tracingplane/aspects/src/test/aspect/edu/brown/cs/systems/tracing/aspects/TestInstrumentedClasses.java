@@ -59,15 +59,15 @@ public class TestInstrumentedClasses extends TestCase {
         Thread t8 = new Thread(t2);
         Thread t9 = new Thread(t3);
 
-        assertTrue(r1 instanceof InstrumentedRunnable);
-        assertTrue(r2 instanceof InstrumentedRunnable);
-        assertTrue(r3 instanceof InstrumentedRunnable);
-        assertTrue(t1 instanceof InstrumentedRunnable);
-        assertTrue(t2 instanceof InstrumentedRunnable);
-        assertTrue(t3 instanceof InstrumentedRunnable);
-        assertFalse(r4 instanceof InstrumentedRunnable);
-        assertFalse(r5 instanceof InstrumentedRunnable);
-        assertFalse(r6 instanceof InstrumentedRunnable);
+        assertTrue(r1 instanceof BaggageAdded);
+        assertTrue(r2 instanceof BaggageAdded);
+        assertTrue(r3 instanceof BaggageAdded);
+        assertTrue(t1 instanceof BaggageAdded);
+        assertTrue(t2 instanceof BaggageAdded);
+        assertTrue(t3 instanceof BaggageAdded);
+        assertFalse(r4 instanceof BaggageAdded);
+        assertFalse(r5 instanceof BaggageAdded);
+        assertFalse(r6 instanceof BaggageAdded);
 
         assertTrue(t4 instanceof InstrumentedThread);
         assertTrue(t5 instanceof InstrumentedThread);
