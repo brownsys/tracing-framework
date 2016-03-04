@@ -31,14 +31,14 @@ public class WrappedFuture<V> implements Future<V> {
 
     @Override
     public V get() throws InterruptedException, ExecutionException {
-        V v = wrapped.get();
+        V v = UnadvisedProxy.futureGet(wrapped);
         Baggage.join(instrumented.getSavedBaggage());
         return v;
     }
 
     @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        V v = wrapped.get(timeout, unit);
+        V v = UnadvisedProxy.futureGet(wrapped, timeout, unit);
         Baggage.join(instrumented.getSavedBaggage());
         return v;
     }
