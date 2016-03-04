@@ -12,7 +12,8 @@ public aspect Sleeping {
                                 call(* Object+.wait(..)) ||
                                 call(* Condition+.await*(..)) ||
                                 call(* Selector+.select(..)) ||
-                                call(* Future+.get(..));
+                                call(* Future+.get(..)) ||
+                                call(* Thread+.join(..));
   
   /**
    * Log whenever a thread sleeps or waits

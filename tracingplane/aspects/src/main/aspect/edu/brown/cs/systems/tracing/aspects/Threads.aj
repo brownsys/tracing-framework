@@ -50,8 +50,7 @@ public aspect Threads {
         }
     }
 
-    void around(Thread t): target(t) && call(void Thread+.join(..)) {
-        proceed(t);
+    after(Thread t): target(t) && call(void Thread+.join(..)) {
         try {
             XTraceReport.entering(thisJoinPointStaticPart);
             WrappedThread.join(t);
