@@ -80,22 +80,26 @@ public class TestLoggerWrapper extends TestCase {
     public void testLog4jLoggerIsWrapped() {
         Logger logger = LoggerFactory.getLogger(TestLoggerWrapper.class);
         assertTrue(Slf4jLoggerWrapper.class.equals(logger.getClass()));
+
+        TestLogger xtrace = new TestLogger();
+        ((Slf4jLoggerWrapper) logger).xtrace = xtrace;
         
-        assertNull(((Slf4jLoggerWrapper) logger).previousEntryPoint());
+        xtrace.check(0,0,0,0);
         logger.debug("Hello");
-        assertNotNull(((Slf4jLoggerWrapper) logger).previousEntryPoint());
-        assertNull(((Slf4jLoggerWrapper) logger).previousEntryPoint());
+        xtrace.check(0,0,1,0);
     }
 
     @Test
     public void testLog4jLoggerIsWrapped2() {
         Logger logger = LoggerFactory.getLogger("TestLoggerWrapper");
         assertTrue(Slf4jLoggerWrapper.class.equals(logger.getClass()));
+
+        TestLogger xtrace = new TestLogger();
+        ((Slf4jLoggerWrapper) logger).xtrace = xtrace;
         
-        assertNull(((Slf4jLoggerWrapper) logger).previousEntryPoint());
+        xtrace.check(0,0,0,0);
         logger.debug("Hello");
-        assertNotNull(((Slf4jLoggerWrapper) logger).previousEntryPoint());
-        assertNull(((Slf4jLoggerWrapper) logger).previousEntryPoint());
+        xtrace.check(0,0,1,0);
     }
     
 }
