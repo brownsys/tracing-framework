@@ -34,7 +34,7 @@ public abstract class MessageReader {
             if (sizeBuf.hasRemaining()) {
                 int numRead = channel.read(sizeBuf);
                 if (numRead == -1) {
-                    log.info("{} has reached end of stream", channel);
+                    log.debug("{} has reached end of stream", channel);
                     return false;
                 } else {
                     log.debug("Read {} length bytes", numRead);
@@ -58,7 +58,7 @@ public abstract class MessageReader {
             if (msgBuf.hasRemaining()) {
                 int numRead = channel.read(msgBuf);
                 if (numRead == -1) {
-                    log.info("{} has reached end of stream", channel);
+                    log.debug("{} has reached end of stream", channel);
                     return false;
                 } else {
                     log.debug("Read {} bytes of message, with {} remaining", numRead, msgBuf.remaining());

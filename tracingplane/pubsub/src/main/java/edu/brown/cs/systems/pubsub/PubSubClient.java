@@ -107,7 +107,7 @@ public class PubSubClient extends Thread {
     }
 
     public synchronized void subscribe(String topic, Subscriber<?> subscriber) {
-        log.info("Subscribing topic {}", topic);
+        log.debug("Subscribing topic {}", topic);
         ByteString topicBytes = ByteString.copyFrom(topic.getBytes());
         if (subscribers.put(topicBytes, subscriber)) {
             publish(CONTROL_TOPIC, ControlMessage.newBuilder().addTopicSubscribe(topicBytes).build());
@@ -115,7 +115,7 @@ public class PubSubClient extends Thread {
     }
 
     public synchronized void unsubscribe(String topic, Subscriber<?> subscriber) {
-        log.info("Subscribing topic {}", topic);
+        log.debug("Subscribing topic {}", topic);
         ByteString topicBytes = ByteString.copyFrom(topic.getBytes());
         subscribers.remove(topicBytes, subscriber);
         if (subscribers.get(topicBytes).size() == 0) {
@@ -179,7 +179,7 @@ public class PubSubClient extends Thread {
         TopicMessage subscriptions = null;
         synchronized (this) {
             if (subscribers.size() > 0) {
-                log.info("Sending existing subscriptions");
+                log.debug("Sending existing subscriptions");
                 ControlMessage.Builder msg = ControlMessage.newBuilder();
                 for (ByteString topic : subscribers.keySet()) {
                     msg.addTopicSubscribe(topic);
@@ -241,7 +241,7 @@ public class PubSubClient extends Thread {
                 } else if (k.isReadable()) {
                     log.debug("Reading");
                     if (!reader.read()) {
-                        log.info("Reader reached end of stream");
+                        log.debug("Reader reached end of stream");
                         k.cancel();
                         return;
                     }
@@ -256,7 +256,7 @@ public class PubSubClient extends Thread {
         SocketChannel channel = null;
         try {
             // Connect to the server synchronously
-            log.info("Attempting connection to {}:{} with {} pending messages", hostname, port, pending.size());
+            log.debug("Attempting connection to {}:{} with {} pending messages", hostname, port, pending.size());
             channel = SocketChannel.open(new InetSocketAddress(hostname, port));
 
             // Convert to non-blocking and run the main loop
@@ -287,7 +287,7 @@ public class PubSubClient extends Thread {
                     // Connection dropped or something like that. Sleep then try
                     // again
                     if (!Thread.currentThread().isInterrupted()) {
-                        log.info("Sleeping for 1 second");
+                        log.debug("Sleeping for 1 second");
                         Thread.sleep(1000);
                     }
                 }

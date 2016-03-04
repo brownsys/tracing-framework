@@ -56,13 +56,13 @@ public class PubSubServer extends Thread {
      */
     public PubSubServer(String hostname, int port) throws IOException {
         // Open the server socket, bind it, and make non-blocking
-        log.info("Opening server socket on hostname {}, port {}", hostname, port);
+        log.info("Creating server hostname {}, port {}", hostname, port);
         serverSocketChannel = ServerSocketChannel.open();
         serverSocketChannel.socket().bind(new InetSocketAddress(hostname, port));
         serverSocketChannel.configureBlocking(false);
 
         // Create selector
-        log.info("Creating and registering selector");
+        log.debug("Creating and registering selector");
         selector = Selector.open();
         serverKey = serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
     }
@@ -109,7 +109,7 @@ public class PubSubServer extends Thread {
      *             connection
      */
     private void ServerThreadMain() throws IOException {
-        log.info("Running main thread");
+        log.debug("Running main thread");
         while (!Thread.currentThread().isInterrupted()) {
             // Wait for something
             selector.select();
@@ -133,7 +133,7 @@ public class PubSubServer extends Thread {
                             // client
                         }
                     }
-                    log.warn("Acceptable channel {} could not accept", k);
+                    log.debug("Acceptable channel {} could not accept", k);
                     continue;
                 }
 
@@ -142,23 +142,23 @@ public class PubSubServer extends Thread {
                 try {
                     client = (ConnectedClient) k.attachment();
                 } catch (ClassCastException e) {
-                    log.warn("No connected client for key {}: {}", k, e);
-                    log.info("Cancelling key {}", k);
+                    log.debug("No connected client for key {}: {}", k, e);
+                    log.debug("Cancelling key {}", k);
                     k.cancel();
                     continue;
                 }
 
                 // Not sure when this could happen, but just in case...
                 if (client == null) {
-                    log.warn("No connected client for key {}", k);
-                    log.info("Cancelling key {}", k);
+                    log.debug("No connected client for key {}", k);
+                    log.debug("Cancelling key {}", k);
                     k.cancel();
                     continue;
                 }
 
                 // If key is no longer valid, remove the client
                 if (!k.isValid()) {
-                    log.info("Closing client with invalid key {}: {}", k, client);
+                    log.debug("Closing client with invalid key {}: {}", k, client);
                     client.close();
                     continue;
                 }
@@ -222,13 +222,25 @@ public class PubSubServer extends Thread {
 
         // Do unsubscribes
         for (ByteString unsubscribe : message.getTopicUnsubscribeList()) {
-            log.info("{} unsubscribing from {}", client, unsubscribe);
+            if (log.isInfoEnabled()) {
+                if (unsubscribe.isValidUtf8()) {
+                    log.info("{} unsubscribing from {}", client, unsubscribe.toStringUtf8());
+                } else {
+                    log.info("{} unsubscribing from {}", client, unsubscribe);
+                }
+            }
             subscriptions.remove(client, unsubscribe);
         }
 
         // Do subscribes
         for (ByteString subscribe : message.getTopicSubscribeList()) {
-            log.info("{} subscribing to {}", client, subscribe.toByteArray());
+            if (log.isInfoEnabled()) {
+                if (subscribe.isValidUtf8()) {
+                    log.info("{} subscribing to {}", client, subscribe.toStringUtf8());
+                } else {
+                    log.info("{} subscribing to {}", client, subscribe);
+                }
+            }
             subscriptions.put(client, subscribe, true);
         }
     }
