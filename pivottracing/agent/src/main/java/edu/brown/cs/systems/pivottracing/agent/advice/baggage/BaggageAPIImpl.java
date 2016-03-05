@@ -144,6 +144,12 @@ public class BaggageAPIImpl implements BaggageAPI {
             }
         }
 
+        public void preSerialize(BaggageImpl baggage) {
+        }
+
+        public void postDeserialize(BaggageImpl baggage) {
+        }
+
     }
 
 }

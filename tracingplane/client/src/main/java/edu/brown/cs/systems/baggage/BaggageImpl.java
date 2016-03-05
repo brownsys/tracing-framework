@@ -89,12 +89,17 @@ public class BaggageImpl {
             return null;
         }
 
-        return new BaggageImpl(data);
+        BaggageImpl impl = new BaggageImpl(data);
+        Handlers.postDeserialize(impl);
+        return impl;
     }
 
     /** Constructs a {@link BaggageMessage} protobuf message with the contents of this baggage. If this baggage is
      * empty, returns null */
     BaggageMessage buildMessage() {
+        // Call baggage handlers
+        Handlers.preSerialize(this);
+        
         // Construct message
         BaggageMessage.Builder b = BaggageMessage.newBuilder();
         for (ByteString namespace : contents.keySet()) {

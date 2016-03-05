@@ -24,6 +24,12 @@ public class Handlers {
         
         /** Invoked just after two baggages were joined */
         public void postJoin(BaggageImpl current);
+        
+        /** Invoked just before a baggage is about to be serialized */
+        public void preSerialize(BaggageImpl baggage);
+        
+        /** Invoked just after a baggage was deserialized */
+        public void postDeserialize(BaggageImpl baggage);
 
     }
 
@@ -75,6 +81,22 @@ public class Handlers {
         for (BaggageHandler handler : handlers) {
             try {
                 handler.postJoin(current);
+            } catch (Throwable t) {}
+        }
+    }
+    
+    static void preSerialize(BaggageImpl baggage) {
+        for (BaggageHandler handler : handlers) {
+            try {
+                handler.preSerialize(baggage);
+            } catch (Throwable t) {}
+        }
+    }
+    
+    static void postDeserialize(BaggageImpl baggage) {
+        for (BaggageHandler handler : handlers) {
+            try {
+                handler.postDeserialize(baggage);
             } catch (Throwable t) {}
         }
     }
