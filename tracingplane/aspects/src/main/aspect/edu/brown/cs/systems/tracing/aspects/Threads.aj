@@ -51,7 +51,7 @@ public aspect Threads {
         }
     }
 
-    after(Thread t): target(t) && call(void Thread+.join(..)) {
+    after(Thread t): target(t) && call(* Thread+.join(..)) {
         try {
             XTraceReport.entering(thisJoinPointStaticPart);
             Baggage.join(WrappedThread.getSavedBaggage(t));
