@@ -5,14 +5,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import edu.brown.cs.systems.baggage.DetachedBaggage;
-
 public class WrappedFuture<V> implements Future<V> {
 
-    private final Future<V> wrapped;
-    private final BaggageAdded instrumented;
+    public final Future<V> wrapped;
+    public final RunContext instrumented;
 
-    public WrappedFuture(Future<V> wrapped, BaggageAdded instrumented) {
+    public WrappedFuture(Future<V> wrapped, RunContext instrumented) {
         this.wrapped = wrapped;
         this.instrumented = instrumented;
     }
@@ -37,17 +35,6 @@ public class WrappedFuture<V> implements Future<V> {
     @Override
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return wrapped.get(timeout, unit);
-    }
-
-    /** Try to get the baggage saved with this future */
-    public static DetachedBaggage getSavedBaggage(Future f) {
-        if (f instanceof WrappedFuture) {
-            return ((WrappedFuture) f).instrumented.getSavedBaggage();
-        } else if (f instanceof BaggageAdded) {
-            return ((BaggageAdded) f).getSavedBaggage();
-        } else {
-            return null;
-        }
     }
 
 }

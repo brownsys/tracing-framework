@@ -8,66 +8,67 @@ import java.util.concurrent.Future;
 import org.junit.Test;
 
 import edu.brown.cs.systems.tracing.aspects.Annotations.BaggageInheritanceDisabled;
+import edu.brown.cs.systems.tracing.aspects.RunnablesCallablesThreads.InstrumentedExecution;
 import junit.framework.TestCase;
 
 /** Tests to see whether wrapper classes are correctly created */
-public class TestInstrumentedClasses extends TestCase {
+public class TestInstrumentedClassesPublic extends TestCase {
     
-    private static class TestCallable<T> implements Callable<T> {
+    public static class TestCallable<T> implements Callable<T> {
         public T call() {
             return null;
         }
     }
     
-    private static class TestCallable2<T> extends TestCallable<T> {
+    public static class TestCallable2<T> extends TestCallable<T> {
     }
     
-    private static class TestCallable3<T> extends TestCallable<T> {
+    public static class TestCallable3<T> extends TestCallable<T> {
         public T call() {
             return null;
         }
     }
     
     @BaggageInheritanceDisabled
-    private static class TestNonTraceCallable<T> implements Callable<T> {
+    public static class TestNonTraceCallable<T> implements Callable<T> {
         public T call(){
             return null;
         }
     }
     
-    private static class TestNonTraceCallable2<T> extends TestNonTraceCallable<T> {
+    public static class TestNonTraceCallable2<T> extends TestNonTraceCallable<T> {
     }
     
-    private static class TestNonTraceCallable3<T> extends TestNonTraceCallable<T> {
+    public static class TestNonTraceCallable3<T> extends TestNonTraceCallable<T> {
         public T call() {
             return null;
         }
     }
 
-    private static class TestRunnable implements Runnable {
+    public static class TestRunnable implements Runnable {
         public void run() {
         }
     }
 
-    private static class TestRunnable2 extends TestRunnable {
+    public static class TestRunnable2 extends TestRunnable {
     }
 
-    private static class TestThread extends Thread {
+    public static class TestThread extends Thread {
     }
 
-    private static class TestThread2 extends TestThread {
+    public static class TestThread2 extends TestThread {
     }
     
     @BaggageInheritanceDisabled
-    private static class TestNonTraceRunnable implements Runnable {
+    public static class TestNonTraceRunnable implements Runnable {
         public void run() {
         }
     }
 
-    private static class TestNonTraceRunnable2 extends TestNonTraceRunnable{}
+    public static class TestNonTraceRunnable2 extends TestNonTraceRunnable{}
     
     @BaggageInheritanceDisabled
-    private static class TestNonTraceRunnable3 extends TestNonTraceRunnable{}
+    public static class TestNonTraceRunnable3 extends TestNonTraceRunnable{}
 
     @Test
     public void testRunnables() {
@@ -95,22 +96,34 @@ public class TestInstrumentedClasses extends TestCase {
         Thread t8 = new Thread(t2);
         Thread t9 = new Thread(t3);
 
-        assertTrue(r1 instanceof BaggageAdded);
-        assertTrue(r2 instanceof BaggageAdded);
-        assertTrue(r3 instanceof BaggageAdded);
-        assertTrue(t1 instanceof BaggageAdded);
-        assertTrue(t2 instanceof BaggageAdded);
-        assertTrue(t3 instanceof BaggageAdded);
-        assertFalse(r4 instanceof BaggageAdded);
-        assertFalse(r5 instanceof BaggageAdded);
-        assertFalse(r6 instanceof BaggageAdded);
+        assertTrue(r1 instanceof InstrumentedExecution);
+        assertTrue(r2 instanceof InstrumentedExecution);
+        assertTrue(r3 instanceof InstrumentedExecution);
+        assertTrue(t1 instanceof InstrumentedExecution);
+        assertTrue(t2 instanceof InstrumentedExecution);
+        assertTrue(t3 instanceof InstrumentedExecution);
+        assertFalse(r4 instanceof InstrumentedExecution);
+        assertFalse(r5 instanceof InstrumentedExecution);
+        assertFalse(r6 instanceof InstrumentedExecution);
 
+        assertTrue(t4 instanceof InstrumentedExecution);
+        assertTrue(t5 instanceof InstrumentedExecution);
+        assertTrue(t6 instanceof InstrumentedExecution);
+        assertTrue(t7 instanceof InstrumentedExecution);
+        assertTrue(t8 instanceof InstrumentedExecution);
+        assertTrue(t9 instanceof InstrumentedExecution);
         assertTrue(t4 instanceof WrappedThread);
         assertTrue(t5 instanceof WrappedThread);
         assertTrue(t6 instanceof WrappedThread);
         assertTrue(t7 instanceof WrappedThread);
         assertTrue(t8 instanceof WrappedThread);
         assertTrue(t9 instanceof WrappedThread);
+        assertTrue(TracingplaneAspectUtils.getRunnable(t4) instanceof InstrumentedExecution);
+        assertTrue(TracingplaneAspectUtils.getRunnable(t5) instanceof InstrumentedExecution);
+        assertTrue(TracingplaneAspectUtils.getRunnable(t6) instanceof InstrumentedExecution);
+        assertTrue(TracingplaneAspectUtils.getRunnable(t7) instanceof InstrumentedExecution);
+        assertTrue(TracingplaneAspectUtils.getRunnable(t8) instanceof InstrumentedExecution);
+        assertTrue(TracingplaneAspectUtils.getRunnable(t9) instanceof InstrumentedExecution);
 
         Callable<Object> c1 = new TestCallable<>();
         Callable<Object> c2 = new TestCallable2<>();
@@ -119,12 +132,12 @@ public class TestInstrumentedClasses extends TestCase {
         Callable<Object> c5 = new TestNonTraceCallable2<>();
         Callable<Object> c6 = new TestNonTraceCallable3<>();
 
-        assertTrue(c1 instanceof BaggageAdded);
-        assertTrue(c2 instanceof BaggageAdded);
-        assertTrue(c3 instanceof BaggageAdded);
-        assertFalse(c4 instanceof BaggageAdded);
-        assertFalse(c5 instanceof BaggageAdded);
-        assertFalse(c6 instanceof BaggageAdded);
+        assertTrue(c1 instanceof InstrumentedExecution);
+        assertTrue(c2 instanceof InstrumentedExecution);
+        assertTrue(c3 instanceof InstrumentedExecution);
+        assertFalse(c4 instanceof InstrumentedExecution);
+        assertFalse(c5 instanceof InstrumentedExecution);
+        assertFalse(c6 instanceof InstrumentedExecution);
         
         ExecutorService s = Executors.newFixedThreadPool(1);
 
