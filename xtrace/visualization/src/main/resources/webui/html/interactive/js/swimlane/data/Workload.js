@@ -142,7 +142,7 @@ var XSpan = function(thread, id, reports) {
 	this.start = this.events[0].Timestamp();
 	this.end = this.events[this.events.length-1].Timestamp();
   this.hddevents = this.Events().filter(function(event) { return event.report.Operation && event.report.Operation.substring(0, 4)=="file"; });
-  this.networkevents = this.Events().filter(function(event) { return event.report.Operation && event.report.Operation.substring(0, 3)=="net"; }); 
+  this.networkevents = this.Events().filter(function(event) { return event.report.Operation && (event.report.Operation.startsWith("net") || event.report.Operation.startsWith("loopback")); }); 
 };
 PrototypeBuilder().getter("Events").accessors(["HDDEvents","NetworkEvents"]).mappers(["Edges"])(XSpan);
 

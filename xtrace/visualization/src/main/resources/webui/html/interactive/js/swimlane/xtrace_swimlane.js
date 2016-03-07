@@ -39,7 +39,7 @@ function XTraceSwimLane(attachPoint, tasksdata, gcdata, /*optional*/ params) {
 	/* When the viewing area is scaled with the brush */
 	function onbrush() {
 		if (d3.event.mode=="resize")
-			brush.extent([brush.extent()[0], Math.max(brush.extent()[1], brush.extent()[0]+5)]);
+			brush.extent([brush.extent()[0], brush.extent()[1]]);
 		refresh();
 	}
 	
