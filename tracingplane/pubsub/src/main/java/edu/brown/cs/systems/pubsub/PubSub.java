@@ -10,6 +10,10 @@ import edu.brown.cs.systems.pubsub.PubSubClient.Subscriber;
 import edu.brown.cs.systems.pubsub.PubSubProtos.StringMessage;
 
 public class PubSub {
+    
+    public static void main(String[] args) {
+        client();
+    }
 
     private static PubSubClient defaultClient = null;
 
@@ -19,8 +23,9 @@ public class PubSub {
             String hostname = conf.getString("pubsub.server.hostname");
             int port = conf.getInt("pubsub.server.port");
             int maxPendingMessages = conf.getInt("pubsub.client.maxPendingMessages");
+            boolean daemon = conf.getBoolean("pubsub.client.daemon");
             try {
-                defaultClient = startClient(hostname, port, maxPendingMessages, false);
+                defaultClient = startClient(hostname, port, maxPendingMessages, daemon);
             } catch (IOException e) {
                 e.printStackTrace();
             }

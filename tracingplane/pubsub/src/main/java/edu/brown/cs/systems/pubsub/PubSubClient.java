@@ -66,6 +66,11 @@ public class PubSubClient extends Thread {
             this.pending = Queues.newLinkedBlockingDeque(maxPendingMessages);
         }
         this.selector = Selector.open();
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                close();
+            }
+        });
     }
 
     /** Close this client's connection to the server and terminate the client thread */

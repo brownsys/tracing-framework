@@ -3,12 +3,14 @@ package edu.brown.cs.systems.pivottracing.agent.advice.output;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.MoreExecutors;
 
 import edu.brown.cs.systems.pivottracing.PTAgentProtos.AgentInfo;
 import edu.brown.cs.systems.pivottracing.ResultsProtos.QueryResults;
@@ -20,8 +22,11 @@ import edu.brown.cs.systems.pubsub.PubSub;
 public class EmitAPIImpl implements EmitAPI, Runnable {
 
     private static final Logger log = LoggerFactory.getLogger(EmitAPIImpl.class);
-    private static final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
     
+    // Runs threads as daemon threads, but ensures runnables finish before exiting
+    private static final ScheduledExecutorService exec = MoreExecutors.getExitingScheduledExecutorService(
+            (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1), 2, TimeUnit.SECONDS);
+
     final Set<EmitImpl> emits = Sets.newCopyOnWriteArraySet(); // Active emits that haven't been destroyed yet
     public final long reportInterval;
     public final String reportsTopic;
@@ -32,6 +37,7 @@ public class EmitAPIImpl implements EmitAPI, Runnable {
         this.reportsTopic = reportsTopic;
         this.emitIfNoResults = emitIfNoResults;
         exec.scheduleAtFixedRate(this, reportInterval, reportInterval, TimeUnit.MILLISECONDS);
+        Runtime.getRuntime().addShutdownHook(new Thread(this)); // Also publish once on shutdown
     }
 
     @Override
@@ -52,7 +58,7 @@ public class EmitAPIImpl implements EmitAPI, Runnable {
     public void destroy(Emit emit) {
         emits.remove(emit);
     }
-    
+
     @Override
     public void run() {
         AgentInfo agentInfo = PTAgent.getAgentInfo();
@@ -68,7 +74,7 @@ public class EmitAPIImpl implements EmitAPI, Runnable {
             }
         }
     }
-    
+
     /** Base class for Emits */
     static abstract class EmitImpl implements Emit {
         public abstract QueryResults getResults(AgentInfo agentInfo, long timestamp);

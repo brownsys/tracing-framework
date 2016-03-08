@@ -61,10 +61,10 @@ public class AsyncFileWriter {
   
   public AsyncFileWriter(String filename) throws IOException {
     this.writer = new FileWriter(filename);
-    this.writeThread.start();
-    this.flushThread.start();
     this.writeThread.setDaemon(true);
     this.flushThread.setDaemon(true);
+    this.writeThread.start();
+    this.flushThread.start();
   }
 
   public void write(Object o) {
