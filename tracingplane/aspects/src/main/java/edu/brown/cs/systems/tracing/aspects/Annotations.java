@@ -15,4 +15,16 @@ public class Annotations {
     @Retention(RetentionPolicy.RUNTIME)
     public @interface BaggageInheritanceDisabled {}
 
+    /** Indicate that the tagged class contains queues that should be instrumented */
+    @Inherited
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface InstrumentQueues {}
+
+    /** Indicate that the tagged class is a queue element type used in conjunction with an instrumented queue */
+    @Inherited
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface InstrumentedQueueElement {}
+
 }
