@@ -41,7 +41,9 @@ public aspect Queues {
 
     declare parents: (@InstrumentedQueueElement Object)+ implements QueueElementWithBaggage;
     
-    before(QueueElementWithBaggage e): args(e,..) && within(@InstrumentQueues *) && call(* BlockingQueue+.add(..)) {
+    before(QueueElementWithBaggage e): args(e,..) && within(@InstrumentQueues *) && (
+            call(* BlockingQueue+.add(..)) || call(* BlockingQueue+.offer(..)) || call(* BlockingQueue+.put(..))
+            ) {
         e.attachProvidedBaggage(Baggage.fork());
     }
     
