@@ -2,6 +2,7 @@ package edu.brown.cs.systems.xtrace.logging;
 
 import edu.brown.cs.systems.tracing.Utils;
 import edu.brown.cs.systems.xtrace.XTrace;
+import edu.brown.cs.systems.xtrace.XTraceBaggageInterface;
 import edu.brown.cs.systems.xtrace.XTraceSettings;
 
 /**
@@ -10,11 +11,11 @@ import edu.brown.cs.systems.xtrace.XTraceSettings;
 public aspect XTraceInit {
 
     before(): execution(public static void main(String[])) {
-        if (XTraceSettings.traceMainMethods()) {
+        if (!XTraceBaggageInterface.hasTaskID() && XTraceSettings.traceMainMethods()) {
             XTrace.startTask(true);
             XTrace.setLoggingLevel(XTraceSettings.mainMethodLoggingLevel());
-            XTrace.getLogger(XTraceInit.class).tag(thisJoinPointStaticPart, "Process main method begin", Utils.getMainClass().getSimpleName(), "main");
         }
+        XTrace.getLogger(XTraceInit.class).tag(thisJoinPointStaticPart, "Process main method begin", Utils.getMainClass().getSimpleName(), "main");
     }
 
 }
