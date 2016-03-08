@@ -4,8 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import com.typesafe.config.Config;
 
 import edu.brown.cs.systems.pubsub.PubSub;
@@ -20,10 +22,13 @@ import edu.brown.cs.systems.retro.aggregation.aggregators.ResourceAggregator;
  * @author a-jomace
  */
 public class PubSubReporter implements Runnable, Reporter {
+    
+    // Runs threads as daemon threads, but ensures runnables finish before exiting
+    private static final ScheduledExecutorService executor = MoreExecutors.getExitingScheduledExecutorService(
+            (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(1), 2, TimeUnit.SECONDS);
 
     private final Config config;
     private final String immediateReportTopic;
-    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private final Map<ResourceAggregator, String> resources = new HashMap<ResourceAggregator, String>();
 
     public PubSubReporter(Config config) {
@@ -40,6 +45,8 @@ public class PubSubReporter implements Runnable, Reporter {
         // Schedule at a fixed rate
         executor.scheduleAtFixedRate(this, initial_delay, interval, TimeUnit.MILLISECONDS);
         System.out.println("Resource reporting executor started");
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(this)); // Also publish once on shutdown
     }
 
     @Override
