@@ -9,13 +9,19 @@ import edu.brown.cs.systems.xtrace.XTraceSettings;
  * Adds an X-Trace start event in any main method
  */
 public aspect XTraceInit {
+    
+    public static final XTraceLogger xtrace = XTrace.getLogger(XTraceInit.class);
 
     before(): execution(public static void main(String[])) {
         if (!XTraceBaggageInterface.hasTaskID() && XTraceSettings.traceMainMethods()) {
             XTrace.startTask(true);
             XTrace.setLoggingLevel(XTraceSettings.mainMethodLoggingLevel());
         }
-        XTrace.getLogger(XTraceInit.class).tag(thisJoinPointStaticPart, "Process main method begin", Utils.getMainClass().getSimpleName(), "main");
+        xtrace.tag(thisJoinPointStaticPart, "Process main method begin", Utils.getMainClass().getSimpleName(), "main");
+    }
+    
+    after(): call(* Thread+.setName(..)) && if(xtrace.valid()) {
+        xtrace.log(thisJoinPointStaticPart, "Thread.setName()", "ThreadName", Thread.currentThread().getName());
     }
 
 }

@@ -5,6 +5,7 @@ import com.google.protobuf.ByteString;
 import edu.brown.cs.systems.baggage.Baggage;
 import edu.brown.cs.systems.baggage.DetachedBaggage;
 import edu.brown.cs.systems.xtrace.XTrace;
+import edu.brown.cs.systems.xtrace.XTraceBaggageInterface;
 
 /** Invoke X-Trace APIs when baggage is set and unset */
 public aspect BaggageWrappers {
@@ -41,7 +42,7 @@ public aspect BaggageWrappers {
 //    }
     
     before(): call(DetachedBaggage Baggage.fork()) && if(xtrace.valid()) {
-        xtrace.log(thisJoinPointStaticPart, "Forking current baggage with Baggage.fork()");
+        xtrace.log(thisJoinPointStaticPart, "Forking current baggage with Baggage.fork()", "Operation", "fork");
     }
     
     after(): (
@@ -50,7 +51,9 @@ public aspect BaggageWrappers {
             call(void Baggage.join(byte[])) ||
             call(void Baggage.join(String))
             ) && if(xtrace.valid()) {
-        xtrace.log(thisJoinPointStaticPart, "Merged current baggage with other baggage");
+        if (XTraceBaggageInterface.getParentEventIds().size() > 1) {
+            xtrace.log(thisJoinPointStaticPart, "Merged current baggage with other baggage", "Operation", "join");
+        }
     }
     
 }
