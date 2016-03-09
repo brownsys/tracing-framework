@@ -95,301 +95,351 @@ public class Slf4jLoggerWrapper implements Logger {
     @Override
     public void trace(String msg) {
         logger.trace(msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void trace(String format, Object arg) {
         logger.trace(format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void trace(String format, Object arg1, Object arg2) {
         logger.trace(format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void trace(String format, Object... arguments) {
         logger.trace(format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void trace(String msg, Throwable t) {
         logger.trace(msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void trace(Marker marker, String msg) {
         logger.trace(marker, msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg) {
         logger.trace(marker, format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg1, Object arg2) {
         logger.trace(marker, format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void trace(Marker marker, String format, Object... arguments) {
         logger.trace(marker, format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void trace(Marker marker, String msg, Throwable t) {
         logger.trace(marker, msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.TRACE))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void debug(String msg) {
         logger.debug(msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void debug(String format, Object arg) {
         logger.debug(format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void debug(String format, Object arg1, Object arg2) {
         logger.debug(format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void debug(String format, Object... arguments) {
         logger.debug(format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void debug(String msg, Throwable t) {
         logger.debug(msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void debug(Marker marker, String msg) {
         logger.debug(marker, msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg) {
         logger.debug(marker, format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg1, Object arg2) {
         logger.debug(marker, format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void debug(Marker marker, String format, Object... arguments) {
         logger.debug(marker, format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void debug(Marker marker, String msg, Throwable t) {
         logger.debug(marker, msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.DEBUG))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void info(String msg) {
         logger.info(msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void info(String format, Object arg) {
         logger.info(format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void info(String format, Object arg1, Object arg2) {
         logger.info(format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void info(String format, Object... arguments) {
         logger.info(format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void info(String msg, Throwable t) {
         logger.info(msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void info(Marker marker, String msg) {
         logger.info(marker, msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg) {
         logger.info(marker, format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void info(Marker marker, String format, Object arg1, Object arg2) {
         logger.info(marker, format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void info(Marker marker, String format, Object... arguments) {
         logger.info(marker, format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void info(Marker marker, String msg, Throwable t) {
         logger.info(marker, msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.INFO))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void warn(String msg) {
         logger.warn(msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void warn(String format, Object arg) {
         logger.warn(format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void warn(String format, Object... arguments) {
         logger.warn(format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void warn(String format, Object arg1, Object arg2) {
         logger.warn(format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void warn(String msg, Throwable t) {
         logger.warn(msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void warn(Marker marker, String msg) {
         logger.warn(marker, msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg) {
         logger.warn(marker, format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg1, Object arg2) {
         logger.warn(marker, format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void warn(Marker marker, String format, Object... arguments) {
         logger.warn(marker, format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void warn(Marker marker, String msg, Throwable t) {
         logger.warn(marker, msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.WARN))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void error(String msg) {
         logger.error(msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void error(String format, Object arg) {
         logger.error(format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void error(String format, Object arg1, Object arg2) {
         logger.error(format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void error(String format, Object... arguments) {
         logger.error(format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void error(String msg, Throwable t) {
         logger.error(msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void error(Marker marker, String msg) {
         logger.error(marker, msg);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg) {
         logger.error(marker, format, arg);
-        xtrace.log(previousEntryPoint(), format(format, arg));
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), format(format, arg));
     }
 
     @Override
     public void error(Marker marker, String format, Object arg1, Object arg2) {
         logger.error(marker, format, arg1, arg2);
-        xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), format(format, arg1, arg2));
     }
 
     @Override
     public void error(Marker marker, String format, Object... arguments) {
         logger.error(marker, format, arguments);
-        xtrace.log(previousEntryPoint(), format(format, arguments));
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), format(format, arguments));
     }
 
     @Override
     public void error(Marker marker, String msg, Throwable t) {
         logger.error(marker, msg, t);
-        xtrace.log(previousEntryPoint(), msg);
+        if (xtrace.valid(XTraceLoggingLevel.ERROR))
+            xtrace.log(previousEntryPoint(), msg);
     }
 
 }
