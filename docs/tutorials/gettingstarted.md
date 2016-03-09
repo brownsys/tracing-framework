@@ -70,3 +70,26 @@ You should expect to see messages in the output stream along the lines of the fo
 
 Again, check which Java processes are running using the `jps` command.  In addition to `XTraceServer`, you should expect to see `NameNode` and `DataNode`
 For reference, HDFS runs a Web UI by default at [localhost:50070](http://localhost:50070).
+
+### Optional: Start HDFS with multiple DataNodes
+
+A more interesting HDFS setup will have you running one NameNode process and multiple DataNode processes.  This can be done on the same machine, however, you must specify configurations for each datanode you start (otherwise they might try to use the same data directory, for example).  The following script will start multiple datanodes.  Change the `NUM_DATANODES` and `BASE_DATA_DIR` variables as appropriate.
+
+
+    NUM_DATANODES=3;
+    BASE_DATA_DIR=/Users/jon/deploy
+
+    echo "===== Starting HDFS with $NUM_DATANODES datanodes =====";
+    ${HADOOP_HOME}/sbin/hadoop-daemon.sh start namenode;
+
+    for i in $(seq $NUM_DATANODES) 
+    do
+      export HADOOP_LOG_DIR=$BASE_DATA_DIR/logs/datanode_$i
+      export HADOOP_PID_DIR=$BASE_DATA_DIR/pid/datanode_$i
+      export HADOOP_OPTS="\
+        -Dhadoop.tmp.dir=$BASE_DATA_DIR/data/datanode_$i \
+        -Ddfs.datanode.address=0.0.0.0:5001$i \
+        -Ddfs.datanode.http.address=0.0.0.0:5008$i \
+        -Ddfs.datanode.ipc.address=0.0.0.0:5002$i"
+      ${HADOOP_HOME}/sbin/hadoop-daemon.sh --script bin/hdfs start datanode $HADOOP_OPTS
+    done
