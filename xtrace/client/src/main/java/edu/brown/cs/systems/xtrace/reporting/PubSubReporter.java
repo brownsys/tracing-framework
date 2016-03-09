@@ -24,6 +24,21 @@ public class PubSubReporter extends Thread implements XTraceReporter {
      * server via the default PubSub server
      */
     public PubSubReporter() {
+        setDaemon(true);
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                close();
+            }
+        });
+    }
+    
+    public void close() {
+        try {
+            this.interrupt();
+            this.join();
+        } catch (InterruptedException e) {
+            // return;
+        }
     }
 
     /**
@@ -53,6 +68,12 @@ public class PubSubReporter extends Thread implements XTraceReporter {
         } catch (InterruptedException e) {
             // Do nothing and return
             log.warn("Publisher thread interrupted {}", e);
+        }
+        
+        // Drain reports
+        XTraceReport report;
+        while ((report = outgoing.poll()) != null) {
+            PubSub.publish(topic, report.builder.build());
         }
 
         log.info("PubSubReporter complete");
