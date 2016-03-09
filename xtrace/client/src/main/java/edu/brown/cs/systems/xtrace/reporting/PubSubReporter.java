@@ -67,7 +67,6 @@ public class PubSubReporter extends Thread implements XTraceReporter {
             }
         } catch (InterruptedException e) {
             // Do nothing and return
-            log.warn("Publisher thread interrupted {}", e);
         }
         
         // Drain reports
@@ -76,7 +75,7 @@ public class PubSubReporter extends Thread implements XTraceReporter {
             PubSub.publish(topic, report.builder.build());
         }
 
-        log.info("PubSubReporter complete");
+        log.info("X-Trace PubSubReporter ending");
     }
 
 }
