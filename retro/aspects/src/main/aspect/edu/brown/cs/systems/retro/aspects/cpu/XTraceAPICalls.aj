@@ -14,8 +14,8 @@ public aspect XTraceAPICalls {
     before(): call(void Baggage.start(..)) || call(DetachedBaggage Baggage.swap(..)) {
         Execution.CPU.finished(thisJoinPointStaticPart);
     }
-
-    after(): call(void Baggage.start(..)) || call(DetachedBaggage Baggage.swap(..)) || call(* Baggage.join(..)) {
+    
+    after(): call(void Baggage.start(..)) || call(DetachedBaggage Baggage.swap(..)) {
         Execution.CPU.starting(thisJoinPointStaticPart);
     }
 
