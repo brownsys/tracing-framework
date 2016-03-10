@@ -85,13 +85,13 @@ public aspect YarnStateMachines {
     static java.lang.reflect.Method shellCommandExecutorGetExecString = null;
     static {
         try {
-            Class<?> shellCommandExecutorClass = Class.forName("org.apache.hadoop.util.shell.ShellCommandExecutor");
+            Class<?> shellCommandExecutorClass = Class.forName("org.apache.hadoop.util.Shell.ShellCommandExecutor");
             shellCommandExecutorGetExecString = shellCommandExecutorClass.getMethod("getExecString");
         } catch (Throwable t) {
         }
     }
     
-    before(Object o): target(o) && call(void org.apache.hadoop.util.shell.ShellCommandExecutor+.execute()) && if(xtrace.valid()) {
+    before(Object o): target(o) && call(void org.apache.hadoop.util.Shell.ShellCommandExecutor+.execute()) && if(xtrace.valid()) {
         try {
             String[] execString = (String[]) shellCommandExecutorGetExecString.invoke(o);
             xtrace.log(thisJoinPointStaticPart, StringUtils.join(execString, " "));

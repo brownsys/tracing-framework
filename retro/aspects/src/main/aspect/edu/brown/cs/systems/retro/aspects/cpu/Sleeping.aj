@@ -1,7 +1,9 @@
 package edu.brown.cs.systems.retro.aspects.cpu;
 
 import java.nio.channels.Selector;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 
 import edu.brown.cs.systems.retro.resources.Execution;
@@ -13,6 +15,8 @@ public aspect Sleeping {
                                 call(* Condition+.await*(..)) ||
                                 call(* Selector+.select(..)) ||
                                 call(* Future+.get(..)) ||
+                                call(* CompletionService+.poll(long, TimeUnit+)) ||
+                                call(* CompletionService+.take(..)) ||
                                 call(* Thread+.join(..));
   
   /**
