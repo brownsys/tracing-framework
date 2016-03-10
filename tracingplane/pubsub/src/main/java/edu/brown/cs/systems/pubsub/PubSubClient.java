@@ -209,7 +209,7 @@ public class PubSubClient extends Thread {
             k.interestOps(ops);
 
             // Wait until we can do something
-            selector.select();
+            selector.select(1000);
 
             // Deal with keys
             Iterator<SelectionKey> it = selector.selectedKeys().iterator();

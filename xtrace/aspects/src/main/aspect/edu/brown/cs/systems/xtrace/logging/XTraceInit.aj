@@ -20,8 +20,8 @@ public aspect XTraceInit {
         xtrace.tag(thisJoinPointStaticPart, "Process main method begin", Utils.getMainClass().getSimpleName(), "main");
     }
     
-    after(): call(* Thread+.setName(..)) && if(xtrace.valid()) {
-        xtrace.log(thisJoinPointStaticPart, "Thread.setName()", "ThreadName", Thread.currentThread().getName());
+    after(Thread t): target(t) && call(* Thread+.setName(..)) && if(xtrace.valid()) {
+        xtrace.log(thisJoinPointStaticPart, "Thread.setName: " + t.getName());
     }
 
 }

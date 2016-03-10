@@ -4,7 +4,7 @@ import edu.brown.cs.systems.xtrace.XTraceBaggageInterface;
 
 public enum XTraceLoggingLevel {
     
-    FATAL, ERROR, WARN, TRACE, INFO, DEBUG;
+    FATAL, ERROR, WARN, INFO, TRACE, DEBUG;
     
     public boolean valid() {
         return XTraceBaggageInterface.getLoggingLevel().ordinal() >= this.ordinal();

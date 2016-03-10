@@ -57,6 +57,7 @@
                             <basedir>${basedir}/src/main/aspect</basedir>
                             <includes>
                                 <include>edu/brown/cs/systems/xtrace/logging/*.aj</include>
+                                <include>edu/brown/cs/systems/xtrace/hadoop/*.aj</include>
                             </includes>
                         </source>
                     </sources>
