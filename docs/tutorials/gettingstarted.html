@@ -296,6 +296,25 @@ ZmqReporter: CPU- -&gt; cpu
 /META-INF/lib/libthreadcputimer.dylib extracted to temporary file /var/folders/d3/38f0syys5yjcvynz8p4n3t4w0000gn/T/jni_file_2410736199844535966.dll</code></pre>
 <p>Again, check which Java processes are running using the <code>jps</code> command.  In addition to <code>XTraceServer</code>, you should expect to see <code>NameNode</code> and <code>DataNode</code>
 For reference, HDFS runs a Web UI by default at <a href="http://localhost:50070">localhost:50070</a>.</p>
+<h3 id="optional-start-hdfs-with-multiple-datanodes">Optional: Start HDFS with multiple DataNodes</h3>
+<p>A more interesting HDFS setup will have you running one NameNode process and multiple DataNode processes.  This can be done on the same machine, however, you must specify configurations for each datanode you start (otherwise they might try to use the same data directory, for example).  The following script will start multiple datanodes.  Change the <code>NUM_DATANODES</code> and <code>BASE_DATA_DIR</code> variables as appropriate.</p>
+<pre><code>NUM_DATANODES=3;
+BASE_DATA_DIR=/Users/jon/deploy
+
+echo "===== Starting HDFS with $NUM_DATANODES datanodes =====";
+${HADOOP_HOME}/sbin/hadoop-daemon.sh start namenode;
+
+for i in $(seq $NUM_DATANODES) 
+do
+  export HADOOP_LOG_DIR=$BASE_DATA_DIR/logs/datanode_$i
+  export HADOOP_PID_DIR=$BASE_DATA_DIR/pid/datanode_$i
+  export HADOOP_OPTS="\
+    -Dhadoop.tmp.dir=$BASE_DATA_DIR/data/datanode_$i \
+    -Ddfs.datanode.address=0.0.0.0:5001$i \
+    -Ddfs.datanode.http.address=0.0.0.0:5008$i \
+    -Ddfs.datanode.ipc.address=0.0.0.0:5002$i"
+  ${HADOOP_HOME}/sbin/hadoop-daemon.sh --script bin/hdfs start datanode $HADOOP_OPTS
+done</code></pre>
                 </section>
 
             </div>
