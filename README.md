@@ -24,8 +24,8 @@ The tracing framework comprises four main projects:
 
 These projects are all instrumentation libraries.  They are intended for use with a new or existing system.  We also have some pre-instrumented forks of some well known systems:
 * [HDFS 2.7.2](https://github.com/brownsys/hadoop/tree/brownsys-pivottracing-2.7.2)
-* Apache YARN 2.7.2 (*coming soon*)
-* Hadoop MapReduce 2.7.2 (*coming soon*)
+* [Apache YARN 2.7.2](https://github.com/brownsys/hadoop/tree/brownsys-pivottracing-2.7.2)
+* [Hadoop MapReduce 2.7.2](https://github.com/brownsys/hadoop/tree/brownsys-pivottracing-2.7.2)
 * HBase (*coming soon*)
 
 [Note: we are currently porting instrumentation for these systems to the latest versions for release.  Check back soon]
