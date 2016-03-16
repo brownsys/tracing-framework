@@ -27,6 +27,7 @@ object Main {
       s + " future!"
     }
     val f3 = future {
+      Thread.sleep(40)
       p3.complete(Success("boo"))
     }
     println(p1.getClass().getName())

@@ -26,11 +26,13 @@ public aspect Sleeping {
                                 call(* scala.concurrent.Await+.result(..)) ||
                                 call(* scala.concurrent.Await$+.ready(..)) ||
                                 call(* scala.concurrent.Await$+.result(..));
-  
+
+  public pointcut NotExcluded(): !within(scala.concurrent.impl.PromiseWithBaggage);
+
   /**
    * Log whenever a thread sleeps or waits
    */
-  Object around(): AllMethods() {
+  Object around(): AllMethods() && NotExcluded() {
     Execution.Sleep.starting(thisJoinPointStaticPart);
     try {
       return proceed();
