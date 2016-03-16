@@ -58,6 +58,7 @@
                             <includes>
                                 <include>edu/brown/cs/systems/xtrace/logging/*.aj</include>
                                 <include>edu/brown/cs/systems/xtrace/hadoop/*.aj</include>
+                                <include>edu/brown/cs/systems/xtrace/spark/*.aj</include>
                             </includes>
                         </source>
                     </sources>

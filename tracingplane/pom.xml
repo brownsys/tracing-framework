@@ -13,6 +13,8 @@
         <module>client</module>
         <module>dynamic</module>
         <module>aspects</module>
+        <module>scala-aspects</module>
+        <module>scala</module>
     </modules>
 
     <parent>
