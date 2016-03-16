@@ -13,22 +13,25 @@ package scala.concurrent.impl
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 import scala.util.{ Success, Failure }
+import edu.brown.cs.systems.baggage.Baggage;
+import edu.brown.cs.systems.baggage.DetachedBaggage;
 
 
-private[concurrent] object Future {
-  class PromiseCompletingRunnable[T](body: => T) extends Runnable {
-    val promise = new Promise.DefaultPromise[T]()
+private[concurrent] object FutureWithBaggage {
+  class PromiseCompletingRunnableWithBaggage[T](body: => T) extends Runnable {
+    val promiseWithBaggage = new PromiseWithBaggage.DefaultPromiseWithBaggage[T]()
+    var baggage: DetachedBaggage = Baggage.fork()
 
     override def run() = {
-      promise complete {
+      promiseWithBaggage complete {
         try Success(body) catch { case NonFatal(e) => Failure(e) }
       }
     }
   }
 
   def apply[T](body: =>T)(implicit executor: ExecutionContext): scala.concurrent.Future[T] = {
-    val runnable = new PromiseCompletingRunnable(body)
+    val runnable = new PromiseCompletingRunnableWithBaggage(body)
     executor.prepare.execute(runnable)
-    runnable.promise.future
+    runnable.promiseWithBaggage.future
   }
 }
