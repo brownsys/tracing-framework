@@ -11,8 +11,4 @@ public class sdfads {
         FutureUtils.test();
     }
 
-    public static Future proxy(Function0 f, ExecutionContext exec){
-        return FutureWithBaggage.apply(f, exec);
-    }
-
 }

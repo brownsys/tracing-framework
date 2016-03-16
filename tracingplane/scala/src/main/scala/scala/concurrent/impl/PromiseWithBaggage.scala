@@ -8,6 +8,10 @@
 
 package scala.concurrent.impl
 
+import edu.brown.cs.systems.tracing.aspects.Annotations.BaggageInheritanceDisabled
+import edu.brown.cs.systems.xtrace.reporting.XTraceReport
+import org.aspectj.lang.JoinPoint
+
 import scala.concurrent.{ ExecutionContext, CanAwait, OnCompleteRunnable, TimeoutException, ExecutionException, blocking }
 import scala.concurrent.Future.InternalCallbackExecutor
 import scala.concurrent.duration.{ Duration, Deadline, FiniteDuration, NANOSECONDS }
@@ -25,14 +29,22 @@ private[concurrent] trait PromiseWithBaggage[T] extends scala.concurrent.Promise
 
 /* Precondition: `executor` is prepared, i.e., `executor` has been returned from invocation of `prepare` on some other `ExecutionContext`.
  */
-private class CallbackRunnableWithBaggage[T](executor: ExecutionContext, onComplete: Try[T] => Any) extends CallbackRunnable[T](executor, onComplete) {
+@BaggageInheritanceDisabled
+private class CallbackRunnableWithBaggage[T](executor: ExecutionContext, onComplete: Try[T] => Any, jp: JoinPoint.StaticPart) extends CallbackRunnable[T](executor, onComplete) {
   var baggage: DetachedBaggage = null
 
   override def run() = {
     require(value ne null) // must set value to non-null before running!
+
+    XTraceReport.entering(jp);
     val old: DetachedBaggage = Baggage.swap(baggage)
+    XTraceReport.left(jp);
+
     try onComplete(value) catch { case NonFatal(e) => executor reportFailure e }
+
+    XTraceReport.entering(jp);
     Baggage.swap(old)
+    XTraceReport.left(jp);
   }
 
   def executeWithValueAndBaggage(v: Try[T], b: DetachedBaggage): Unit = {
@@ -194,8 +206,14 @@ private[concurrent] object PromiseWithBaggage {
     }
 
     /** Try waiting for this promise to be completed.
-     */
+      */
     protected final def tryAwait(atMost: Duration): Boolean = {
+      return tryAwait(atMost, true)
+    }
+
+    /** Try waiting for this promise to be completed.
+      */
+    protected final def tryAwait(atMost: Duration, joinBaggage: Boolean): Boolean = {
       if (!isCompleted) {
         import Duration.Undefined
         import scala.concurrent.Future.InternalCallbackExecutor
@@ -215,7 +233,9 @@ private[concurrent] object PromiseWithBaggage {
         }
       }
       if (isCompleted) {
-        Baggage.join(baggage)
+        if (joinBaggage) {
+          Baggage.join(baggage)
+        }
         return true
       } else {
         return false
@@ -289,10 +309,14 @@ private[concurrent] object PromiseWithBaggage {
     }
 
     def onComplete[U](func: Try[T] => U)(implicit executor: ExecutionContext): Unit = {
+      onComplete(func, null)
+    }
+
+    def onComplete[U](func: Try[T] => U, jp: JoinPoint.StaticPart)(implicit executor: ExecutionContext): Unit = {
       val preparedEC = executor.prepare()
       val runnable = func match {
         case _: CompletionLatch[T] => new CallbackRunnable[T](preparedEC, func)
-        case _ => new CallbackRunnableWithBaggage[T](preparedEC, func)
+        case _ => new CallbackRunnableWithBaggage[T](preparedEC, func, jp)
       }
       dispatchOrAddCallback(runnable)
     }

@@ -19,7 +19,13 @@ public aspect Sleeping {
                                 call(* CompletionService+.take(..)) ||
                                 call(* BlockingQueue+.poll(long,..)) ||
                                 call(* BlockingQueue+.take(..)) ||
-                                call(* Thread+.join(..));
+                                call(* Thread+.join(..)) ||
+                                call(* scala.concurrent.Awaitable+.ready(..)) ||
+                                call(* scala.concurrent.Awaitable+.result(..)) ||
+                                call(* scala.concurrent.Await+.ready(..)) ||
+                                call(* scala.concurrent.Await+.result(..)) ||
+                                call(* scala.concurrent.Await$+.ready(..)) ||
+                                call(* scala.concurrent.Await$+.result(..));
   
   /**
    * Log whenever a thread sleeps or waits

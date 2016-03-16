@@ -15,6 +15,10 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjrt</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
         </dependency>
@@ -26,6 +30,21 @@
         <dependency>
             <groupId>edu.brown.cs.systems</groupId>
             <artifactId>xtrace-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>xtrace-aspects</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>retro-aspects</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>tracingplane-aspects</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -89,6 +108,47 @@
                                 <source>src/main/scala</source>
                             </sources>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>compile</id>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <target>
+                                <property name="compile_classpath"
+                                          refid="maven.compile.classpath" />
+
+                                <exec executable="ajc">
+                                    <arg value="-inpath" />
+                                    <arg
+                                            value="${project.build.directory}/classes" />
+                                    <arg value="-d" />
+                                    <arg
+                                            value="${project.build.directory}/classes" />
+                                    <arg value="-aspectpath" />
+                                    <arg
+                                            value="${edu.brown.cs.systems:tracingplane-aspects:jar}" />
+                                    <arg value="-aspectpath" />
+                                    <arg
+                                            value="${edu.brown.cs.systems:xtrace-aspects:jar}" />
+                                    <arg value="-aspectpath" />
+                                    <arg
+                                            value="${edu.brown.cs.systems:retro-aspects:jar}" />
+                                    <arg value="-classpath" />
+                                    <arg value="${compile_classpath}" />
+                                    <arg value="-showWeaveInfo" />
+                                </exec>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
