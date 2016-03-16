@@ -25,26 +25,6 @@ private[concurrent] trait PromiseWithBaggage[T] extends scala.concurrent.Promise
 
 /* Precondition: `executor` is prepared, i.e., `executor` has been returned from invocation of `prepare` on some other `ExecutionContext`.
  */
-private class CallbackRunnable[T](val executor: ExecutionContext, val onComplete: Try[T] => Any) extends Runnable with OnCompleteRunnable {
-  // must be filled in before running it
-  var value: Try[T] = null
-
-  override def run() = {
-    require(value ne null) // must set value to non-null before running!
-    try onComplete(value) catch { case NonFatal(e) => executor reportFailure e }
-  }
-
-  def executeWithValue(v: Try[T]): Unit = {
-    require(value eq null) // can't complete it twice
-    value = v
-    // Note that we cannot prepare the ExecutionContext at this point, since we might
-    // already be running on a different thread!
-    try executor.execute(this) catch { case NonFatal(t) => executor reportFailure t }
-  }
-}
-
-/* Precondition: `executor` is prepared, i.e., `executor` has been returned from invocation of `prepare` on some other `ExecutionContext`.
- */
 private class CallbackRunnableWithBaggage[T](executor: ExecutionContext, onComplete: Try[T] => Any) extends CallbackRunnable[T](executor, onComplete) {
   var baggage: DetachedBaggage = null
 

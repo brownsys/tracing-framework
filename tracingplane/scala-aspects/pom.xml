@@ -13,10 +13,6 @@
         <version>4.0</version>
     </parent>
 
-    <properties>
-        <scala.version>2.10.5</scala.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.aspectj</groupId>
@@ -24,28 +20,7 @@
         </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
-            <artifactId>scala-compiler</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-reflect</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scala-actors</artifactId>
-            <version>${scala.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.scala-lang</groupId>
-            <artifactId>scalap</artifactId>
-            <version>${scala.version}</version>
         </dependency>
         <dependency>
             <groupId>edu.brown.cs.systems</groupId>
@@ -54,60 +29,13 @@
         </dependency>
         <dependency>
             <groupId>edu.brown.cs.systems</groupId>
-            <artifactId>xtrace-client</artifactId>
+            <artifactId>tracingplane-scala</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
 
     <build>
         <plugins>
-
-            <plugin>
-                <groupId>net.alchim31.maven</groupId>
-                <artifactId>scala-maven-plugin</artifactId>
-                <version>3.2.2</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>compile</goal>
-                            <goal>testCompile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-eclipse-plugin</artifactId>
-                <configuration>
-                    <additionalProjectnatures>
-                        <projectnature>
-                            org.scala-ide.sdt.core.scalanature
-                        </projectnature>
-                    </additionalProjectnatures>
-                    <buildcommands>
-                        <buildcommand>
-                            org.scala-ide.sdt.core.scalabuilder
-                        </buildcommand>
-                    </buildcommands>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>add-source</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>src/main/scala</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>aspectj-maven-plugin</artifactId>
@@ -126,11 +54,6 @@
                             <basedir>${basedir}/src/main/aspect</basedir>
                             <includes>
                                 <include>edu/brown/cs/systems/tracing/aspects/scala/*.aj</include>
-                            </includes>
-                        </source>
-                        <source>
-                            <basedir>${basedir}/src/main/scala</basedir>
-                            <includes>
                             </includes>
                         </source>
                     </sources>

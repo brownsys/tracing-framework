@@ -8,16 +8,14 @@
 
 package scala.concurrent.impl
 
-
-
 import scala.concurrent.ExecutionContext
 import scala.util.control.NonFatal
 import scala.util.{ Success, Failure }
-import edu.brown.cs.systems.baggage.Baggage;
-import edu.brown.cs.systems.baggage.DetachedBaggage;
+import edu.brown.cs.systems.baggage.Baggage
+import edu.brown.cs.systems.baggage.DetachedBaggage
 
-
-private[concurrent] object FutureWithBaggage {
+object FutureWithBaggage {
+  
   class PromiseCompletingRunnableWithBaggage[T](body: => T) extends Runnable {
     val promiseWithBaggage = new PromiseWithBaggage.DefaultPromiseWithBaggage[T]()
     var baggage: DetachedBaggage = Baggage.fork()
