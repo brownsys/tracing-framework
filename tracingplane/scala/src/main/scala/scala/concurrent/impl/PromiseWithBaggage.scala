@@ -30,7 +30,7 @@ private class CallbackRunnableWithBaggage[T](executor: ExecutionContext, onCompl
 
   override def run() = {
     require(value ne null) // must set value to non-null before running!
-    var old: DetachedBaggage = Baggage.swap(baggage)
+    val old: DetachedBaggage = Baggage.swap(baggage)
     try onComplete(value) catch { case NonFatal(e) => executor reportFailure e }
     Baggage.swap(old)
   }
@@ -216,9 +216,10 @@ private[concurrent] object PromiseWithBaggage {
       }
       if (isCompleted) {
         Baggage.join(baggage)
-        true
+        return true
+      } else {
+        return false
       }
-      false
     }
 
     @throws(classOf[TimeoutException])
