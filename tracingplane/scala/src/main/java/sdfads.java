@@ -1,13 +1,13 @@
 import edu.brown.cs.systems.tracing.aspects.scala.FutureUtils;
 import scala.Function0;
-import scala.concurrent.ExecutionContext;
-import scala.concurrent.Future;
-import scala.concurrent.Future$;
+import scala.concurrent.*;
 import scala.concurrent.impl.FutureWithBaggage;
+import scala.concurrent.package$;
 
 public class sdfads {
     
     public static void main(String[] args) {
+        System.out.println(ops$.MODULE$.getClass().getName());
         FutureUtils.test();
     }
 

@@ -20,7 +20,11 @@ object Main {
     val f2 = future {
       s + " future!"
     }
+    println(p1.getClass().getName())
+    println(p2.getClass().getName())
+    println(p3.getClass().getName())
     println(f.getClass().getName())
+    println(f2.getClass().getName())
 
     
   }
