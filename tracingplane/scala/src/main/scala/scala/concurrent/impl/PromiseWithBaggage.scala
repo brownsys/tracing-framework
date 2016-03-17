@@ -12,7 +12,7 @@ import edu.brown.cs.systems.tracing.aspects.Annotations.BaggageInheritanceDisabl
 import edu.brown.cs.systems.xtrace.reporting.XTraceReport
 import org.aspectj.lang.JoinPoint
 
-import scala.concurrent.{ ExecutionContext, CanAwait, OnCompleteRunnable, TimeoutException, ExecutionException, blocking }
+import scala.concurrent._
 import scala.concurrent.Future.InternalCallbackExecutor
 import scala.concurrent.duration.{ Duration, Deadline, FiniteDuration, NANOSECONDS }
 import scala.annotation.tailrec
@@ -169,6 +169,92 @@ private[concurrent] object PromiseWithBaggage {
   class DefaultPromiseWithBaggage[T] extends AbstractPromise with PromiseWithBaggage[T] { self =>
     updateState(null, Nil) // The promise is incomplete and has no callbacks
 
+    override def failed: Future[Throwable] = {
+      implicit val ec = InternalCallbackExecutor
+      val p = new DefaultPromiseWithBaggage[Throwable]()
+      onComplete {
+        case Failure(t) => p success t
+        case Success(v) => p failure (new NoSuchElementException("Future.failed not completed with a throwable."))
+      }
+      p.future
+    }
+
+    override def transform[S](s: T => S, f: Throwable => Throwable)(implicit executor: ExecutionContext): Future[S] = {
+      val p = new DefaultPromiseWithBaggage[S]()
+      // transform on Try has the wrong shape for us here
+      onComplete {
+        case Success(r) => p complete Try(s(r))
+        case Failure(t) => p complete Try(throw f(t)) // will throw fatal errors!
+      }
+      p.future
+    }
+
+    override def map[S](f: T => S)(implicit executor: ExecutionContext): Future[S] = { // transform(f, identity)
+      val p = new DefaultPromiseWithBaggage[S]()
+      onComplete { v => p complete (v map f) }
+      p.future
+    }
+
+    override def flatMap[S](f: T => Future[S])(implicit executor: ExecutionContext): Future[S] = {
+      val p = new DefaultPromiseWithBaggage[S]()
+      onComplete {
+        case f: Failure[_] => p complete f.asInstanceOf[Failure[S]]
+        case Success(v) => try f(v) match {
+          // If possible, link DefaultPromises to avoid space leaks
+          case dp: DefaultPromiseWithBaggage[_] => dp.asInstanceOf[DefaultPromiseWithBaggage[S]].linkRootOf(p)
+          case fut => fut.onComplete(p.complete)(InternalCallbackExecutor)
+        } catch { case NonFatal(t) => p failure t }
+      }
+      p.future
+    }
+
+    override def recover[U >: T](pf: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Future[U] = {
+      val p = new DefaultPromiseWithBaggage[U]()
+      onComplete { v => p complete (v recover pf) }
+      p.future
+    }
+
+    override def recoverWith[U >: T](pf: PartialFunction[Throwable, Future[U]])(implicit executor: ExecutionContext): Future[U] = {
+      val p = new DefaultPromiseWithBaggage[U]()
+      onComplete {
+        case Failure(t) => try pf.applyOrElse(t, (_: Throwable) => this).onComplete(p.complete)(InternalCallbackExecutor) catch { case NonFatal(t) => p failure t }
+        case other => p complete other
+      }
+      p.future
+    }
+
+    override def zip[U](that: Future[U]): Future[(T, U)] = {
+      implicit val ec = InternalCallbackExecutor
+      val p = new DefaultPromiseWithBaggage[(T, U)]()
+      onComplete {
+        case f: Failure[_] => p complete f.asInstanceOf[Failure[(T, U)]]
+        case Success(s) => that onComplete { c => p.complete(c map { s2 => (s, s2) }) }
+      }
+      p.future
+    }
+
+    override def fallbackTo[U >: T](that: Future[U]): Future[U] = {
+      implicit val ec = InternalCallbackExecutor
+      val p = new DefaultPromiseWithBaggage[U]()
+      onComplete {
+        case s @ Success(_) => p complete s
+        case f @ Failure(_) => that onComplete {
+          case s2 @ Success(_) => p complete s2
+          case _ => p complete f // Use the first failure as the failure
+        }
+      }
+      p.future
+    }
+
+    override def andThen[U](pf: PartialFunction[Try[T], U])(implicit executor: ExecutionContext): Future[T] = {
+      val p = new DefaultPromiseWithBaggage[T]()
+      onComplete {
+        case r => try pf.applyOrElse[Try[T], Any](r, Predef.conforms[Try[T]]) finally p complete r
+      }
+      p.future
+    }
+
+
     /** Get the root promise for this promise, compressing the link chain to that
      *  promise if necessary.
      *
@@ -216,7 +302,6 @@ private[concurrent] object PromiseWithBaggage {
     protected final def tryAwait(atMost: Duration, joinBaggage: Boolean): Boolean = {
       if (!isCompleted) {
         import Duration.Undefined
-        import scala.concurrent.Future.InternalCallbackExecutor
         atMost match {
           case e if e eq Undefined => throw new IllegalArgumentException("cannot wait for Undefined period")
           case Duration.Inf        =>
