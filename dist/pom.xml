@@ -109,6 +109,16 @@
             <artifactId>xtrace-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>tracingplane-scala</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>tracingplane-scala-aspects</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
