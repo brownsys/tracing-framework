@@ -156,14 +156,14 @@ public enum Network {
             Read.aggregator.finished(Read.op, Retro.getTenant(), bytes, latency);
         else if (diskop == DiskResource.TransferToNetwork && Write.aggregator.enabled())
             Write.aggregator.finished(Write.op, Retro.getTenant(), bytes, latency);
-        else if (diskop == DiskResource.TransferFromNetwork && LoopbackRead.aggregator.enabled())
+        else if (diskop == DiskResource.TransferFromLoopback && LoopbackRead.aggregator.enabled())
             LoopbackRead.aggregator.finished(Read.op, Retro.getTenant(), bytes, latency);
-        else if (diskop == DiskResource.TransferToNetwork && LoopbackWrite.aggregator.enabled())
+        else if (diskop == DiskResource.TransferToLoopback && LoopbackWrite.aggregator.enabled())
             LoopbackWrite.aggregator.finished(Write.op, Retro.getTenant(), bytes, latency);
 
-        if (diskop == DiskResource.TransferFromNetwork && xtrace.valid())
+        if ((diskop == DiskResource.TransferFromNetwork || diskop == DiskResource.TransferFromLoopback) && xtrace.valid())
             xtrace.log(jp, Read.opname, "Operation", Read.opname, "Duration", latency, "Bytes", bytes);
-        else if (diskop == DiskResource.TransferToNetwork && xtrace.valid())
+        else if ((diskop == DiskResource.TransferToNetwork || diskop == DiskResource.TransferToLoopback) && xtrace.valid())
             xtrace.log(jp, Write.opname, "Operation", Write.opname, "Duration", latency, "Bytes", bytes);
     }
 }
