@@ -34,7 +34,7 @@ function XTraceSwimLane(attachPoint, tasksdata, gcdata, /*optional*/ params) {
 	// Create the visualization components
 	var overview = SwimLaneOverview().brush(brush).on("refresh", refresh);
 	var swimlane = SwimLane().brush(brush).on("refresh", refresh);
-  var controlpanel = SwimLaneControlPanel().on("property", swimlane.property);
+    var controlpanel = SwimLaneControlPanel().on("property", swimlane.property);
 	
 	/* When the viewing area is scaled with the brush */
 	function onbrush() {

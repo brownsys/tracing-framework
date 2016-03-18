@@ -122,22 +122,31 @@ function SwimLane() {
 
 				var mousex = sx.invert(d3.mouse(this)[0]-margin);
 
-				// do the zoom in or out, clamping if necessary
-				var newx0 = mousex +  ((brush.extent()[0] - mousex) / d3.event.scale);
-				var newx1 = mousex + ((brush.extent()[1] - mousex) / d3.event.scale);
-				newx0 = Math.max(newx0, rangemin);
-				newx1 = Math.min(newx1, rangemax);
+				var newx0 = brush.extent()[0];
+				var newx1 = brush.extent()[1];
 
 				// Apply any translate
 				if (moving) {
 					if (lastx!=null) {
 						var deltax = sx.invert(lastx) - sx.invert(d3.event.translate[0]);
 						if ((newx0 > rangemin || deltax > 0) && (newx1 < rangemax || deltax < 0)) {
-							newx0 = newx0 + deltax;
-							newx1 = newx1 + deltax;
+							newx0 += deltax;
+							newx1 += deltax;
+							mousex += deltax;
 						}
 					}
 					lastx = d3.event.translate[0];
+				}
+
+				// do the zoom in or out, clamping if necessary
+				newx0 = mousex +  ((newx0 - mousex) / d3.event.scale);
+				newx1 = mousex + ((newx1 - mousex) / d3.event.scale);
+				newx0 = Math.max(newx0, rangemin);
+				newx1 = Math.min(newx1, rangemax);
+				if (newx0 > newx1) {
+					swap = newx0;
+					newx0 = newx1;
+					newx1 = swap;
 				}
 
 				// apply the extent and refresh
