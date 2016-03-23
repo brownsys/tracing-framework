@@ -30,6 +30,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>edu.brown.cs.systems</groupId>
+            <artifactId>pivottracing-agent</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-hdfs</artifactId>
         </dependency>
