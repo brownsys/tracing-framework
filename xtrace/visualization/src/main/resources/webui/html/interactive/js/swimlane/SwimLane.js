@@ -110,8 +110,8 @@ function SwimLane() {
 			// Attach the zoom behaviour.  A little bit hairy for now
 			var moving = false,
 			lastx = null;
-			main.on("mousedown", function() { moving = true; lastx = null; });
-			main.on("mouseup", function() { moving = false; lastx = null; });
+			d3.select(this).on("mousedown", function() { moving = true; lastx = null; });
+			d3.select(this).on("mouseup", function() { moving = false; lastx = null; });
 
 			var zoom = d3.behavior.zoom();
 			zoom.on("zoom", function() {
@@ -144,6 +144,7 @@ function SwimLane() {
 				newx0 = Math.max(newx0, rangemin);
 				newx1 = Math.min(newx1, rangemax);
 				if (newx0 > newx1) {
+					console.log("inverted", newx0, newx1, d3.event.scale, brush.extent());
 					swap = newx0;
 					newx0 = newx1;
 					newx1 = swap;
@@ -154,7 +155,7 @@ function SwimLane() {
 				callbacks["refresh"].call(this);
 				zoom.scale(1);
 			});
-			zoom.call(main);
+			zoom.call(d3.select(this));
 
 			// Remove any of the actual viz.  Done here because y co-ords only update on a redraw, so optimization to put here rather than
 			// update y co-ords unnecessarily on each refresh
