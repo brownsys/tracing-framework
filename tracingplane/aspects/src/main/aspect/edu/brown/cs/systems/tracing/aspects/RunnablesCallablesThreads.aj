@@ -1,9 +1,16 @@
 package edu.brown.cs.systems.tracing.aspects;
 
+import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 import edu.brown.cs.systems.tracing.aspects.Annotations.BaggageInheritanceDisabled;
 
@@ -134,14 +141,36 @@ public aspect RunnablesCallablesThreads {
 
     /* ================================================================================================================
      * 
-     * Instrument completion services and executor services to wrap the returned futures */
+     * Instrument executor services to wrap the returned futures */
 
     Future around(InstrumentedExecution task): args(task,..) && 
-                       (call(Future CompletionService+.submit(Callable+)) ||
-                        call(Future CompletionService+.submit(Runnable+,..)) ||
-                        call(Future ExecutorService+.submit(Callable+)) ||
+                       (call(Future ExecutorService+.submit(Callable+)) ||
                         call(Future ExecutorService+.submit(Runnable+,..))) {
         return new WrappedFuture(proceed(task), task.getOrCreateExecutionRunContext());
+    }
+
+    // Not at all the best way to do this, but hooking in to completion service futures requires a surprisingly large amount of plumbing
+    private static final Map<Future, WrappedFuture> futureLookupMap = new WeakHashMap<Future, WrappedFuture>();
+    
+    Future around(InstrumentedExecution task): args(task,..) && 
+                       (call(Future CompletionService+.submit(Callable+)) ||
+                        call(Future CompletionService+.submit(Runnable+,..))) {
+        Future future = proceed(task);
+        WrappedFuture wrapped = new WrappedFuture(future, task.getOrCreateExecutionRunContext());
+        synchronized(futureLookupMap) {
+            futureLookupMap.put(future, wrapped);
+        }
+        return wrapped;
+    }
+    
+    // Inspect the future to find the underlying callable or runnable, and wrap it
+    Future around(): call(Future CompletionService+.take()) {
+        Future future = proceed();
+        WrappedFuture wrapped;
+        synchronized(futureLookupMap) {
+            wrapped = futureLookupMap.remove(future);
+        }
+        return wrapped == null ? future : wrapped;
     }
 
     /* ================================================================================================================
@@ -149,7 +178,7 @@ public aspect RunnablesCallablesThreads {
      * Futures: once a future completes and we get the return value, we want to join with its execution context */
 
     after(WrappedFuture f): target(f) && call(* Future+.get(..)) {
-        if (f != null) {
+        if (f != null && f.instrumented != null) {
             f.instrumented.JoinSavedBaggageIfPossible(thisJoinPointStaticPart);
         }
     }

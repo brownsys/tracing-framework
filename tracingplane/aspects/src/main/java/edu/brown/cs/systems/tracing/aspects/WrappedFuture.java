@@ -36,5 +36,19 @@ public class WrappedFuture<V> implements Future<V> {
     public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return wrapped.get(timeout, unit);
     }
+    
+    @Override
+    public int hashCode() {
+        return wrapped.hashCode();
+    }
+    
+    @Override
+    public boolean equals(Object other) {
+        if (other != null && other instanceof WrappedFuture) {
+            return ((WrappedFuture) other).wrapped.equals(wrapped);
+        } else {
+            return wrapped.equals(other);
+        }
+    }
 
 }
