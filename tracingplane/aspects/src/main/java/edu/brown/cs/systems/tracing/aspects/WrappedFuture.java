@@ -1,11 +1,14 @@
 package edu.brown.cs.systems.tracing.aspects;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public class WrappedFuture<V> implements Future<V> {
+import com.google.common.util.concurrent.ListenableFuture;
+
+public class WrappedFuture<V> implements ListenableFuture<V> {
 
     public final Future<V> wrapped;
     public final RunContext instrumented;
@@ -49,6 +52,17 @@ public class WrappedFuture<V> implements Future<V> {
         } else {
             return wrapped.equals(other);
         }
+    }
+    
+    @Override
+    public void addListener(final Runnable r, Executor e) {
+        ((ListenableFuture<V>) wrapped).addListener(new Runnable() {
+            public void run() {
+                instrumented.BeginExecution(null);
+                r.run();
+                instrumented.EndExecution(null);
+            }
+        }, e);
     }
 
 }

@@ -1,16 +1,14 @@
 package edu.brown.cs.systems.tracing.aspects;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
+
+import com.google.common.util.concurrent.ListenableFuture;
 
 import edu.brown.cs.systems.tracing.aspects.Annotations.BaggageInheritanceDisabled;
 
@@ -171,6 +169,11 @@ public aspect RunnablesCallablesThreads {
             wrapped = futureLookupMap.remove(future);
         }
         return wrapped == null ? future : wrapped;
+    }
+    
+    void around(WrappedFuture future, InstrumentedExecution r, Executor e): target(future) && args(r, e) && call(void ListenableFuture+.addListener(Runnable+, Executor+)) {
+        r.setInstrumentedExecutionRunContext(future.instrumented);
+        ((ListenableFuture) future.instrumented).addListener((Runnable) r, e);
     }
 
     /* ================================================================================================================
