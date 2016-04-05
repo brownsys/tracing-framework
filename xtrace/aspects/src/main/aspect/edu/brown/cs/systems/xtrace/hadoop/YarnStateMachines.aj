@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.google.common.collect.Lists;
 
@@ -45,8 +46,19 @@ public aspect YarnStateMachines {
             newState = proceed(stateMachine, operand, event);
             return newState;
         } finally {
-            xtrace.log(thisJoinPointStaticPart, "StateMachine transitioned from {} to {} with {} on {}", initialState, newState, event.getClass().getSimpleName(), operand);            
+            xtrace.log(thisJoinPointStaticPart, "StateMachine transitioned from {} to {} with {} on {}", initialState, newState, event.getClass().getSimpleName(), operand);
         }
+    }
+    
+    after(Object stateMachine, Object operand, Object event) throwing (Throwable t) :  if(xtrace.valid()) && target(stateMachine) && args(operand, event) 
+    && call(Object+ org.apache.hadoop.yarn.state.StateMachine+.doTransition(Object+, Object+)) {
+        Object initialState = null;
+        try {
+            initialState = stateMachineGetCurrentState.invoke(stateMachine);
+        } catch (Throwable t2) {
+            // ignore;
+        }
+        xtrace.log(thisJoinPointStaticPart, "StateMachine failed in state {} with {} on {}: {} {}", initialState, event.getClass().getSimpleName(), operand, t.getClass().getSimpleName(), t.getMessage(), "StackTrace", ExceptionUtils.getStackTrace(t));
     }
     
     before(Object handler, Object event): if(xtrace.valid()) && this(handler) && args(event) && execution(void org.apache.hadoop.yarn.event.EventHandler+.handle(Object+)) {
