@@ -3,6 +3,7 @@ package edu.brown.cs.systems.xtrace;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,30 +53,35 @@ public class XTraceBaggageInterface {
     /** Looks at this thread's current baggage, and returns the X-Trace task ID if it contains one
      * 
      * @return the X-Trace Task ID for the current execution, or 0 if none was found */
-    public static long getTaskID() {
+    public static long getTaskID(AtomicInteger counter) {
         // Get task ID from the baggage
         Set<ByteString> taskIds = BaggageContents.get(XTRACE_BAGGAGE_NAMESPACE, TASK_ID_BAGGAGE_FIELD);
+        
+        // Set the count of task IDs
+        if (counter != null) {
+            counter.set(taskIds.size());
+        }
+
+        // If we have no IDs use discovery mode ID if we're in discovery mode
+        if (taskIds.size() == 0 && XTraceSettings.discoveryMode()) {
+            return getDiscoveryModeId();
+        }
 
         // Warn if multiple task IDs
         if (taskIds.size() > 1) {
             log.warn("Found multiple X-Trace task IDs, this is indicative of tracing context leak");
         }
 
-        // Return a valid task ID
-        for (ByteString taskId : taskIds) {
-            if (taskId.size() == 8) {
-                return ByteStrings.toLong(taskId);
+        // Return a valid task ID.  If there are multiple task IDs, we add them, to make them easy to identify in debug
+        long taskId = 0;
+        for (ByteString taskIdBytes : taskIds) {
+            if (taskIdBytes.size() == 8) {
+                taskId += ByteStrings.toLong(taskIdBytes);
             } else {
-                log.warn("Found invalid X-Trace task ID: {}", taskId);
+                log.warn("Found invalid X-Trace task ID: {}", taskIdBytes);
             }
         }
-
-        // If we have no IDs use discovery mode ID if we're in discovery mode; otherwise 0
-        if (XTraceSettings.discoveryMode()) {
-            return getDiscoveryModeId();
-        } else {
-            return 0;
-        }
+        return taskId;
     }
 
     /** Like a task ID, but we throw it away once we encounter an actual task */

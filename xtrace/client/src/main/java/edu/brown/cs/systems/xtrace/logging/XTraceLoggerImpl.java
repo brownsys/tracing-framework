@@ -52,7 +52,7 @@ public class XTraceLoggerImpl implements XTraceLogger {
         XTraceReport report = XTraceReport.create();
         report.builder.setAgent(agent);
         report.addStandardFields();
-        report.makeXTraceEvent();
+        report.makeXTraceEvent(joinPoint);
         report.setMessage(message, labels);
         report.setJoinPoint(joinPoint);
         report.applyDecorators();
@@ -71,7 +71,7 @@ public class XTraceLoggerImpl implements XTraceLogger {
         report.addStandardFields();
         report.builder.setAgent(agent);
         report.builder.setLabel(message);
-        report.makeXTraceEvent();
+        report.makeXTraceEvent(joinPoint);
         report.setJoinPoint(joinPoint);
         for (String tag : tags) {
             if (tag != null) {

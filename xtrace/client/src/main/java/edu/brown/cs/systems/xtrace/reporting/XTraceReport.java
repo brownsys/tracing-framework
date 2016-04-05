@@ -2,9 +2,11 @@ package edu.brown.cs.systems.xtrace.reporting;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.JoinPoint.StaticPart;
 
 import com.google.common.collect.Lists;
 
@@ -48,11 +50,16 @@ public class XTraceReport {
      * parent event IDs to the report, generating a random event ID for the
      * report, and updating the current thread's parent event IDs to this
      * report's event ID
+     * @param joinPoint 
      * 
      * @return This report, with additional fields added
      */
-    public XTraceReport makeXTraceEvent() {
-        long taskId = XTraceBaggageInterface.getTaskID();
+    public XTraceReport makeXTraceEvent(StaticPart joinPoint) {
+        AtomicInteger counter = new AtomicInteger();
+        long taskId = XTraceBaggageInterface.getTaskID(counter);
+        if (counter.get() > 1) {
+            builder.addTags("TracingError");
+        }
         long eventId = XTrace.randomId();
         Collection<Long> parentIds = XTraceBaggageInterface.getParentEventIds();
         setXTrace(taskId, eventId, parentIds);
