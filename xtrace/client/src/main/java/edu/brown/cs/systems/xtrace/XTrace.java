@@ -42,6 +42,8 @@ public class XTrace {
 
     static XTraceLogger NULL_LOGGER = new NullLogger(); // Logger that does
                                                         // nothing
+    
+    static XTraceLogger RECYCLE_LOGGER; // Logger that logs when the number of parent events exceeds a threshold
 
     static boolean XTRACE_ENABLED = false; // Global config value - is XTrace
                                            // actually enabled?
@@ -60,9 +62,11 @@ public class XTrace {
                         pubsub.start();
                         DEFAULT_REPORTER = pubsub;
                         DEFAULT_LOGGER = new XTraceLoggerImpl("", DEFAULT_REPORTER);
+                        RECYCLE_LOGGER = new XTraceLoggerImpl("Recycle", DEFAULT_REPORTER);
                     } else {
                         DEFAULT_REPORTER = new NullReporter();
                         DEFAULT_LOGGER = NULL_LOGGER;
+                        RECYCLE_LOGGER = NULL_LOGGER;
                     }
 
                 }
@@ -88,6 +92,16 @@ public class XTrace {
         if (XTraceSettings.On()) {
             init();
             return DEFAULT_LOGGER;
+        } else {
+            return NULL_LOGGER;
+        }
+    }
+    
+    /** The recycle reporter is used to ensure that the number of propagated parent event IDs in the baggage does not exceed a threshold */
+    public static XTraceLogger getRecycleLogger() {
+        if (XTraceSettings.On()) {
+            init();
+            return RECYCLE_LOGGER;
         } else {
             return NULL_LOGGER;
         }

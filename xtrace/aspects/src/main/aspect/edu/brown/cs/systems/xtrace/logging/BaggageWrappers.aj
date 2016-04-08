@@ -6,11 +6,13 @@ import edu.brown.cs.systems.baggage.Baggage;
 import edu.brown.cs.systems.baggage.DetachedBaggage;
 import edu.brown.cs.systems.xtrace.XTrace;
 import edu.brown.cs.systems.xtrace.XTraceBaggageInterface;
+import edu.brown.cs.systems.xtrace.XTraceSettings;
 
 /** Invoke X-Trace APIs when baggage is set and unset */
 public aspect BaggageWrappers {
 
     static XTraceLogger xtrace = XTrace.getLogger(BaggageWrappers.class);
+    static XTraceLogger recycle = XTrace.getRecycleLogger();
     
 //    after(): call(void Baggage.start()) && if(xtrace.valid()) {
 //        xtrace.log(thisJoinPointStaticPart, "Baggage started with Baggage.start()");
@@ -41,8 +43,12 @@ public aspect BaggageWrappers {
 //        xtrace.log(thisJoinPointStaticPart, "Detaching current baggage with Baggage.stop()");
 //    }
     
-    before(): call(DetachedBaggage Baggage.fork()) && if(xtrace.valid()) {
-        xtrace.log(thisJoinPointStaticPart, "Forking current baggage with Baggage.fork()", "Operation", "fork");
+    before(): call(DetachedBaggage Baggage.fork()) {
+        if (xtrace.valid()) {
+            xtrace.log(thisJoinPointStaticPart, "Forking current baggage with Baggage.fork()", "Operation", "fork");
+        } else if (recycle.valid() && XTraceBaggageInterface.getParentEventIds().size() > XTraceSettings.recycleThreshold()) {
+            xtrace.log(thisJoinPointStaticPart, "Reached parent ID threshold for forking current baggage with Baggage.fork()", "Operation", "fork");
+        }
     }
     
     after(): (
@@ -50,9 +56,12 @@ public aspect BaggageWrappers {
             call(void Baggage.join(ByteString)) ||
             call(void Baggage.join(byte[])) ||
             call(void Baggage.join(String))
-            ) && if(xtrace.valid()) {
-        if (XTraceBaggageInterface.getParentEventIds().size() > 1) {
+            ) {
+        int numParents = XTraceBaggageInterface.getParentEventIds().size();
+        if (xtrace.valid() && numParents > 1) {
             xtrace.log(thisJoinPointStaticPart, "Merged current baggage with other baggage", "Operation", "join");
+        } else if (recycle.valid() && numParents > XTraceSettings.recycleThreshold()) {
+            recycle.log(thisJoinPointStaticPart, "Reached parent ID threshold for merge with other baggage", "Operation", "join");
         }
     }
     

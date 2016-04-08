@@ -26,6 +26,7 @@ public class XTraceSettings {
     public final boolean on, defaultEnabled, discoveryMode, traceMain;
     public final XTraceLoggingLevel defaultLoggingLevel, mainMethodLoggingLevel;
     public final Set<String> classesEnabled, classesDisabled;
+    public final int recycleThreshold;
 
     public XTraceSettings() {
         Config config = ConfigFactory.load();
@@ -37,6 +38,7 @@ public class XTraceSettings {
         mainMethodLoggingLevel = XTraceLoggingLevel.valueOf(config.getString("xtrace.client.tracemain_level").toUpperCase());
         classesEnabled = Sets.newHashSet(config.getStringList("xtrace.client.reporting.enabled"));
         classesDisabled = Sets.newHashSet(config.getStringList("xtrace.client.reporting.disabled"));
+        recycleThreshold = config.getInt("xtrace.client.recycle-threshold");
     }
     
     public static XTraceLoggingLevel defaultLoggingLevel() {
@@ -45,6 +47,10 @@ public class XTraceSettings {
     
     public static boolean discoveryMode() {
         return instance().discoveryMode;
+    }
+    
+    public static int recycleThreshold() {
+        return instance().recycleThreshold;
     }
 
     public static boolean traceMainMethods() {
