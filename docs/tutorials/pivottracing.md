@@ -6,9 +6,6 @@ Once HDFS is up and running, we can dynamically install some Pivot Tracing queri
 
 This will ping all connected Pivot Tracing agents every 10 seconds and ask them for their current status.   You should see something like the following as output:
 
-	2016-03-03 13:19:38 INFO  PubSubClient:110 - Subscribing topic PTstatus
-	2016-03-03 13:19:38 INFO  PubSubClient:259 - Attempting connection to 127.0.0.1:5563 with 0 pending messages
-	2016-03-03 13:19:38 INFO  PubSubClient:182 - Sending existing subscriptions
 	agent {
 	  procName: "NameNode"
 	  procId: 7831
