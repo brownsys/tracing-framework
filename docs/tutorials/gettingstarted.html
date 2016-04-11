@@ -280,7 +280,7 @@
 <p>All of the instrumentation libraries use a pub sub system to communicate.  Agents running in the instrumented Hadoop will receive commands over pubsub, and send their output back over the pubsub.  The pubsub project is in <code>tracingplane/pubsub</code></p>
 <p>The following command will start an X-Trace server which also includes a pub sub server:</p>
 <pre><code>tracingplane/pubsub/target/appassembler/bin/server</code></pre>
-<p>To check which Java process are running, use the <code>jps</code> command.  This is an easy way to check if something has crashed.  You should expect to see a process called <code>XTraceServer</code>.</p>
+<p>To check which Java process are running, use the <code>jps</code> command.  This is an easy way to check if something has crashed.  You should expect to see a process called <code>StandaloneServer</code>.</p>
 <h3 id="start-hdfs">Start HDFS</h3>
 <p>From the base directory for the Hadoop git repository, the built version of hadoop will be located in <code>hadoop-dist/target/hadoop-2.7.2</code>.  Within the build directory, <code>bin</code> contains various command line utilities, while <code>sbin</code> contains some useful scripts for starting and stopping processes.  Before starting HDFS, we must format its data dir:</p>
 <pre><code>${HADOOP_HOME}/bin/hdfs --config $HADOOP_CONF_DIR namenode -format</code></pre>
