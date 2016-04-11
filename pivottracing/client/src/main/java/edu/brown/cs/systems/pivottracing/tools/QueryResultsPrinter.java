@@ -35,8 +35,9 @@ public class QueryResultsPrinter extends Subscriber<QueryResults> {
         }
     }
     
-    public static void main(String[] args) throws FileNotFoundException, IOException {
+    public static void main(String[] args) throws FileNotFoundException, IOException, InterruptedException {
         PubSub.subscribe(PivotTracingConfig.RESULTS_TOPIC, new QueryResultsPrinter(args));
+        PubSub.join();
     }
 
 }

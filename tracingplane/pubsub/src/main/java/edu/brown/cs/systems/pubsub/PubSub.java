@@ -77,6 +77,13 @@ public class PubSub {
         return defaultClient;
     }
     
+    /** Wait for the normal exit of the pubsub client */
+    public static void join() throws InterruptedException {
+        if (defaultClient != null) {
+            defaultClient.join();
+        }
+    }
+    
     /** Close the default pubsub client.  Subsequent calls to publish will create a new one */
     public static synchronized void close() {
         if (defaultClient != null) {
