@@ -66,10 +66,10 @@
                 <artifactId>appassembler-maven-plugin</artifactId>
                 <version>1.10</version>
                 <configuration>
-                    <extraJvmArguments>-Xmx16m</extraJvmArguments>
+                    <extraJvmArguments>-Xmx16m -Dlog4j.configuration="pivottracing.properties"</extraJvmArguments>
                     <programs>
                         <program>
-                            <mainClass>edu.brown.cs.systems.pubsub.Server</mainClass>
+                            <mainClass>edu.brown.cs.systems.pubsub.PubSubServer</mainClass>
                             <id>pubsub-server</id>
                         </program>
                         <program>
