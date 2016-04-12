@@ -46,7 +46,7 @@ The following command will start an X-Trace server which also includes a pub sub
 
 	tracingplane/pubsub/target/appassembler/bin/server
 
-To check which Java process are running, use the `jps` command.  This is an easy way to check if something has crashed.  You should expect to see a process called `XTraceServer`.
+To check which Java process are running, use the `jps` command.  This is an easy way to check if something has crashed.  You should expect to see a process called `StandaloneServer`.
 
 ### Start HDFS
 
