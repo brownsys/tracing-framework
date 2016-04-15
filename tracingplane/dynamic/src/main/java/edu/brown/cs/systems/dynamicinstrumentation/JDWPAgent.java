@@ -34,13 +34,13 @@ public class JDWPAgent extends Agent {
         
         // If no JDWP address, then the debug argument isn't included
         if (jdwp_address == null) {
-            log.warn("Could not acquire JDWP address to attach dynamic instrumentation. "
+            System.err.println("Could not acquire JDWP address to attach dynamic instrumentation. "
                     + "Ensure JVM runs with argument -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=0");
             return null;
         }
         
         // Extract the port and return the instance;
-        log.info("JDWPAgent started with address {}", jdwp_address);
+        System.out.println("JDWPAgent started with address " + jdwp_address);
         String jdwp_port = jdwp_address.substring(jdwp_address.lastIndexOf(':') + 1);
         instance = new JDWPAgent(jdwp_port);
         return instance;

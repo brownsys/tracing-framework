@@ -58,10 +58,18 @@ public class JVMAgent extends Agent {
         // Wait for the instance, time out relatively quickly
         try {
             if (!waitForInstance.await(2000, TimeUnit.MILLISECONDS)) {
-                log.warn("Timeout waiting for JVM agent to attach");
+                System.err.println("Unable to create JVM agent: timed out waiting for JVM agent to attach");
+                return null;
             }
         } catch (InterruptedException e) {
-            log.warn("Interrupted waiting for JVM agent to attach");
+            System.err.println("Unable to create JVM agent: interrupted waiting for JVM agent to attach");
+            return null;
+        }
+        
+        if (instance == null) {
+            System.err.println("Unable to create JVM agent");
+        } else {
+            System.out.println("Successfully attached JVM agent");
         }
         
         // Return the instance, which might be null
