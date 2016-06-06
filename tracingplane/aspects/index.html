@@ -261,24 +261,59 @@
                 
 
                 <section id="content" class="col-sm-8 col-lg-6">
-                    <h2 id="tracingplane---automatic-tracing-instrumentation">TracingPlane - Automatic Tracing Instrumentation</h2>
-<p>This project provides some AspectJ aspects to automatically propagate Baggage across thread and runnable boundaries.</p>
-<h3 id="instrumentedrunnable">InstrumentedRunnable</h3>
-<p>Runnables will be modified as follows:</p>
-<ol>
-<li>If a thread creates a runnable, the thread's current baggage will be forked at the time the runnable is created, and stored in a field inside the runnable.</li>
-<li>When the run method of the runnable is invoked, the baggage that was stored in the runnable will be attached to the current thread.</li>
-<li>When the run method of the runnable completes, the thread's current baggage will be detached and stored in a field inside the runnable</li>
-<li>After the runnable has run, a caller can cast the runnable to an <code>InstrumentedRunnable</code> and call <code>joinRunendContext()</code> to merge the baggage stored in the runnable back into the current thread's baggage.</li>
-</ol>
-<h3 id="instrumentedthread">InstrumentedThread</h3>
-<p>Threads will be modified as follows:</p>
-<ol>
-<li>When a new Thread object is created, its arguments are checked to see whether the thread is being handed an <code>InstrumentedRunnable</code> (and the thread itself is also checked to see whether it is an InstrumentedRunnable).  If so, an InstrumentedThread is created in place of an ordinary thread.</li>
-<li>When Thread.join is called, the thread is checked to see whether it is an InstrumentedThread.  If so, the <code>joinRunendContext()</code> of the instrumented thread is called after <code>Thread.join</code> returns.</li>
-</ol>
-<h3 id="baggageinheritancedisabled">BaggageInheritanceDisabled</h3>
-<p>If you want to use the automatic instrumentation, but want to disable it for a select few Runnables or Threads, the <code>@BaggageInheritanceDisabled</code> annotation will prevent the runnable or thread from being instrumented.</p>
+                    <h1 id="tracingplane---automatic-tracing-instrumentation">TracingPlane - Automatic Tracing Instrumentation</h1>
+<h2 id="overview">Overview</h2>
+<p>Instrumentation can often be done automatically if source code matches some common patterns.  For example, copying baggage to a new thread as outlined above is an obvious pattern to capture.  Patterns like this can be captured automatically using source-code rewriting tools like AspectJ.  This project provides some AspectJ aspects to automatically propagate Baggage across thread and runnable boundaries.  Modified classes are listed below.</p>
+<h3 id="getting-started">Getting Started</h3>
+<p>To use the automatic instrumentation aspects, you must use AspectJ's compiler to <em>weave</em> these aspects into your system's source code.  This will modify all the places in your system's source code that matches the patterns, and will add our code in those places.  You can add the following to your project's pom.xml to invoke AspectJ when you build:</p>
+<pre><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+        &lt;artifactId&gt;tracingplane-aspects&lt;/artifactId&gt;
+        &lt;version&gt;4.0&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+
+&lt;plugin&gt;
+    &lt;groupId&gt;org.codehaus.mojo&lt;/groupId&gt;
+    &lt;artifactId&gt;aspectj-maven-plugin&lt;/artifactId&gt;
+    &lt;version&gt;1.5&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;aspectLibraries&gt;
+            &lt;aspectLibrary&gt;
+                &lt;groupId&gt;edu.brown.cs.systems&lt;/groupId&gt;
+                &lt;artifactId&gt;tracingplane-aspects&lt;/artifactId&gt;
+            &lt;/aspectLibrary&gt;
+        &lt;/aspectLibraries&gt;
+    &lt;/configuration&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;compile&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;configuration&gt;
+                &lt;source&gt;1.7&lt;/source&gt;
+                &lt;target&gt;1.7&lt;/target&gt;
+                &lt;complianceLevel&gt;1.7&lt;/complianceLevel&gt;
+                &lt;Xjoinpoints&gt;synchronization&lt;/Xjoinpoints&gt;
+                &lt;showWeaveInfo&gt;false&lt;/showWeaveInfo&gt;
+                &lt;verbose&gt;false&lt;/verbose&gt;
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre>
+<p>In addition to the automatic instrumentation aspects, other projects also supply aspects that can be automatically added to your system, including X-Trace, Retro, and Pivot Tracing.  See the example <a href="../../docs/pom.xml">pom.xml</a> for the full list of dependencies and aspect libraries.</p>
+<h3 id="automatically-modified-classes">Automatically modified classes</h3>
+<p><strong>Runnable</strong> Adds a <code>baggage</code> field to all Runnables.  When the runnable is created, the current thread's baggage is forked and saved in the baggage field.  When <code>run()</code> is called, the runnable's baggage is swapped with the active baggage.  When run ends, the runnable's baggage is swapped back to the baggage field, and the previously-active baggage is put back.</p>
+<p><strong>Callable</strong> Adds a <code>callable</code> field to all Callables.  When the callable is created, the current thread's baggage is forked and saved in the baggage field.  When <code>call()</code> is called, the callable's baggage is swapped with the active baggage.  When call ends, the callable's baggage is swapped back to the baggage field, and the previously-active baggage is put back.</p>
+<p><strong>Thread</strong> Adds a 'baggage' field to all Thread instances.  When the thread is created, the current thread's baggage is forked and saved in the baggage field.  When <code>run()</code> is called, the thread's baggage is started as the active baggage.  When run ends, the thread's active baggage is saved back into the baggage field.  After any other thread calls <code>join()</code> on the thread, it will also join the final baggage of the thread.</p>
+<p><strong>ExecutorService</strong> Wraps returned futures so that when <code>Future.get()</code> is called, it also joins the final baggage of the Runnable or Callable that was submitted to the ExecutorService.</p>
+<p><strong>CompletionService</strong> Wraps returned futures so that when <code>Future.get()</code> is called, it also joins the final baggage of the Runnable or Callable that was submitted to the CompletionService. </p>
+<p><strong>BlockingQueue</strong> When elements are added to the queue via <code>add</code>, <code>offer</code>, or <code>put</code>, the enqueueing thread's baggage will be forked.  When the element is dequeued via <code>take</code>, the dequeueing thread will join the element's baggage.  Unlike the other automatically modified classes, <code>BlockingQueue</code> is not instrumented by default -- it must be enabled by using the <code>@InstrumentQueues</code> and <code>@InstrumentedQueueElement</code> annotations as outlined below.</p>
+<h3 id="classes-modified-with-annotations">Classes modified with annotations</h3>
+<p><strong>@BaggageInheritanceDisabled</strong> All Runnables, Callables, and Threads are instrumented by default.  This might not be desirable for some instances.  Adding the <code>@BaggageInheritanceDisabled</code> annotation to select classes will prevent this behavior for those classes.</p>
+<p><strong>@InstrumentedQueueElement</strong> Any class can be given the <code>@InstrumentedQueueElement</code> annotation.  This will add a 'baggage' field to the class.</p>
+<p><strong>@InstrumentQueues</strong> Any class can be given the <code>@InstrumentQueues</code> annotation.  This will enable instances of <code>BlockingQueue</code> within the class to be instrumented with queue instrumentation.  Queues are not automatically instrumented unless they exist in a class that has this annotation.</p>
                 </section>
 
             </div>
