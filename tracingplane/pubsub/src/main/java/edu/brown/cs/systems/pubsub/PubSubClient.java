@@ -26,6 +26,7 @@ import com.google.protobuf.Parser;
 import com.typesafe.config.ConfigFactory;
 
 import edu.brown.cs.systems.pubsub.PubSubProtos.ControlMessage;
+import edu.brown.cs.systems.pubsub.PubSubProtos.StringMessage;
 import edu.brown.cs.systems.pubsub.io.TopicReader;
 import edu.brown.cs.systems.pubsub.io.TopicWriter;
 import edu.brown.cs.systems.pubsub.message.ProtobufMessage;
@@ -351,6 +352,17 @@ public class PubSubClient extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+    
+    /** A simple subscriber for dealing with strings */
+    public static abstract class SimpleSubscriber extends Subscriber<StringMessage> {
+
+        @Override
+        protected void OnMessage(StringMessage message) {
+            OnMessage(message.getMessage());
+        }
+        
+        protected abstract void OnMessage(String message);
     }
 
 }
