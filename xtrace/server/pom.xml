@@ -109,7 +109,7 @@
                             <mainClass>edu.brown.cs.systems.xtrace.server.XTraceServer</mainClass>
                             <id>backend</id>
                             <jvmSettings>
-                                <extraArgument>-Dlog4j.configuration=log4j-server.properties</extraArgument>
+                                <extraArgument>-Dlog4j.configuration=log4j-xtrace.properties</extraArgument>
                             </jvmSettings>
                         </program>
                     </programs>

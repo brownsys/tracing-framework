@@ -78,6 +78,9 @@
                         <program>
                             <mainClass>edu.brown.cs.systems.pubsub.tools.StandaloneServer</mainClass>
                             <id>server</id>
+                            <jvmSettings>
+                                <extraArgument>-Dlog4j.configuration=log4j-pubsub.properties</extraArgument>
+                            </jvmSettings>
                         </program>
                         <program>
                             <mainClass>edu.brown.cs.systems.pubsub.tools.PublishTool</mainClass>
