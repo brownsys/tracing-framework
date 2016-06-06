@@ -139,43 +139,135 @@ class MyLongRequest {
 
 ## 3. Merging Baggage ##
 
-Sometimes, a request that has branched into multiple concurrent executions then merges back into a single execution, for example, when a thread joins.  When this happens, there will be **multiple copies of baggage** from different branches of the exeuction.  More importantly, after the branches merge, we need the resulting baggage to contain all the contents of all the baggage from all branches!
-
-Consider the previous example again.  Now, the secondary thread rejoins again.  
+After request has branched into multiple concurrent executions, it often later merges back into a single execution, for example, when a thread joins.  When this happens, each branch of the joining execution will have its own baggage instance.  After joining, we expect the baggage contents to be merged.  For example, in the previous example, if the primary thread subsequently calls `Thread.join()`, then we want the baggage from the secondary thread to be merged back with the primary thread (⑩).  In order to do this, the secondary thread must also save its final baggage in a field accessible to the primary thread (⑪).  After the primary thread's call to Thread.join() returns, it must then merge the baggage (⑫).
 
 ```
 class MyLongRequest {
 
 	class SecondaryThread {
 		DetachedBaggage baggage;
-		DetachedBaggage endBaggage;
++		DetachedBaggage endBaggage;		// ⑪: after completion, the secondary thread stores its baggage in this field
 
 		@Override
 		public void run() {
 			Baggage.start(baggage);
 			...
-			endBaggage = Baggage.stop();
++			endBaggage = Baggage.stop();	// ⑩: remember final baggage for joining back with primary thread
 		}
 	}
 	
 	public void processRequest() {
 		...
 
-+		SecondaryThread second = new SecondaryThread();
-+		second.baggage = Baggage.fork();	// ⑦: first thread copies its current baggage
-+		second.start();
+		SecondaryThread second = new SecondaryThread();
+		second.baggage = Baggage.fork();
+		second.start();
 		...
+		...
++		second.join();
++		Baggage.join(second.endBaggage);	// ⑫: merge the secondary thread's baggage back in
 	}
 }
 ```
 
+## 4. Serializing Baggage ##
+
+When communication over the network occurs, it is usually necessary to propagate baggage over the network too.  DetachedBaggage has serialization methods to convert baggage into bytes for inclusion in the network.  When the network call is made, the baggage should be also sent over the network.  For example, if we respond to an RPC call with a message `MyRpcResponse`, we might choose to first write the baggage to the wire before then writing the response.  To do this, we would have to fork the current baggage (⑬) then write it to the wire (⑭).  We would also have to modify the corresponding code that receives the RpcResponse to read the baggage bytes (⑮) and join the baggage (⑯).
+
+```
+class NetworkUtils {
+	
+	public void sendResponse(SocketOutputStream out, MyRpcResponse response) {
++		byte[] baggageBytes = Baggage.fork().toByteArray();		// ⑬: fork and serialize baggage
++		out.write(baggageBytes.length);
++		out.write(baggageBytes);	// ⑭: write length-prefixed baggage to wire
+
+		byte[] responseBytes = response.serialize();
+		out.write(responseBytes.length);
+		out.write(responseBytes);
+	}
+
+	public MyRpcResponse recvResponse(SocketInputStream in) {
++		int baggageLength = in.read();
++		byte[] baggageBytes = IOUtils.readFully(baggageLength);		// ⑮: receive length-prefixed baggage from wire
++		Baggage.join(baggageBytes);		// ⑯: join the received baggage with the current baggage
+
+		int responseLength = in.read();
+		byte[] responseBytes = IOUtils.readFully(responseLength);
+		return MyRpcResponse.parseFrom(responseBytes);
+	}	
+}
+
+}
+```
+
+## 5. Protocol Buffers ##
+
+Many systems use Google's protocol buffers for reading and writing network messages.  One way to add baggage to network calls is to extend protocol buffers messages to add a field for Baggage bytes.  For example, in HDFS we extended the protocol buffers header message to optionally include baggage (⑰).  We also modified the appropriate places in the code where messages were [created](https://github.com/brownsys/hadoop/blob/7984801e05587a62e9033579abeb4cbe73c72c39/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/util/ProtoUtil.java#L182) for writing to the network (⑱) and [deserialized](https://github.com/brownsys/hadoop/blob/7984801e05587a62e9033579abeb4cbe73c72c39/hadoop-common-project/hadoop-common/src/main/java/org/apache/hadoop/ipc/Client.java#L298) after receiving from the network (⑲):
+
+```
+RpcHeader.proto:
+	message RpcRequestHeaderProto {
+		optional RpcKindProto rpcKind = 1;
+		optional OperationProto rpcOp = 2;
+		...
++		optional bytes baggage = 7; 	// ⑰: field to include baggage bytes
+	}
 
 
+ProtoUtil.java:
+	public class ProtoUtil {
+		public static RpcRequestHeaderProto makeRpcRequestHeader(RpcKind rpcKind, OperationProto operation, ...) {
+		    RpcRequestHeaderProto.Builder result = RpcRequestHeaderProto.newBuilder();
+		    result.setRpcKind(convert(rpcKind))
+		    result.setRpcOp(operation);
+		    ...
++		    result.setBaggage(Baggage.fork().toByteString());		// ⑱: include current baggage in RPC request
+
+		    return result.build();
+		  }
+	}
 
 
+Client.java:
+	public class Client {
 
+		void checkResponse(RpcResponseHeaderProto header) throws IOException {
+		    if (header == null) {
+		      throw new EOFException("Response is null.");
+		    }
+		    
++		    Baggage.start(header.getBaggage());		// ⑲: resume baggage included in RPC response
+		}
 
+	}
+```
 
+## 6. Automatic Instrumentation ##
+
+Instrumentation can often be done automatically if source code matches some common patterns.  For example, copying baggage to a new thread as outlined above is an obvious pattern to capture.  Patterns like this can be captured automatically using source-code rewriting tools like AspectJ.  We have included aspects that automatically instrument several common patterns.  In the [Auto-Baggage](../../tracingplane/aspects) section, we give more details on how to use these aspects.  The aspects capture the following patterns:
+
+### Automatically modified classes ###
+
+**Runnable** Adds a `baggage` field to all Runnables.  When the runnable is created, the current thread's baggage is forked and saved in the baggage field.  When `run()` is called, the runnable's baggage is swapped with the active baggage.  When run ends, the runnable's baggage is swapped back to the baggage field, and the previously-active baggage is put back.
+
+**Callable** Adds a `callable` field to all Callables.  When the callable is created, the current thread's baggage is forked and saved in the baggage field.  When `call()` is called, the callable's baggage is swapped with the active baggage.  When call ends, the callable's baggage is swapped back to the baggage field, and the previously-active baggage is put back.
+
+**Thread** Adds a 'baggage' field to all Thread instances.  When the thread is created, the current thread's baggage is forked and saved in the baggage field.  When `run()` is called, the thread's baggage is started as the active baggage.  When run ends, the thread's active baggage is saved back into the baggage field.  After any other thread calls `join()` on the thread, it will also join the final baggage of the thread.
+
+**ExecutorService** Wraps returned futures so that when `Future.get()` is called, it also joins the final baggage of the Runnable or Callable that was submitted to the ExecutorService.
+
+**CompletionService** Wraps returned futures so that when `Future.get()` is called, it also joins the final baggage of the Runnable or Callable that was submitted to the CompletionService. 
+
+**BlockingQueue** When elements are added to the queue via `add`, `offer`, or `put`, the enqueueing thread's baggage will be forked.  When the element is dequeued via `take`, the dequeueing thread will join the element's baggage.  Unlike the other automatically modified classes, `BlockingQueue` is not instrumented by default -- it must be enabled by using the `@InstrumentQueues` and `@InstrumentedQueueElement` annotations as outlined below.
+
+### Classes modified with annotations ###
+
+**@BaggageInheritanceDisabled** All Runnables, Callables, and Threads are instrumented by default.  This might not be desirable for some instances.  Adding the `@BaggageInheritanceDisabled` annotation to select classes will prevent this behavior for those classes.
+
+**@InstrumentedQueueElement** Any class can be given the `@InstrumentedQueueElement` annotation.  This will add a 'baggage' field to the class.
+
+**@InstrumentQueues** Any class can be given the `@InstrumentQueues` annotation.  This will enable instances of `BlockingQueue` within the class to be instrumented with queue instrumentation.  Queues are not automatically instrumented unless they exist in a class that has this annotation.
 
 
 
