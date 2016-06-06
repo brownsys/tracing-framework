@@ -49,45 +49,49 @@ public class TestBaggageWrappers extends TestCase {
 
     @Test
     public void testBaggageWrappers() {
-        TestLogger logger = new TestLogger();
-        BaggageWrappers.xtrace = logger;
+        /*
+         * Commented out this test, since we've decided not to log most baggage API calls due to overhead 
+         */
         
-        logger.check(0,0,0,0);
-        logger.log("hello");
-        logger.check(0,0,1,0);
-        
-        Baggage.start();
-        logger.check(0,0,2,0);
-        
-        Baggage.start((byte[]) null);
-        logger.check(0,0,3,0);
-        
-        Baggage.start((ByteString) null);
-        logger.check(0,0,4,0);
-        
-        Baggage.start((DetachedBaggage) null);
-        logger.check(0,0,5,0);
-        
-        Baggage.start("");
-        logger.check(0,0,6,0);
-        
-        Baggage.stop();
-        logger.check(0,0,7,0);
-        
-        Baggage.fork();
-        logger.check(0,0,8,0);
-        
-        Baggage.join((byte[]) null);
-        logger.check(0,0,9,0);
-        
-        Baggage.join((ByteString) null);
-        logger.check(0,0,10,0);
-        
-        Baggage.join((DetachedBaggage) null);
-        logger.check(0,0,11,0);
-        
-        Baggage.join("");
-        logger.check(0,0,12,0);
+//        TestLogger logger = new TestLogger();
+//        BaggageWrappers.xtrace = logger;
+//        
+//        logger.check(0,0,0,0);
+//        logger.log("hello");
+//        logger.check(0,0,1,0);
+//        
+//        Baggage.start();
+//        logger.check(0,0,2,0);
+//        
+//        Baggage.start((byte[]) null);
+//        logger.check(0,0,3,0);
+//        
+//        Baggage.start((ByteString) null);
+//        logger.check(0,0,4,0);
+//        
+//        Baggage.start((DetachedBaggage) null);
+//        logger.check(0,0,5,0);
+//        
+//        Baggage.start("");
+//        logger.check(0,0,6,0);
+//        
+//        Baggage.stop();
+//        logger.check(0,0,7,0);
+//        
+//        Baggage.fork();
+//        logger.check(0,0,8,0);
+//        
+//        Baggage.join((byte[]) null);
+//        logger.check(0,0,9,0);
+//        
+//        Baggage.join((ByteString) null);
+//        logger.check(0,0,10,0);
+//        
+//        Baggage.join((DetachedBaggage) null);
+//        logger.check(0,0,11,0);
+//        
+//        Baggage.join("");
+//        logger.check(0,0,12,0);
     }
     
 }
