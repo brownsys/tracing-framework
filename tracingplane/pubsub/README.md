@@ -1,20 +1,22 @@
-## PubSub
+# PubSub #
 
-This project is a simple pub-sub implementation with a single server using Java's NIO.  It is not too reliable, and not too robust, but it is simple.  We rolled our own pubsub system because we had poor experiences with heavyweight libraries like ZeroMQ and Akka, and because this is research code.
+This is a simple Java pub-sub server and client.  It is used by several of our projects (X-Trace, Retro, and Pivot Tracing) for communicating between distributed components.
 
-To run a standalone pub sub server, run the `server` executable in `target/appassembler/bin`.
+Our implementation is pretty simple, but has not undergone extensive testing, so we make no claims about it being robust.  We rolled our own due to poor experiences with more heavyweight libraries like ZeroMQ and Akka.
 
-Once a pub sub server is running, clients can send and receive messages using the static API in `edu.brown.cs.systems.pubsub`.
+## Running the PubSub server ##
 
-PubSub depends on protocol buffers, and provides convenience methods for sending and receiving protobuf messages.
+After building, the `server` executable in `target/appassembler/bin` will run a pubsub server:
 
-To send any protocol buffers message on a topic, invoke `PubSub.publish(String topic, Message message)`.  PubSub will internally serialize the method and send it to the pub sub server.  The server will forward the message to any clients that have subscribed to the specified topic.
+    tracingplane/pubsub/target/appassembler/bin/server
 
-To subscribe to messages on a topic, extend the class `PubSubClient.Subscriber<T extends Message>` to override the `OnMessage(T message)` method.  Then call `PubSub.subscribe(String topic, Subscriber subscriber)`.  PubSub will internally register with the pub sub server to subscribe to the topic.  When anyone publishes a message on that topic, the pub sub server will forward the message to this client, and the callback will be invoked with the deserialized message.
+You should see output similar to the following
 
-PubSub clients automatically attempt to reconnect to the server if they are unable to connect.  Any pending or partially sent messages will remain queued until the client reconnects, at which point they will be retransmitted.
+    11:30:33,053  INFO PubSubServer:59 - Creating server hostname 0.0.0.0, port 5563
 
-PubSub uses the following default configuration options:
+## Configuring the PubSub server ##
+
+The server can be configured to bind to a specific hostname and port.  It uses the typesafe config and supports the following configuration options:
 
 	pubsub {
 	  
@@ -29,4 +31,58 @@ PubSub uses the following default configuration options:
 	  }
 	    
 	}
+
+## Using PubSub from code ##
+
+Clients can send and receive pubsub messages.  Before running your code, make sure `pubsub.server.hostname` and `pubsub.server.port` are configured correctly (the default values will work if you are running locally).
+
+Clients can send and receive pubsub messages using the static PubSub API.  The following code will publish the message "Hello World!" on the topic "GreetingsTopic"
+
+    import edu.brown.cs.systems.pubsub.PubSub;
+
+    PubSub.publish("GreetingsTopic", "Hello World!");
+
+To receive messages published on topics, you must create an instance of `Subscriber` that overrides the `OnMessage` function.  If you are only publishing strings, then the `SimpleSubscriber` class will suffice.  The following code will subscribe to the "GreetingsTopic" topic and print to the command line whenever a message is received:
+
+    import edu.brown.cs.systems.pubsub.PubSub;
+    import edu.brown.cs.systems.pubsub.PubSubClient.SimpleSubscriber;
+    
+    PubSub.subscribe("GreetingsTopic", new SimpleSubscriber() {
+        @Override
+        protected void OnMessage(String message) {
+            System.out.println("Received: " + message);
+        }
+    });
+
+## Using PubSub with Protocol Buffers ##
+
+PubSub supports publishing and receiving arbitrary protocol buffers messages.  Suppose we have a protocol buffers message defined called `MyProtoBuf` and an instance of it, `myProtoInstance`.  The following code will publish the message on the topic "MyTopic":
+
+    import edu.brown.cs.systems.pubsub.PubSub;
+    import my.package.MyProtoBuf;
+
+    PubSub.publish("MyTopic", myProtoInstance);
+
+The following code will subscribe to the "MyTopic" topic and print to the command line whenever a message is received:
+
+    import edu.brown.cs.systems.pubsub.PubSub;
+    import edu.brown.cs.systems.pubsub.PubSubClient.Subscriber;
+    import my.package.MyProtoBuf;
+
+    PubSub.subscribe("MyTopic", new Subscriber<MyProtoBuf>() {
+        @Override
+        protected void OnMessage(MyProtoBuf message) {
+            System.out.println("Received: " + message);
+        }
+    });
+
+Using protocol buffers messages makes it easy to pass data structures around, but make sure that you do don't mix message types on the same topic.  If this happens, you will see errors printed to stderr, because of invalid deserialization.
+
+## PubSub Internals ##
+
+PubSub clients automatically attempt to reconnect to the server if they are unable to connect.  Any pending or partially sent messages will remain queued until the client reconnects, at which point they will be retransmitted.
+
+Messages are not buffered on the server.  A newly-connected client will not receive messages that were transmitted before the client connected.
+
+
 
