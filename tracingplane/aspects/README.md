@@ -45,7 +45,7 @@ To use the automatic instrumentation aspects, you must use AspectJ's compiler to
         </executions>
     </plugin>
 
-In addition to the automatic instrumentation aspects, other projects also supply aspects that can be automatically added to your system, including X-Trace, Retro, and Pivot Tracing.  See the example [pom.xml](../../docs/pom.xml) for the full list of dependencies and aspect libraries.
+In addition to the automatic instrumentation aspects, other projects also supply aspects that can be automatically added to your system, including X-Trace, Retro, and Pivot Tracing.  See the example [pom.xml](../../docs/pom) for the full list of dependencies and aspect libraries.
 
 ### Automatically modified classes ###
 
