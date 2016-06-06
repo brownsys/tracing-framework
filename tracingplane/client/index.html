@@ -4,21 +4,29 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Brownsys Tracing Framework Documentation</title>
+        <title>Brown Tracing Framework</title>
 
         <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/bootstrap.min.css">
         <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/font-awesome.min.css">
-        <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/highlight.dark.css">
+        <!-- <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/highlight.dark.css"> -->
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/googlecode.min.css">
+
         <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/main.css">
-            <link href="http://fonts.googleapis.com/css?family=Abel:400|Oswald:300,400,700" media="all" rel="stylesheet" type="text/css">
+        <link href="http://fonts.googleapis.com/css?family=Abel:400|Oswald:300,400,700" media="all" rel="stylesheet" type="text/css">
     </head>
     <body>
 
         <header class="navbar navbar-default navbar-fixed-top">
 
-            <a class="navbar-brand" href="http://brownsys.github.io/tracing-framework/">
-                Brownsys Tracing Framework Documentation
-                            </a>
+            <div class="navbar-title col-lg-10 col-lg-offset-1">
+                <a class="navbar-logo" href="http://brownsys.github.io/tracing-framework/">
+                                            <img src="http://brownsys.github.io/tracing-framework/docs/images/baggage.png"></img>
+                                    </a>
+
+                <a class="navbar-brand" href="http://brownsys.github.io/tracing-framework/">
+                    Brown Tracing Framework
+                                    </a>
+            </div>
 
                             <a href="https://github.com/brownsys/tracing-framework">
                     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
@@ -30,7 +38,7 @@
             <div class="row">
 
                 
-                    <nav id="sidebar" class="col-sm-4 col-lg-3" role="navigation">
+                    <nav id="sidebar" class="col-sm-4 col-lg-3 col-lg-offset-1" role="navigation">
 
                  <!--       <ul class="nav nav-pills nav-stacked">
                                                     </ul> -->
@@ -250,14 +258,68 @@
 
                 
 
-                <section id="content" class="col-sm-8 col-lg-9">
-                    <h2 id="tracingplane---baggage-client">TracingPlane - Baggage Client</h2>
-<p>The <code>tracingplane/client</code> project contains our reference implementation of Baggage.  Baggage is a generic container of key-value pairs designed to be propagated alongside requests as they execute in a system.  Each request &quot;owns&quot; a baggage.  When a request is running in a thread, its baggage resides in a thread local variable.  The static <code>BaggageContents</code> API provides methods to access the current request's baggage -- to put or get key-value pairs.</p>
-<p>The purpose of baggage is to provide a communication channel for request in a system, even if they traverse process, machine, or application boundaries.  Baggage is supposed to follow a request anywhere it goes.  If some k-v pair (x, y) is put in the baggage somewhere during a request's execution, then the k-v pair (x, y) will be accessible later in the request's execution.  It's like a different kind of thread local storage that persists across execution boundaries.</p>
-<p>In order to provide the abstraction of Baggage, some manual intervention is required on the part of a system developer: when a request's execution splits into multiple concurrent branches -- eg, if it starts a new thread -- the current baggage must be copied and passed to the new thread.  The concurrent branches of the execution now, logically, have their own Baggage instances, stored in their respective thread local storage.  The static <code>Baggage</code> API provides methods for creating a copy of the current baggage into a <code>DetachedBaggage</code> form that can be passed to a new thread.  Changes made to Baggage in one thread will <em>not</em> be seen by other threads, even if they are part of the same request.</p>
-<p>If multiple concurrent branches of an execution logically join -- eg, if Thread.join() is called -- then the baggage from the other thread should be copied back to the current thread and its contents merged back into the current thread's baggage.  The static <code>Baggage</code> API provides methods for doing this.</p>
-<p>When a request makes a call over the network, the current baggage must be serialized and included with the request (for example, in its headers), so that the when the receiver picks up the request, it can also deserialize the baggage and set it in the processing thread.  The <code>DetachedBaggage</code> provides serialization methods to do this.</p>
-<p>This project provides the static APIs for propagating baggage alongside a request during its execution, and for accessing its contents.  See <a href="docs/tutorials/baggage.html">Adding Baggage To Your System</a> and <a href="docs/tutorials/tracingapplication.html">Using Baggage Yourself</a> for tutorials on how to add Baggage to your system and how to use Baggage in an application.</p>
+                <section id="content" class="col-sm-8 col-lg-6">
+                    <h1 id="tracingplane---baggage-client">TracingPlane - Baggage Client</h1>
+<p>The <code>tracingplane/client</code> project contains our reference implementation of Baggage.  Baggage is a generic container of key-value pairs that is propagated alongside requests as they execute in a system.  </p>
+<p>Each request has its own baggage.  When a request is running in a thread, its baggage resides in a thread local variable.  At any point in time, key-value pairs can be added to the request's baggage, inspected, or removed.</p>
+<h2 id="baggage-overview">Baggage Overview</h2>
+<p>There are two considerations when using Baggage:</p>
+<p><strong>Instrumentation</strong> Your system must be <em>instrumented</em> to pass baggage around alongside requests as they runs.  This is a pre-requisite to using Baggage -- if your system is not instrumented, then your request will <em>leave behind</em> its key-value pairs when it crosses execution boundaries.  Worse, other requests will <em>find and pick up</em> key-value pairs that don't belong to them.  <a href="docs/tutorials/baggage.html">Adding Baggage To Your System</a> is a tutorial on how to instrument your system.</p>
+<p><strong>Exploitation</strong> Once your system is instrumented with Baggage, you can write your own monitoring, diagnosis, or more exotic systems that take advantage of Baggage.  You do this by putting key-value pairs into Baggage at one point in a request's execution, then later on (potentially on a different machine or in a different component), retrieving key-value pairs.  Baggage APIs are simple.  They are based on <em>sets</em> rather than single values.  <a href="docs/tutorials/tracingapplication.html">Using Baggage Yourself</a> is a tutorial which explains how to use the Baggage APIs and why they have a design based on sets.</p>
+<p>We have already instrumented several systems with Baggage, which means you can use them out-of-the-box without having to add instrumentation.  This includes HDFS, YARN, Tez, and Spark.</p>
+<p>Furthermore, we have several applications that you can use out-of-the-box once your system is instrumented with Baggage.  These include X-Trace, Retro, and Pivot Tracing.</p>
+<h2 id="interaction-api-baggagecontents">Interaction API: BaggageContents</h2>
+<p>The interaction API is a static API in <code>edu.brown.cs.systems.baggage.BaggageContents</code>.  </p>
+<p>Baggage is sub-divided into <em>namespaces</em>.  These are user-defined, and the goal is to make sure no two different applications accidentally conflict and try to store data under the same key.  For example, the key &quot;id&quot; is a generic, commonly-used key.</p>
+<p>The following code adds the key-value pair &quot;RequestType&quot;, &quot;WriteRow&quot; to the namespace &quot;MyNamespace&quot;:</p>
+<pre><code>import edu.brown.cs.systems.baggage.BaggageContents;
+
+BaggageContents.add("MyNamespace", "RequestType", "WriteRow");</code></pre>
+<p>Under the covers, Baggage is stored in a thread-local variable.  By default, all threads have an implicit empty baggage.  After making the previous API call, the calling thread's Baggage will now contain &quot;RequestType&quot;: &quot;WriteRow&quot; under the namespace &quot;MyNamespace&quot;.  From the same thread, we can retrieve the value by calling:</p>
+<pre><code>BaggageContents.get("MyNamespace", "RequestType");</code></pre>
+<p>This API call returns a <em>set</em> of values.  In this case, the only value in the set will be &quot;WriteRow&quot;.  If we make the following additional calls:</p>
+<pre><code>BaggageContents.add("MyNamespace", "RequestType", "ReadRow");
+BaggageContents.add("MyNamespace", "RequestType", "WriteRow");
+BaggageContents.add("MyNamespace", "RequestType", "WriteRow");</code></pre>
+<p>Then the returned set will contain &quot;ReadRow&quot; and &quot;WriteRow&quot; -- the duplicate additions of &quot;WriteRow&quot; will be ignored.</p>
+<p>Other methods include the following:</p>
+<ul>
+<li><code>removeAll</code> removes all key-value pairs under a namespace</li>
+<li><code>replace</code> replaces all values for a key</li>
+<li><code>keys</code> returns all keys under a namespace</li>
+<li><code>contains</code> tests the existence of a key</li>
+</ul>
+<h2 id="instrumentation-api-baggage">Instrumentation API: Baggage</h2>
+<p>The instrumentation API is a static API in <code>edu.brown.cs.systems.baggage.Baggage</code>.  It has the following API calls:</p>
+<pre><code>public static void Baggage.discard();</code></pre>
+<p>This method simply discards all of the contents of the current thread's baggage, effectively starting a new, empty baggage in the current thread.</p>
+<pre><code>public static DetachedBaggage Baggage.stop();</code></pre>
+<p>This method takes the contents of the current thread's baggage and saves them in the returned <code>DetachedBaggage</code> object.  After making this call, the current thread's baggage will be empty.  The thread's previous baggage contents are persisted in the <code>DetachedBaggage</code>.</p>
+<pre><code>public static DetachedBaggage Baggage.fork();</code></pre>
+<p>This method is like <code>Baggage.stop()</code>, but instead it creates and returns a copy of the current thread's baggage.  After making this call, the current thread's baggage will remain unchanged, and the returned DetachedBaggage is a copy that can be saved and used elsewhere.</p>
+<p>DetachedBaggage objects do <strong>not</strong> have an interaction API like BaggageContents.  You cannot add key-value pairs directly to DetachedBaggage instances.  <code>Baggage.stop()</code> never returns null; if a thread had no baggage contents, then a DetachedBaggage instance representing the empty baggage is returned.</p>
+<pre><code>public static byte[] DetachedBaggage.toByteArray();
+public static ByteString DetachedBaggage.toByteString();
+public static String DetachedBaggage.toStringBase64();</code></pre>
+<p>These member methods of the DetachedBaggage class encode an instance of DetachedBaggage into various byte or String representations.  There are similar static methods to decode DetachedBaggage from byte or string representations:</p>
+<pre><code>public static DetachedBaggage DetachedBaggage.deserialize(byte[]);
+public static DetachedBaggage DetachedBaggage.deserialize(ByteString);
+public static DetachedBaggage DetachedBaggage.decode(String);</code></pre>
+<p>These methods attempt to deserialize an instance of DetachedBaggage from a serialized / encoded representation.  If the provided bytes are null or invalid, the method call will return a DetachedBaggage instance representing the empty baggage.</p>
+<pre><code>public static void Baggage.start(DetachedBaggage);
+public static void Baggage.start(byte[]);
+public static void Baggage.start(ByteString);
+public static void Baggage.start(String);</code></pre>
+<p>These static methods reinstate in the current thread the DetachedBaggage provided as argument.  If byte or String representations are provided, an attempt is made to deserialize a DetachedBaggage instance from the provided bytes, equivalent to <code>Baggage.start(DetachedBaggage.deserialize(bytes))</code>.</p>
+<p>After this call returns, the current thread's baggage will contain exactly the contents of whatever the DetachedBaggage contained.  Thus, a call to <code>Baggage.stop()</code> followed by a later call to <code>Baggage.start()</code> are conceptually saving and then restoring Baggage.</p>
+<p>If the current thread had some baggage contents before making this call, then those contents are discarded.  If you wish to save the old contents for later, then the method <code>Baggage.swap()</code> should be used, which swaps out and returns the old contents.  If you wish to merge the old contents with the new contents, then the following <code>join</code> methods should be used:</p>
+<pre><code>public static void Baggage.join(DetachedBaggage);
+public static void Baggage.join(byte[]);
+public static void Baggage.join(ByteString);
+public static void Baggage.join(String);</code></pre>
+<p>These methods merge the calling thread's current baggage contents with the contents of the provided baggage.  After this call, the calling thread's baggage will contain both its contents from before the call, plus the new contents of the provided baggage.</p>
+<pre><code>public static DetachedBaggage DetachedBaggage.merge(DetachedBaggage, DetachedBaggage);</code></pre>
+<p>This method merges the contents of two DetachedBaggage instances into one.</p>
                 </section>
 
             </div>
@@ -265,7 +327,9 @@
 
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-        <script src="//yastatic.net/highlightjs/8.2/highlight.min.js"></script>
+        <!-- <script src="//yastatic.net/highlightjs/8.2/highlight.min.js"></script> -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+
 
         <script>
             $(function() {

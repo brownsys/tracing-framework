@@ -4,21 +4,29 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Brownsys Tracing Framework Documentation</title>
+        <title>Brown Tracing Framework</title>
 
         <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/bootstrap.min.css">
         <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/font-awesome.min.css">
-        <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/highlight.dark.css">
+        <!-- <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/highlight.dark.css"> -->
+        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/googlecode.min.css">
+
         <link rel="stylesheet" href="http://brownsys.github.io/tracing-framework/css/main.css">
-            <link href="http://fonts.googleapis.com/css?family=Abel:400|Oswald:300,400,700" media="all" rel="stylesheet" type="text/css">
+        <link href="http://fonts.googleapis.com/css?family=Abel:400|Oswald:300,400,700" media="all" rel="stylesheet" type="text/css">
     </head>
     <body>
 
         <header class="navbar navbar-default navbar-fixed-top">
 
-            <a class="navbar-brand" href="http://brownsys.github.io/tracing-framework/">
-                Brownsys Tracing Framework Documentation
-                            </a>
+            <div class="navbar-title col-lg-10 col-lg-offset-1">
+                <a class="navbar-logo" href="http://brownsys.github.io/tracing-framework/">
+                                            <img src="http://brownsys.github.io/tracing-framework/docs/images/baggage.png"></img>
+                                    </a>
+
+                <a class="navbar-brand" href="http://brownsys.github.io/tracing-framework/">
+                    Brown Tracing Framework
+                                    </a>
+            </div>
 
                             <a href="https://github.com/brownsys/tracing-framework">
                     <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png">
@@ -30,7 +38,7 @@
             <div class="row">
 
                 
-                    <nav id="sidebar" class="col-sm-4 col-lg-3" role="navigation">
+                    <nav id="sidebar" class="col-sm-4 col-lg-3 col-lg-offset-1" role="navigation">
 
                  <!--       <ul class="nav nav-pills nav-stacked">
                                                     </ul> -->
@@ -250,16 +258,17 @@
 
                 
 
-                <section id="content" class="col-sm-8 col-lg-9">
-                    <h2 id="pubsub">PubSub</h2>
-<p>This project is a simple pub-sub implementation with a single server using Java's NIO.  It is not too reliable, and not too robust, but it is simple.  We rolled our own pubsub system because we had poor experiences with heavyweight libraries like ZeroMQ and Akka, and because this is research code.</p>
-<p>To run a standalone pub sub server, run the <code>server</code> executable in <code>target/appassembler/bin</code>.</p>
-<p>Once a pub sub server is running, clients can send and receive messages using the static API in <code>edu.brown.cs.systems.pubsub</code>.</p>
-<p>PubSub depends on protocol buffers, and provides convenience methods for sending and receiving protobuf messages.</p>
-<p>To send any protocol buffers message on a topic, invoke <code>PubSub.publish(String topic, Message message)</code>.  PubSub will internally serialize the method and send it to the pub sub server.  The server will forward the message to any clients that have subscribed to the specified topic.</p>
-<p>To subscribe to messages on a topic, extend the class <code>PubSubClient.Subscriber&lt;T extends Message&gt;</code> to override the <code>OnMessage(T message)</code> method.  Then call <code>PubSub.subscribe(String topic, Subscriber subscriber)</code>.  PubSub will internally register with the pub sub server to subscribe to the topic.  When anyone publishes a message on that topic, the pub sub server will forward the message to this client, and the callback will be invoked with the deserialized message.</p>
-<p>PubSub clients automatically attempt to reconnect to the server if they are unable to connect.  Any pending or partially sent messages will remain queued until the client reconnects, at which point they will be retransmitted.</p>
-<p>PubSub uses the following default configuration options:</p>
+                <section id="content" class="col-sm-8 col-lg-6">
+                    <h1 id="pubsub">PubSub</h1>
+<p>This is a simple Java pub-sub server and client.  It is used by several of our projects (X-Trace, Retro, and Pivot Tracing) for communicating between distributed components.</p>
+<p>Our implementation is pretty simple, but has not undergone extensive testing, so we make no claims about it being robust.  We rolled our own due to poor experiences with more heavyweight libraries like ZeroMQ and Akka.</p>
+<h2 id="running-the-pubsub-server">Running the PubSub server</h2>
+<p>After building, the <code>server</code> executable in <code>target/appassembler/bin</code> will run a pubsub server:</p>
+<pre><code>tracingplane/pubsub/target/appassembler/bin/server</code></pre>
+<p>You should see output similar to the following</p>
+<pre><code>11:30:33,053  INFO PubSubServer:59 - Creating server hostname 0.0.0.0, port 5563</code></pre>
+<h2 id="configuring-the-pubsub-server">Configuring the PubSub server</h2>
+<p>The server can be configured to bind to a specific hostname and port.  It uses the typesafe config and supports the following configuration options:</p>
 <pre><code>pubsub {
 
   server {
@@ -273,6 +282,43 @@
   }
 
 }</code></pre>
+<h2 id="using-pubsub-from-code">Using PubSub from code</h2>
+<p>Clients can send and receive pubsub messages.  Before running your code, make sure <code>pubsub.server.hostname</code> and <code>pubsub.server.port</code> are configured correctly (the default values will work if you are running locally).</p>
+<p>Clients can send and receive pubsub messages using the static PubSub API.  The following code will publish the message &quot;Hello World!&quot; on the topic &quot;GreetingsTopic&quot;</p>
+<pre><code>import edu.brown.cs.systems.pubsub.PubSub;
+
+PubSub.publish("GreetingsTopic", "Hello World!");</code></pre>
+<p>To receive messages published on topics, you must create an instance of <code>Subscriber</code> that overrides the <code>OnMessage</code> function.  If you are only publishing strings, then the <code>SimpleSubscriber</code> class will suffice.  The following code will subscribe to the &quot;GreetingsTopic&quot; topic and print to the command line whenever a message is received:</p>
+<pre><code>import edu.brown.cs.systems.pubsub.PubSub;
+import edu.brown.cs.systems.pubsub.PubSubClient.SimpleSubscriber;
+
+PubSub.subscribe("GreetingsTopic", new SimpleSubscriber() {
+    @Override
+    protected void OnMessage(String message) {
+        System.out.println("Received: " + message);
+    }
+});</code></pre>
+<h2 id="using-pubsub-with-protocol-buffers">Using PubSub with Protocol Buffers</h2>
+<p>PubSub supports publishing and receiving arbitrary protocol buffers messages.  Suppose we have a protocol buffers message defined called <code>MyProtoBuf</code> and an instance of it, <code>myProtoInstance</code>.  The following code will publish the message on the topic &quot;MyTopic&quot;:</p>
+<pre><code>import edu.brown.cs.systems.pubsub.PubSub;
+import my.package.MyProtoBuf;
+
+PubSub.publish("MyTopic", myProtoInstance);</code></pre>
+<p>The following code will subscribe to the &quot;MyTopic&quot; topic and print to the command line whenever a message is received:</p>
+<pre><code>import edu.brown.cs.systems.pubsub.PubSub;
+import edu.brown.cs.systems.pubsub.PubSubClient.Subscriber;
+import my.package.MyProtoBuf;
+
+PubSub.subscribe("MyTopic", new Subscriber&lt;MyProtoBuf&gt;() {
+    @Override
+    protected void OnMessage(MyProtoBuf message) {
+        System.out.println("Received: " + message);
+    }
+});</code></pre>
+<p>Using protocol buffers messages makes it easy to pass data structures around, but make sure that you do don't mix message types on the same topic.  If this happens, you will see errors printed to stderr, because of invalid deserialization.</p>
+<h2 id="pubsub-internals">PubSub Internals</h2>
+<p>PubSub clients automatically attempt to reconnect to the server if they are unable to connect.  Any pending or partially sent messages will remain queued until the client reconnects, at which point they will be retransmitted.</p>
+<p>Messages are not buffered on the server.  A newly-connected client will not receive messages that were transmitted before the client connected.</p>
                 </section>
 
             </div>
@@ -280,7 +326,9 @@
 
         <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
-        <script src="//yastatic.net/highlightjs/8.2/highlight.min.js"></script>
+        <!-- <script src="//yastatic.net/highlightjs/8.2/highlight.min.js"></script> -->
+        <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+
 
         <script>
             $(function() {

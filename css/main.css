@@ -1,13 +1,38 @@
-html {
+html body {
+    font-size: 15px;    
+    /* font-weight: 200; */
+    line-height: 1.3 !important;
+
     position: relative;
     min-height: 100%;
-    font-family: 'Source Sans Pro',sans-serif !important;
+    /* font-family: 'Source Sans Pro',sans-serif !important; */
+    font-family: 'Open Sans','Helvetica Neue',Helvetica,Arial,sans-serif !important;
+    color: #242729 !important;
     -webkit-font-smoothing: antialiased;
+    letter-spacing: 0;
+
 }
-body {
-    font-size: 15px;    
-    font-weight: 200;
-    line-height: 1.5 !important;
+
+html .navbar {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+html .navbar .navbar-title {
+    border-bottom: 1px solid black;
+}
+
+.navbar-logo {
+    display: block;
+    float: left;
+    margin-left: 30px;
+    padding-right: 10px !important;
+    height: 100px;
+    line-height: 95px;
+}
+
+.navbar-logo > img {
+    width: 64px;
 }
 
 #content pre {
@@ -42,7 +67,7 @@ body {
 }
 
 #sidebar .sectionlink {
-    color: #666666;
+    color: #242729;
 }
 
 #sidebar .pagelink {
@@ -102,10 +127,12 @@ header.navbar {
     opacity: 0.9;
 }
 .navbar .navbar-brand {
-    font-size: 20px;
-    height: auto;
-    line-height: 20px;
+    font-size: 60px;
+    height: 100px;
+    line-height: 100px;
     margin-left: 20px;
+    padding: 0;
+    color: #242729 !important;
 }
 .navbar .navbar-brand small {
     font-size: 16px;
