@@ -302,7 +302,7 @@
         &lt;/execution&gt;
     &lt;/executions&gt;
 &lt;/plugin&gt;</code></pre>
-<p>In addition to the automatic instrumentation aspects, other projects also supply aspects that can be automatically added to your system, including X-Trace, Retro, and Pivot Tracing.  See the example <a href="../../docs/pom.xml">pom.xml</a> for the full list of dependencies and aspect libraries.</p>
+<p>In addition to the automatic instrumentation aspects, other projects also supply aspects that can be automatically added to your system, including X-Trace, Retro, and Pivot Tracing.  See the example <a href="../../docs/pom">pom.xml</a> for the full list of dependencies and aspect libraries.</p>
 <h3 id="automatically-modified-classes">Automatically modified classes</h3>
 <p><strong>Runnable</strong> Adds a <code>baggage</code> field to all Runnables.  When the runnable is created, the current thread's baggage is forked and saved in the baggage field.  When <code>run()</code> is called, the runnable's baggage is swapped with the active baggage.  When run ends, the runnable's baggage is swapped back to the baggage field, and the previously-active baggage is put back.</p>
 <p><strong>Callable</strong> Adds a <code>callable</code> field to all Callables.  When the callable is created, the current thread's baggage is forked and saved in the baggage field.  When <code>call()</code> is called, the callable's baggage is swapped with the active baggage.  When call ends, the callable's baggage is swapped back to the baggage field, and the previously-active baggage is put back.</p>
