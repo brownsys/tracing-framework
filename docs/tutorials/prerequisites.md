@@ -7,6 +7,8 @@ The tracing framework requires:
 * [Protocol Buffers 2.5](https://github.com/google/protobuf/releases/tag/v2.5.0)
 * [AspectJ](https://eclipse.org/aspectj/downloads.php)
 
+Alternatively, João Loff has put together a Docker container for Pivot Tracing which can be found [here](https://github.com/jfloff/pivot-tracing-docker).
+
 ## Java 7 - Windows
 
 1. Download and install the latest Java 1.7 JDK from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html). 

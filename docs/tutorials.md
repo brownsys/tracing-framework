@@ -2,6 +2,8 @@
 
 This section contains the following tutorials:
 
+**Docker** As an alternative to following this tutorial, João Loff has put together a Docker container for Pivot Tracing which can be found [here](https://github.com/jfloff/pivot-tracing-docker).
+
 **Pre-requisites** ([link](tutorials/prerequisites.html)) This optional section steps over installing pre-requisites.  If you already have these installed, you may skip this.
 The tracing framework requires Java 7, [Maven 3](https://maven.apache.org/download.cgi), [Protocol Buffers 2.5](https://github.com/google/protobuf/releases/tag/v2.5.0), [AspectJ](https://eclipse.org/aspectj/downloads.php).
 
