@@ -16,11 +16,13 @@ import edu.brown.cs.systems.xtrace.XTrace;
 import edu.brown.cs.systems.xtrace.logging.XTraceLogger;
 
 public enum Network {
-    Connect(Operation.CONNECT, "netconnect", LocalResources.getNetworkUplinkAggregator()), Read(Operation.READ, "netread", LocalResources
-            .getNetworkDownlinkAggregator()), Write(Operation.WRITE, "netwrite", LocalResources.getNetworkUplinkAggregator()), Flush(Operation.FLUSH,
-            "netflush", LocalResources.getNetworkUplinkAggregator()), Close(Operation.CLOSE, "netclose", LocalResources.getNetworkUplinkAggregator()), LoopbackRead(
-            Operation.READ, "loopback-read", LocalResources.getLoopbackDownlinkAggregator()), LoopbackWrite(Operation.WRITE, "loopback-write", LocalResources
-            .getLoopbackUplinkAggregator());
+    Connect(Operation.CONNECT, "netconnect", LocalResources.getNetworkUplinkAggregator()),
+    Read(Operation.READ, "netread", LocalResources.getNetworkDownlinkAggregator()), 
+    Write(Operation.WRITE, "netwrite", LocalResources.getNetworkUplinkAggregator()), 
+    Flush(Operation.FLUSH, "netflush", LocalResources.getNetworkUplinkAggregator()), 
+    Close(Operation.CLOSE, "netclose", LocalResources.getNetworkUplinkAggregator()), 
+    LoopbackRead(Operation.READ, "loopback-read", LocalResources.getLoopbackDownlinkAggregator()), 
+    LoopbackWrite(Operation.WRITE, "loopback-write", LocalResources.getLoopbackUplinkAggregator());
 
     public static boolean isLoopback(InetAddress addr) {
         if (addr == null)
@@ -119,7 +121,8 @@ public enum Network {
             aggregator.finished(op, Retro.getTenant(), bytes, latency);
         if (xtrace.valid())
             if (bytes > 0)
-                xtrace.log(jp, opname, "Operation", opname, "Duration", latency, "Bytes", bytes, "Connection", connection);
+                xtrace.log(jp, opname, "Operation", opname, "Duration", latency, "Bytes", bytes, "Connection",
+                        connection);
             else
                 xtrace.log(jp, opname, "Operation", opname, "Duration", latency, "Connection", connection);
     }
