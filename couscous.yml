@@ -9,7 +9,8 @@ github:
     user: brownsys
     repo: tracing-framework
 
-title: Brownsys Tracing Framework Documentation
+title: Brown Tracing Framework
+logo: docs/images/baggage.png
 
 menu:
   sections:
