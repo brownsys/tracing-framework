@@ -72,7 +72,7 @@ public class BaggageContents {
      * @param key The key to look up
      * @param value */
     public static void add(String namespace, String key, String value) {
-        if (namespace != null || key != null || value != null) {
+        if (namespace != null && key != null && value != null) {
             add(ByteString.copyFromUtf8(namespace), ByteString.copyFromUtf8(key), ByteString.copyFromUtf8(value));
         }
     }
