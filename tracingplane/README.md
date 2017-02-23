@@ -1,3 +1,9 @@
+# Recent Project Updates!
+
+Note: in the context of the Brown Tracing Framework, this subproject provides metadata propagation and utilities.
+However, a more recent project out of Brown is working towards generalizing this tracing plane concept in a principled way.  See https://github.com/JonathanMace/tracingplane for more information on this project!
+
+
 ### Tracing Plane
 
 http://brownsys.github.io/tracing-framework/tracingplane
