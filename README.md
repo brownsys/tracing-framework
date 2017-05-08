@@ -2,7 +2,7 @@
 
 Welcome to the Brown University Tracing Framework repository.  This repository contains multiple projects from the Brown University systems research group, such as X-Trace, Retro, and Pivot Tracing.
 
-Full documentation is available at https://brownsys.github.io/tracing-framework
+Full documentation is available at http://brownsys.github.io/tracing-framework
 
 #### Getting Started
 
@@ -13,6 +13,8 @@ Head over to the [tutorials](http://brownsys.github.io/tracing-framework/docs/tu
 The tracing framework comprises four main projects:
 
 **Tracing Plane** is the underlying instrumentation library that the other projects are built on.  The Tracing Plane provides a generic end-to-end metadata propagation primitive called *Baggage*, that lets you dynamically propagate key-value pairs along the execution path of a request.  Baggage provides a primitive similar to thread local variables, but instead at the granularity of a request, as it traverses process, machine, and application boundaries.
+
+Note: the Baggage implementation in this library is **not** the most recent implementation -- see https://github.com/JonathanMace/tracingplane for current work.
 
 **Pivot Tracing** is a dynamic monitoring framework for distributed systems.  Users can write high-level monitoring queries that are compiled down into instrumentation and automatically installed into live, running systems.  Pivot Tracing uses the Tracing Plane's Baggage primitive for correlating statistics from multiple places in the system.
 
