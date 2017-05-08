@@ -1,5 +1,7 @@
 # TracingPlane - Baggage Client
 
+Note: this Baggage implementation works, but is **not** the most up to date work on Baggage -- for that, see https://github.com/JonathanMace/tracingplane
+
 The `tracingplane/client` project contains our reference implementation of Baggage.  Baggage is a generic container of key-value pairs that is propagated alongside requests as they execute in a system.  
 
 Each request has its own baggage.  When a request is running in a thread, its baggage resides in a thread local variable.  At any point in time, key-value pairs can be added to the request's baggage, inspected, or removed.
