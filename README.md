@@ -30,6 +30,10 @@ These projects are all instrumentation libraries.  They are intended for use wit
 * [Hadoop MapReduce 2.7.2](https://github.com/brownsys/hadoop/tree/brownsys-pivottracing-2.7.2)
 * HBase (*coming soon*)
 
+#### Funding
+
+This project is partially funded from a generous grant from the National Science Foundation, NSF CNS 1452712, "CAREER: Understanding the Performance of Distributed Systems through Causal Tracing".
+
 [Note: we are currently porting instrumentation for these systems to the latest versions for release.  Check back soon]
 
 *Note: This documentation is a work in progress.  For questions, please use the [pivot-tracing-users](https://groups.google.com/forum/#!forum/pivot-tracing-users) Google group.*
