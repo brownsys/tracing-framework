@@ -29,7 +29,7 @@
         <jsonsmart.version>2.2</jsonsmart.version>
         <aspectj.version>1.8.7</aspectj.version>
         <javassist.version>3.18.1-GA</javassist.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
         <commons.logging.version>1.1</commons.logging.version>
         <scala.version>2.10.5</scala.version>
 
